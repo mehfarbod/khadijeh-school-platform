@@ -1,16 +1,1 @@
-{
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/admin/AdminAnnouncements": "pages/admin/AdminAnnouncements.js",
-  "/admin/AdminBirthdays": "pages/admin/AdminBirthdays.js",
-  "/admin/AdminCourses": "pages/admin/AdminCourses.js",
-  "/admin/AdminMessages": "pages/admin/AdminMessages.js",
-  "/admin/AdminNews": "pages/admin/AdminNews.js",
-  "/admin/AdminEvents": "pages/admin/AdminEvents.js",
-  "/admin/AdminOverview": "pages/admin/AdminOverview.js",
-  "/admin/AdminRegistrations": "pages/admin/AdminRegistrations.js",
-  "/admin/AdminStaff": "pages/admin/AdminStaff.js",
-  "/admin/AdminStudents": "pages/admin/AdminStudents.js",
-  "/admin/AdminTopStudents": "pages/admin/AdminTopStudents.js",
-  "/_document": "pages/_document.js"
-}
+{}
