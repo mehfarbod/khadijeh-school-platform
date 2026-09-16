@@ -1,7 +1,9 @@
+"use client";
+
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Link } from "react-router";
-import { ArrowLeft, Users, Clock, BookOpen } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Users, BookOpen } from "lucide-react";
 
 export default function CoursesCTA() {
   const courses = useQuery(api.courses.list, {});
@@ -21,7 +23,7 @@ export default function CoursesCTA() {
             </h2>
           </div>
           <Link
-            to="/courses"
+            href="/courses"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
           >
             مشاهده همه
@@ -55,7 +57,6 @@ export default function CoursesCTA() {
                   {course.description}
                 </p>
 
-                {/* Capacity bar */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                     <span className="flex items-center gap-1">
@@ -72,7 +73,6 @@ export default function CoursesCTA() {
                   </div>
                 </div>
 
-                {/* Status */}
                 <span
                   className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
                     isFull

@@ -1,4 +1,6 @@
-import { Link } from "react-router";
+"use client";
+
+import Link from "next/link";
 import {
   BookOpen, Bell, Calendar, FileText,
   Clock, Newspaper, Phone,
@@ -22,7 +24,7 @@ export default function QuickAccess() {
           {items.map((item) => (
             <Link
               key={item.href}
-              to={item.href}
+              href={item.href}
               className="group flex flex-col items-center gap-2.5 rounded-xl border border-border/60 bg-card p-4 text-center transition-all hover:border-border hover:shadow-sm"
             >
               <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${item.color} transition-transform group-hover:scale-105`}>

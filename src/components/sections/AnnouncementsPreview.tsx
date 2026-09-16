@@ -1,6 +1,8 @@
+"use client";
+
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Link } from "react-router";
+import Link from "next/link";
 import { Pin, ArrowLeft, Bell } from "lucide-react";
 import { toPersianNumber } from "@/lib/persian";
 
@@ -37,7 +39,7 @@ export default function AnnouncementsPreview() {
             </h2>
           </div>
           <Link
-            to="/announcements"
+            href="/announcements"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
           >
             مشاهده همه

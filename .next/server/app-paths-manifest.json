@@ -1,0 +1,18 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/auth/page": "app/auth/page.js",
+  "/teachers/page": "app/teachers/page.js",
+  "/students/page": "app/students/page.js",
+  "/admin/messages/page": "app/admin/messages/page.js",
+  "/admin/birthdays/page": "app/admin/birthdays/page.js",
+  "/admin/announcements/page": "app/admin/announcements/page.js",
+  "/admin/courses/page": "app/admin/courses/page.js",
+  "/admin/events/page": "app/admin/events/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/admin/students/page": "app/admin/students/page.js",
+  "/admin/news/page": "app/admin/news/page.js",
+  "/admin/registrations/page": "app/admin/registrations/page.js",
+  "/admin/top-students/page": "app/admin/top-students/page.js",
+  "/admin/staff/page": "app/admin/staff/page.js"
+}

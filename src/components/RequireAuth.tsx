@@ -1,13 +1,22 @@
+"use client";
+
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
 
-export function RequireAuth({ children }: { children: ReactNode }) {
+export default function RequireAuth({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated } = useAuth();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname() ?? "/";
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push(`/auth?returnTo=${encodeURIComponent(pathname)}`);
+    }
+  }, [isLoading, isAuthenticated, router, pathname]);
+
+  if (isLoading || !isAuthenticated) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -15,15 +24,5 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
-    const returnTo = `${location.pathname}${location.search}`;
-    return (
-      <Navigate
-        to={`/auth?returnTo=${encodeURIComponent(returnTo)}`}
-        replace
-      />
-    );
-  }
-
-  return children;
+  return <>{children}</>;
 }

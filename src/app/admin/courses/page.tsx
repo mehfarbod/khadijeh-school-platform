@@ -1,0 +1,3 @@
+import AdminCourses from "@/pages/admin/AdminCourses";
+export const metadata = { title: "دوره‌ها | پنل مدیریت" };
+export default function AdminCoursesPage() { return <AdminCourses />; }

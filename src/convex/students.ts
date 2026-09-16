@@ -4,14 +4,14 @@ import { v } from "convex/values";
 export const list = query({
   args: { grade: v.optional(v.string()), activeOnly: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
-    let q = ctx.db.query("students").fullTableScan();
+    let studentsQuery = ctx.db.query("students").fullTableScan();
     if (args.activeOnly !== false) {
-      q = q.filter((q) => q.eq(q.field("isActive"), true));
+      studentsQuery = studentsQuery.filter((q) => q.eq(q.field("isActive"), true));
     }
     if (args.grade) {
-      q = q.filter((q) => q.eq(q.field("grade"), args.grade!));
+      studentsQuery = studentsQuery.filter((q) => q.eq(q.field("grade"), args.grade!));
     }
-    return await q.collect();
+    return await studentsQuery.collect();
   },
 });
 

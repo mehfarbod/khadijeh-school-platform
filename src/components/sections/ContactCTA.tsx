@@ -1,4 +1,6 @@
-import { Link } from "react-router";
+"use client";
+
+import Link from "next/link";
 import { Phone, Mail, MapPin, ArrowLeft } from "lucide-react";
 
 export default function ContactCTA() {
@@ -17,7 +19,7 @@ export default function ContactCTA() {
               کارشناسان ما آماده پاسخگویی به سوالات شما درباره ثبت‌نام، دوره‌ها و فعالیت‌های مدرسه هستند.
             </p>
             <Link
-              to="/contact"
+              href="/contact"
               className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-white/90"
             >
               تماس با مدرسه
@@ -48,4 +50,3 @@ export default function ContactCTA() {
     </section>
   );
 }
-

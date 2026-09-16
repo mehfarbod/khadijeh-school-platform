@@ -1,16 +1,16 @@
-import { Link } from "react-router";
+"use client";
+
+import Link from "next/link";
 import { ArrowLeft, GraduationCap, Users, Award } from "lucide-react";
 
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-navy text-white">
-      {/* Subtle geometric pattern */}
       <div className="absolute inset-0 geo-pattern opacity-30" />
       <div className="absolute inset-0 bg-gradient-to-b from-navy/90 to-navy" />
 
       <div className="relative mx-auto max-w-6xl px-4 lg:px-8 py-16 md:py-24">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Text */}
           <div className="text-center lg:text-right">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 mb-6 text-xs font-medium text-white/80">
               <GraduationCap className="h-3.5 w-3.5" />
@@ -30,14 +30,14 @@ export default function Hero() {
 
             <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
               <Link
-                to="/courses"
+                href="/courses"
                 className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-white/90"
               >
                 مشاهده دوره‌ها و ثبت‌نام
                 <ArrowLeft className="h-4 w-4" />
               </Link>
               <Link
-                to="/about"
+                href="/about"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-6 py-3 text-sm font-medium text-white/90 transition-colors hover:bg-white/10"
               >
                 آشنایی با مدرسه
@@ -45,7 +45,6 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 gap-4">
             {[
               { icon: GraduationCap, label: "دانش‌آموز فعال", value: "+۳۵۰" },

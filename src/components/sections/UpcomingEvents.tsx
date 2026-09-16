@@ -1,7 +1,9 @@
+"use client";
+
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Link } from "react-router";
-import { Calendar, MapPin, Clock, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Clock, ArrowLeft } from "lucide-react";
 import { formatDateShort, toPersianNumber } from "@/lib/persian";
 
 export default function UpcomingEvents() {
@@ -37,7 +39,7 @@ export default function UpcomingEvents() {
             </h2>
           </div>
           <Link
-            to="/events"
+            href="/events"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
           >
             مشاهده همه

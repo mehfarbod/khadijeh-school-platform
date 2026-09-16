@@ -1,10 +1,13 @@
+"use client";
+
 import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   Newspaper, Calendar, Bell, Trophy, Cake,
-  Settings, LogOut, ChevronLeft, Menu, X, Phone,
+  LogOut, ChevronLeft, Menu, X, Phone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,15 +27,14 @@ const sidebarItems = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
+  const pathname = usePathname() ?? "/admin";
   const { user, signOut } = useAuth();
 
   const isActive = (href: string) =>
-    href === "/admin" ? location.pathname === "/admin" : location.pathname.startsWith(href);
+    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -40,7 +42,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed inset-y-0 right-0 z-50 w-64 border-l border-border/60 bg-card transition-transform lg:translate-x-0 lg:static",
@@ -48,9 +49,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         )}
       >
         <div className="flex h-full flex-col">
-          {/* Logo */}
           <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
-            <Link to="/admin" className="flex items-center gap-2">
+            <Link href="/admin" className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
                 خ
               </div>
@@ -64,12 +64,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
 
-          {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
             {sidebarItems.map((item) => (
               <Link
                 key={item.href}
-                to={item.href}
+                href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
@@ -84,7 +83,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          {/* User */}
           <div className="border-t border-border/60 p-3">
             <div className="flex items-center gap-2 mb-2 px-3">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
@@ -106,9 +104,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 min-w-0">
-        {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/60 bg-background/95 backdrop-blur-sm px-4 lg:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -118,7 +114,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </button>
           <div className="flex-1" />
           <Link
-            to="/"
+            href="/"
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             مشاهده سایت
@@ -126,7 +122,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </Link>
         </header>
 
-        {/* Page content */}
         <div className="p-4 lg:p-6">{children}</div>
       </div>
     </div>

@@ -1,4 +1,6 @@
-import { Link } from "react-router";
+"use client";
+
+import Link from "next/link";
 import { ArrowLeft, BookOpen, Heart, Lightbulb, Shield } from "lucide-react";
 
 export default function SchoolIntro() {
@@ -6,7 +8,6 @@ export default function SchoolIntro() {
     <section className="py-16 md:py-20 bg-muted/30">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          {/* Text */}
           <div>
             <p className="text-xs font-semibold text-rose uppercase tracking-wider mb-3">
               درباره مدرسه
@@ -35,7 +36,7 @@ export default function SchoolIntro() {
             </div>
 
             <Link
-              to="/about"
+              href="/about"
               className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
             >
               مطالعه بیشتر درباره مدرسه
@@ -43,7 +44,6 @@ export default function SchoolIntro() {
             </Link>
           </div>
 
-          {/* Visual */}
           <div className="relative">
             <div className="rounded-2xl border border-border/60 bg-card p-8">
               <div className="grid grid-cols-2 gap-4">

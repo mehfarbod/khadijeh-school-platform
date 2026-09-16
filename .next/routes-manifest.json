@@ -1,0 +1,203 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminAnnouncements",
+      "regex": "^/admin/AdminAnnouncements(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminAnnouncements(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminBirthdays",
+      "regex": "^/admin/AdminBirthdays(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminBirthdays(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminCourses",
+      "regex": "^/admin/AdminCourses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminCourses(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminEvents",
+      "regex": "^/admin/AdminEvents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminEvents(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminMessages",
+      "regex": "^/admin/AdminMessages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminMessages(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminNews",
+      "regex": "^/admin/AdminNews(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminNews(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminOverview",
+      "regex": "^/admin/AdminOverview(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminOverview(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminRegistrations",
+      "regex": "^/admin/AdminRegistrations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminRegistrations(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminStaff",
+      "regex": "^/admin/AdminStaff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminStaff(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminStudents",
+      "regex": "^/admin/AdminStudents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminStudents(?:/)?$"
+    },
+    {
+      "page": "/admin/AdminTopStudents",
+      "regex": "^/admin/AdminTopStudents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/AdminTopStudents(?:/)?$"
+    },
+    {
+      "page": "/admin/announcements",
+      "regex": "^/admin/announcements(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/announcements(?:/)?$"
+    },
+    {
+      "page": "/admin/birthdays",
+      "regex": "^/admin/birthdays(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/birthdays(?:/)?$"
+    },
+    {
+      "page": "/admin/courses",
+      "regex": "^/admin/courses(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/courses(?:/)?$"
+    },
+    {
+      "page": "/admin/events",
+      "regex": "^/admin/events(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/events(?:/)?$"
+    },
+    {
+      "page": "/admin/messages",
+      "regex": "^/admin/messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/messages(?:/)?$"
+    },
+    {
+      "page": "/admin/news",
+      "regex": "^/admin/news(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/news(?:/)?$"
+    },
+    {
+      "page": "/admin/registrations",
+      "regex": "^/admin/registrations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/registrations(?:/)?$"
+    },
+    {
+      "page": "/admin/staff",
+      "regex": "^/admin/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/staff(?:/)?$"
+    },
+    {
+      "page": "/admin/students",
+      "regex": "^/admin/students(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/students(?:/)?$"
+    },
+    {
+      "page": "/admin/top-students",
+      "regex": "^/admin/top\\-students(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/top\\-students(?:/)?$"
+    },
+    {
+      "page": "/auth",
+      "regex": "^/auth(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth(?:/)?$"
+    },
+    {
+      "page": "/students",
+      "regex": "^/students(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/students(?:/)?$"
+    },
+    {
+      "page": "/teachers",
+      "regex": "^/teachers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/teachers(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
