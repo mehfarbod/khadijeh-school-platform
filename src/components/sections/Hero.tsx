@@ -1,67 +1,107 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, GraduationCap, Users, Award } from "lucide-react";
+import {
+  ArrowLeft,
+  GraduationCap,
+  Users,
+  Award,
+} from "lucide-react";
+
+const stats = [
+  {
+    icon: Users,
+    value: "+۳۵۰",
+    label: "دانش‌آموز",
+  },
+  {
+    icon: GraduationCap,
+    value: "+۲۵",
+    label: "کادر آموزشی",
+  },
+  {
+    icon: Award,
+    value: "۱۵+",
+    label: "سال سابقه",
+  },
+];
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-navy text-white">
-      <div className="absolute inset-0 geo-pattern opacity-30" />
-      <div className="absolute inset-0 bg-gradient-to-b from-navy/90 to-navy" />
+    <section className="relative overflow-hidden bg-[#194342] text-white">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full border border-white/10" />
+        <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full border border-white/[0.06]" />
 
-      <div className="relative mx-auto max-w-6xl px-4 lg:px-8 py-16 md:py-24">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="text-center lg:text-right">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 mb-6 text-xs font-medium text-white/80">
-              <GraduationCap className="h-3.5 w-3.5" />
-              سال تحصیلی ۱۴۰۵-۱۴۰۴
-            </div>
+        <div className="absolute -bottom-40 -left-32 h-80 w-80 rounded-full border border-[#DBE7C1]/10" />
+      </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4">
-              دبیرستان دخترانه
-              <br />
-              <span className="text-gold">شاهد حضرت خدیجه (ص)</span>
-            </h1>
+      <div className="relative mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:py-10 lg:px-12 lg:py-12">
+        <div className="mx-auto max-w-4xl text-center">
 
-            <p className="text-base md:text-lg text-white/70 max-w-lg mx-auto lg:mx-0 lg:mr-0 leading-relaxed mb-8">
-              محیطی امن و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان.
-              تربیت نسلی متعهد، خلاق و مستقل.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-white/90"
-              >
-                مشاهده دوره‌ها و ثبت‌نام
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/20 px-6 py-3 text-sm font-medium text-white/90 transition-colors hover:bg-white/10"
-              >
-                آشنایی با مدرسه
-              </Link>
-            </div>
+          {/* Badge */}
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1 text-[11px] font-medium text-white/75">
+            <GraduationCap className="h-3.5 w-3.5 text-[#DBE7C1]" />
+            <span>سال تحصیلی ۱۴۰۵–۱۴۰۶</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { icon: GraduationCap, label: "دانش‌آموز فعال", value: "+۳۵۰" },
-              { icon: Users, label: "کادر آموزشی", value: "+۲۵" },
-              { icon: Award, label: "سال سابقه", value: "۱۵+" },
-              { icon: GraduationCap, label: "فارغ‌التحصیل موفق", value: "+۲۰۰۰" },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-white/10 bg-white/5 p-5 text-center backdrop-blur-sm"
-              >
-                <stat.icon className="h-6 w-6 mx-auto mb-2 text-gold" />
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-white/60 mt-1">{stat.label}</p>
-              </div>
-            ))}
+          {/* Title */}
+          <h1 className="text-3xl font-extrabold leading-[1.35] tracking-tight sm:text-4xl lg:text-5xl">
+            دبیرستان دخترانه
+            <span className="mt-0.5 block text-[#DBE7C1]">
+              شاهد حضرت خدیجه (س)
+            </span>
+          </h1>
+
+          {/* Description */}
+          <p className="mx-auto mt-3 max-w-2xl text-xs leading-7 text-white/65 sm:text-sm lg:text-base">
+            محیطی امن، پویا و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه
+            دانش‌آموزان؛ جایی برای یادگیری، تجربه و ساختن آینده‌ای روشن.
+          </p>
+
+          {/* Actions */}
+          <div className="mt-5 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
+            <Link
+              href="/pre-registration"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#DBE7C1] px-5 text-xs font-bold text-[#194342] transition-all hover:-translate-y-0.5 hover:bg-white sm:text-sm"
+            >
+              پیش‌ثبت‌نام مدرسه
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </Link>
+
+            <Link
+              href="/courses"
+            className="inline-flex h-10 items-center justify-center rounded-lg bg-[#B86F5B] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#B86F5B]/90 sm:text-sm"
+            >
+              مشاهده دوره‌ها
+            </Link>
           </div>
+
+          {/* Stats */}
+          <div className="mx-auto mt-5 grid max-w-lg grid-cols-3 border-t border-white/10 pt-3.5">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <div
+                  key={stat.label}
+                  className="flex flex-col items-center gap-0.5 border-l border-white/10 px-2 text-center first:border-l-0"
+                >
+                  <Icon className="mb-0.5 h-3.5 w-3.5 text-[#BFD7EA]" />
+
+                  <span className="text-base font-bold text-white sm:text-lg">
+                    {stat.value}
+                  </span>
+
+                  <span className="text-[10px] text-white/45 sm:text-[11px]">
+                    {stat.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
         </div>
       </div>
     </section>

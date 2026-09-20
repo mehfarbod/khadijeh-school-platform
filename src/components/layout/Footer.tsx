@@ -5,7 +5,7 @@ import { Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border/60 bg-muted/30">
+   <footer className="border-t border-[#E1E8D6] bg-[#F1F5E8]">
       <div className="mx-auto max-w-6xl px-4 lg:px-8 py-12">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
@@ -14,7 +14,7 @@ export default function Footer() {
                 خ
               </div>
               <p className="text-sm font-bold text-foreground leading-tight">
-                دبیرستان شاهد حضرت خدیجه (ص)
+                دبیرستان شاهد حضرت خدیجه (س)
               </p>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">

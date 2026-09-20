@@ -3,47 +3,82 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, ArrowLeft } from "lucide-react";
 
+const contactItems = [
+  {
+    icon: Phone,
+    label: "تلفن",
+    value: "۰۲۱-۸۸۷۷۶۶۵۵",
+  },
+  {
+    icon: Mail,
+    label: "ایمیل",
+    value: "info@khadijeh-school.ir",
+  },
+  {
+    icon: MapPin,
+    label: "آدرس",
+    value: "قم، نیروگاه، 20 متری زاد",
+  },
+];
+
 export default function ContactCTA() {
   return (
-    <section className="py-12 md:py-16 bg-navy text-white">
-      <div className="mx-auto max-w-6xl px-4 lg:px-8">
-        <div className="grid items-center gap-8 md:grid-cols-2">
+    <section className="bg-[#194342] px-6 py-14 text-white md:py-16">
+      <div className="mx-auto max-w-screen-xl">
+        <div className="grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          {/* Content */}
           <div>
-            <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-3">
+            <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-[#DBE7C1]">
               ارتباط با ما
             </p>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+
+            <h2 className="mb-4 text-[22px] font-bold leading-[1.5] md:text-[26px]">
               سوالی دارید؟ با ما در تماس باشید
             </h2>
-            <p className="text-sm text-white/70 leading-relaxed mb-6">
-              کارشناسان ما آماده پاسخگویی به سوالات شما درباره ثبت‌نام، دوره‌ها و فعالیت‌های مدرسه هستند.
+
+            <p className="mb-6 max-w-[520px] text-[13px] leading-[1.9] text-white/70">
+              برای ارتباط با مدرسه، دریافت اطلاعات و هماهنگی مراجعه، می‌توانید
+              از راه‌های زیر با ما در تماس باشید.
             </p>
+
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-white/90"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-[#B86F5B] px-[18px] py-2.5 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[#A45F4D]"
             >
-              تماس با مدرسه
-              <ArrowLeft className="h-4 w-4" />
+              <span>تماس با مدرسه</span>
+              <ArrowLeft className="h-[14px] w-[14px]" strokeWidth={1.7} />
             </Link>
           </div>
 
+          {/* Contact information */}
           <div className="grid gap-3">
-            {[
-              { icon: Phone, label: "تلفن", value: "۰۲۱-۸۸۷۷۶۶۵۵" },
-              { icon: Mail, label: "ایمیل", value: "info@khadijeh-school.ir" },
-              { icon: MapPin, label: "آدرس", value: "تهران، خیابان ولیعصر، نبش کوچه گل" },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3"
-              >
-                <item.icon className="h-4 w-4 text-gold shrink-0" />
-                <div>
-                  <p className="text-[10px] text-white/50">{item.label}</p>
-                  <p className="text-sm text-white">{item.value}</p>
+            {contactItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={item.label}
+                  className="flex items-center gap-3 rounded-[14px] border border-white/10 bg-white/5 px-4 py-3.5"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#DBE7C1]/10">
+                    <Icon
+                      className="h-[17px] w-[17px] text-[#DBE7C1]"
+                      strokeWidth={1.6}
+                    />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="mb-0.5 text-[10px] text-white/50">
+                      {item.label}
+                    </p>
+
+                    <p className="truncate text-[13px] text-white">
+                      {item.value}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

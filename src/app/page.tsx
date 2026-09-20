@@ -8,17 +8,24 @@ import TopStudents from "@/components/sections/TopStudents";
 import Birthdays from "@/components/sections/Birthdays";
 import CoursesCTA from "@/components/sections/CoursesCTA";
 import ContactCTA from "@/components/sections/ContactCTA";
+import AnnouncementTicker from "@/components/sections/AnnouncementTicker";
+import LatestNews from "@/components/sections/LatestNews";
+import ContactSection from "@/components/sections/ContactSection";
 
 export default function HomePage() {
   return (
     <PublicLayout>
+      <AnnouncementTicker />
       <Hero />
       <QuickAccess />
-      <SchoolIntro />
-      <UpcomingEvents />
-      <AnnouncementsPreview />
-      <TopStudents />
+       <TopStudents />
       <Birthdays />
+      <LatestNews />
+      {/* <SchoolIntro /> */}
+      <UpcomingEvents />
+      <ContactSection />
+      <AnnouncementsPreview />
+    
       <CoursesCTA />
       <ContactCTA />
     </PublicLayout>
