@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  CONTENT_MANAGER
+}
+
+enum CourseRegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String?
+  image        String?
+  role         UserRole @default(CONTENT_MANAGER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdCourses Course[] @relation("CourseCreatedBy")
+}
+
+model Student {
+  id            String   @id @default(cuid())
+  firstName     String
+  lastName      String
+  grade         String
+  className     String
+  academicYear  String
+  photo         String?
+  birthday      DateTime?
+  guardianName  String?
+  guardianPhone String?
+  email         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  courseRegistrations CourseRegistration[]
+  birthdays Birthday[]
+
+  @@index([grade])
+  @@index([isActive])
+  @@index([birthday])
+}
+
+model Staff {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  position   String
+  subject    String?
+  category   String
+  bio        String?
+  education  String?
+  photo      String?
+  phone      String?
+  email      String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model Course {
+  id                   String   @id @default(cuid())
+  title                String
+  slug                 String   @unique
+  description          String
+  fullDescription      String?
+  coverImage           String?
+  instructor           String?
+  startDate            DateTime?
+  endDate              DateTime?
+  schedule             String?
+  duration             String?
+  capacity             Int
+  price                Int?
+  status               String
+  category             String
+  gradeLevel           String?
+  registrationDeadline DateTime?
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  createdById String?
+  createdBy   User? @relation("CourseCreatedBy", fields: [createdById], references: [id])
+
+  registrations CourseRegistration[]
+
+  @@index([status])
+  @@index([isActive])
+}
+
+model CourseRegistration {
+  id               String                   @id @default(cuid())
+  courseId         String
+  studentId        String?
+  studentFirstName String
+  studentLastName  String
+  grade            String
+  guardianName     String
+  guardianPhone    String
+  email            String?
+  notes            String?
+  status           CourseRegistrationStatus @default(PENDING)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([courseId])
+  @@index([studentId])
+  @@index([status])
+}
+model TopStudent {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  grade        String
+  achievement  String
+  academicYear String
+  category     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([academicYear])
+  @@index([isActive])
+}
+model Birthday {
+  id         String   @id @default(cuid())
+  studentId  String?
+  firstName  String
+  grade      String
+  birthday   String
+  photo      String?
+  isVisible  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([isVisible])
+  @@index([birthday])
+  @@index([studentId])
+}
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  category  String
+  isPinned  Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  expiresAt String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([isPinned])
+  @@index([createdAt])
+}
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  date        String
+  time        String?
+  location    String?
+  eventType   String
+  coverImage  String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([date])
+  @@index([eventType])
+}
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isRead])
+  @@index([createdAt])
+}
+model News {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  excerpt    String
+  content    String
+  coverImage String?
+  author     String?
+  category   String
+  tags       String[]
+  isFeatured Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([category])
+  @@index([createdAt])
+}
+model EmailOtp {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+}

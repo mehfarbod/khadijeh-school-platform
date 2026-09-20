@@ -1,4 +1,30 @@
+# Environment variables
+.env
 .env.local
+.env.*.local
+
+# Dependencies
 node_modules
+
+# Next.js
+.next
+out
+
+# Build output
 dist
+
+# Generated files
 src/convex/_generated
+src/generated/prisma
+
+# Local tools
+.agents
+.claude
+.windsurf
+
+# TypeScript
+*.tsbuildinfo
+
+# Local tooling
+skills-lock.json
+

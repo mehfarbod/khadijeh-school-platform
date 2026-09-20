@@ -301,7 +301,7 @@ export const VlyToolbar: React.FC = () => {
     try {
       // Optionally, preload resources for best results
       // await preCache(el);
-      const canvas = await snapdom.toCanvas(el, { fast: true });
+      const canvas = await snapdom.toCanvas(el);
       imageDataUrl = canvas.toDataURL("image/png");
     } catch (e) {
       console.error("Failed to snapshot element", e);

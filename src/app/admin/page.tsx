@@ -1,4 +1,4 @@
-import AdminOverview from "@/pages/admin/AdminOverview";
+import AdminOverview from "@/components/admin/AdminOverview";
 
 export const metadata = {
   title: "داشبورد | پنل مدیریت",
@@ -7,3 +7,4 @@ export const metadata = {
 export default function AdminDashboardPage() {
   return <AdminOverview />;
 }
+

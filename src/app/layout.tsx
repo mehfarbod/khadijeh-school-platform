@@ -1,11 +1,12 @@
+
 import type { Metadata } from "next";
-import ConvexProvider from "@/components/ConvexProvider";
+import SessionProvider from "@/components/SessionProvider";
 import "@/index.css";
 
 export const metadata: Metadata = {
-  title: "دبیرستان دخترانه شاهد حضرت خدیجه (ص)",
+  title: "دبیرستان دخترانه شاهد حضرت خدیجه (س)",
   description:
-    "دبیرستان دخترانه شاهد حضرت خدیجه (ص) - محیطی برای رشد علمی، اخلاقی و خلاقانه",
+    "دبیرستان دخترانه شاهد حضرت خدیجه (س) - محیطی برای رشد علمی، اخلاقی و خلاقانه",
 };
 
 export default function RootLayout({
@@ -27,8 +28,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
+
       <body>
-        <ConvexProvider>{children}</ConvexProvider>
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );
