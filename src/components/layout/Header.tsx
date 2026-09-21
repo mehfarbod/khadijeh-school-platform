@@ -1,438 +1,743 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
+  usePathname,
+  useSearchParams,
+} from "next/navigation";
+import { useState } from "react";
+import {
+  ChevronDown,
   Menu,
   X,
-  ChevronDown,
-  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "صفحه اصلی", href: "/" },
-];
-
-const courseLinks = [
-  { label: "همه دوره‌ها", href: "/courses" },
-  { label: "دوره‌های در حال ثبت‌نام", href: "/courses/registration" },
-  { label: "دوره‌های آینده", href: "/courses/upcoming" },
+  {
+    label: "صفحه اصلی",
+    href: "/",
+  },
 ];
 
 const programLinks = [
-  { label: "برنامه هفتگی", href: "/programs/weekly" },
-  { label: "برنامه امتحانات", href: "/programs/exams" },
-  { label: "تقویم آموزشی", href: "/programs/calendar" },
+  {
+    label: "برنامه هفتگی",
+    href: "/programs/weekly",
+  },
+  {
+    label: "برنامه امتحانات",
+    href: "/programs/exams",
+  },
+  {
+    label: "تقویم آموزشی",
+    href: "/programs/calendar",
+  },
 ];
 
 const videoLinks = [
-  { label: "پایه دهم", href: "/videos/grade-10" },
-  { label: "پایه یازدهم", href: "/videos/grade-11" },
-  { label: "پایه دوازدهم", href: "/videos/grade-12" },
-  { label: "مشاهده همه ویدیوها", href: "/videos" },
+  {
+    label: "پایه دهم",
+    href: "/videos?grade=grade-10",
+  },
+  {
+    label: "پایه یازدهم",
+    href: "/videos?grade=grade-11",
+  },
+  {
+    label: "پایه دوازدهم",
+    href: "/videos?grade=grade-12",
+  },
+  {
+    label: "مشاهده همه ویدیوها",
+    href: "/videos",
+  },
 ];
 
 const galleryLinks = [
-  { label: "همه تصاویر", href: "/gallery" },
-  { label: "فعالیت‌های مدرسه", href: "/gallery/activities" },
-  { label: "مراسم و مناسبت‌ها", href: "/gallery/events" },
-  { label: "اردوها و بازدیدها", href: "/gallery/trips" },
+  {
+    label: "همه تصاویر",
+    href: "/gallery",
+  },
+  {
+    label: "فعالیت‌های مدرسه",
+    href: "/gallery?category=school-activities",
+  },
+  {
+    label: "مراسم و مناسبت‌ها",
+    href: "/gallery?category=events",
+  },
+  {
+    label: "اردوها و بازدیدها",
+    href: "/gallery?category=trips",
+  },
 ];
 
-type DropdownProps = {
+function getLinkPath(href: string) {
+  return href.split("?")[0];
+}
+
+function getLinkQuery(
+  href: string
+) {
+  const query = href.split("?")[1];
+
+  if (!query) {
+    return null;
+  }
+
+  return new URLSearchParams(query);
+}
+
+function isPathActive(
+  pathname: string,
+  href: string,
+  exact = false
+) {
+  if (exact) {
+    return pathname === href;
+  }
+
+  return (
+    pathname === href ||
+    pathname.startsWith(`${href}/`)
+  );
+}
+
+function isLinkActive(
+  pathname: string,
+  searchParams: URLSearchParams,
+  href: string
+) {
+  const linkPath = getLinkPath(href);
+
+  if (pathname !== linkPath) {
+    return false;
+  }
+
+  const linkQuery = getLinkQuery(href);
+
+  // لینک بدون Query
+  if (!linkQuery) {
+    return (
+      Array.from(searchParams.keys()).length ===
+      0
+    );
+  }
+
+  // مقایسه Query Parameters
+  const linkEntries = Array.from(
+    linkQuery.entries()
+  );
+
+  const currentEntries = Array.from(
+    searchParams.entries()
+  );
+
+  if (
+    linkEntries.length !==
+    currentEntries.length
+  ) {
+    return false;
+  }
+
+  return linkEntries.every(
+    ([key, value]) =>
+      searchParams.get(key) === value
+  );
+}
+
+interface DesktopDropdownProps {
   label: string;
-  links: { label: string; href: string }[];
-  open: boolean;
-  onOpen: () => void;
-  onClose: () => void;
+  href: string;
+  links: {
+    label: string;
+    href: string;
+  }[];
   pathname: string;
-};
+  searchParams: URLSearchParams;
+}
 
 function DesktopDropdown({
   label,
+  href,
   links,
-  open,
-  onOpen,
-  onClose,
   pathname,
-}: DropdownProps) {
-  const isActive = links.some((link) => pathname.startsWith(link.href));
+  searchParams,
+}: DesktopDropdownProps) {
+  const [open, setOpen] =
+    useState(false);
+
+  const parentActive = isPathActive(
+    pathname,
+    href
+  );
+
+  const childActive = links.some(
+    (link) =>
+      isLinkActive(
+        pathname,
+        searchParams,
+        link.href
+      )
+  );
 
   return (
     <div
       className="relative"
-      onMouseEnter={onOpen}
-      onMouseLeave={onClose}
+      onMouseEnter={() =>
+        setOpen(true)
+      }
+      onMouseLeave={() =>
+        setOpen(false)
+      }
     >
-      <button
-        type="button"
+      <div
         className={cn(
-          "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-[14px] font-medium transition-colors",
-          isActive
-            ? "text-[#194342]"
-            : "text-[#475467] hover:text-[#194342]"
+          "flex items-center gap-1 text-sm font-medium transition-colors",
+          parentActive || childActive
+            ? "text-[#B86F5B]"
+            : "text-[#194342] hover:text-[#B86F5B]"
         )}
       >
-        {label}
-        <ChevronDown
-          className={cn(
-            "h-3.5 w-3.5 transition-transform duration-200",
-            open && "rotate-180"
-          )}
-        />
-      </button>
+        <Link
+          href={href}
+          className="whitespace-nowrap"
+        >
+          {label}
+        </Link>
 
-      {open && (
-        <div className="absolute right-0 top-full z-50 pt-2">
-          <div className="w-56 overflow-hidden rounded-xl border border-[#E8E3D8] bg-white p-1.5 shadow-[0_10px_35px_rgba(31,41,51,0.10)]">
-            {links.map((link) => (
+        <button
+          type="button"
+          aria-label={`نمایش زیرمنوی ${label}`}
+          aria-expanded={open}
+          onClick={() =>
+            setOpen(
+              (value) => !value
+            )
+          }
+          className="flex h-5 w-5 items-center justify-center"
+        >
+          <ChevronDown
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-200",
+              open && "rotate-180"
+            )}
+          />
+        </button>
+      </div>
+
+      <div
+        className={cn(
+          "absolute right-0 top-full z-50 pt-0 transition-all duration-150",
+          open
+            ? "pointer-events-auto visible opacity-100"
+            : "pointer-events-none invisible opacity-0"
+        )}
+      >
+        <div className="mt-2 min-w-[190px] overflow-hidden rounded-xl border border-[#E1E8D6] bg-white p-1.5 shadow-[0_12px_30px_rgba(25,67,66,0.10)]">
+          {links.map((link) => {
+            const active =
+              isLinkActive(
+                pathname,
+                searchParams,
+                link.href
+              );
+
+            return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "block whitespace-nowrap rounded-lg px-3.5 py-2.5 text-sm transition-colors",
-                  pathname.startsWith(link.href)
-                    ? "bg-[#DBE7C1]/40 text-[#194342]"
-                    : "text-[#475467] hover:bg-[#FAF8F3] hover:text-[#194342]"
+                  "block rounded-lg px-3.5 py-2.5 text-[12.5px] transition-colors",
+                  active
+                    ? "bg-[#F1F5E8] font-medium text-[#B86F5B]"
+                    : "text-[#1F2933] hover:bg-[#F1F5E8] hover:text-[#B86F5B]"
+                )}
+                onClick={() =>
+                  setOpen(false)
+                }
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MobileDropdownProps {
+  label: string;
+  href: string;
+  links: {
+    label: string;
+    href: string;
+  }[];
+  pathname: string;
+  searchParams: URLSearchParams;
+  openDropdown: string | null;
+  setOpenDropdown: (
+    value: string | null
+  ) => void;
+  setMobileMenuOpen: (
+    value: boolean
+  ) => void;
+}
+
+function MobileDropdown({
+  label,
+  href,
+  links,
+  pathname,
+  searchParams,
+  openDropdown,
+  setOpenDropdown,
+  setMobileMenuOpen,
+}: MobileDropdownProps) {
+  const isOpen =
+    openDropdown === label;
+
+  const parentActive = isPathActive(
+    pathname,
+    href
+  );
+
+  const childActive = links.some(
+    (link) =>
+      isLinkActive(
+        pathname,
+        searchParams,
+        link.href
+      )
+  );
+
+  return (
+    <div>
+      <div
+        className={cn(
+          "flex items-center justify-between",
+          parentActive || childActive
+            ? "text-[#B86F5B]"
+            : "text-[#194342]"
+        )}
+      >
+        <Link
+          href={href}
+          onClick={() => {
+            setMobileMenuOpen(false);
+            setOpenDropdown(null);
+          }}
+          className="flex-1 py-2.5 text-sm font-medium"
+        >
+          {label}
+        </Link>
+
+        <button
+          type="button"
+          aria-label={`نمایش زیرمنوی ${label}`}
+          aria-expanded={isOpen}
+          onClick={() =>
+            setOpenDropdown(
+              isOpen ? null : label
+            )
+          }
+          className="flex h-9 w-9 items-center justify-center"
+        >
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 transition-transform duration-200",
+              isOpen && "rotate-180"
+            )}
+          />
+        </button>
+      </div>
+
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-200",
+          isOpen
+            ? "max-h-96 opacity-100"
+            : "max-h-0 opacity-0"
+        )}
+      >
+        <div className="mr-3 border-r border-[#DBE7C1] pr-3">
+          {links.map((link) => {
+            const active =
+              isLinkActive(
+                pathname,
+                searchParams,
+                link.href
+              );
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setOpenDropdown(null);
+                }}
+                className={cn(
+                  "block rounded-lg px-3 py-2.5 text-[12.5px] transition-colors",
+                  active
+                    ? "bg-[#F1F5E8] font-medium text-[#B86F5B]"
+                    : "text-[#667085] hover:bg-[#F1F5E8] hover:text-[#B86F5B]"
                 )}
               >
                 {link.label}
               </Link>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export default function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const pathname = usePathname() ?? "/";
+  const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false);
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const [
+    openDropdown,
+    setOpenDropdown,
+  ] = useState<string | null>(null);
 
-  const toggleDropdown = (name: string) => {
-    setOpenDropdown((current) => (current === name ? null : name));
-  };
+  const isActive = (
+    href: string,
+    exact = false
+  ) =>
+    isPathActive(
+      pathname,
+      href,
+      exact
+    );
+
+  function closeMobileMenu() {
+    setMobileMenuOpen(false);
+    setOpenDropdown(null);
+  }
 
   return (
-   <header className="sticky top-0 z-50 w-full border-b border-[#E1E8D6] bg-[#F1F5E8]">
-      <div className="mx-auto flex h-[76px] w-full max-w-[1440px] items-center px-5 sm:px-7 lg:px-10 xl:px-12">
+    <header className="sticky top-0 z-50 border-b border-[#E1E8D6] bg-[#F1F5E8]">
+      <div className="mx-auto flex h-[72px] w-full max-w-[1400px] items-center px-5 sm:px-6 lg:px-8">
+
         {/* Logo */}
         <Link
           href="/"
           className="flex shrink-0 items-center gap-3"
-          onClick={() => setMobileOpen(false)}
+          onClick={closeMobileMenu}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#194342] text-sm font-bold text-white">
-            خ
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#194342]">
+            <span className="text-sm font-bold text-[#DBE7C1]">
+              خ
+            </span>
           </div>
 
           <div className="hidden sm:block">
-            <p className="whitespace-nowrap text-sm font-bold leading-tight text-[#1F2933]">
-              دبیرستان شاهد حضرت خدیجه (س)
+            <p className="text-[13px] font-bold text-[#194342]">
+              شاهد حضرت خدیجه (س)
+            </p>
+
+            <p className="mt-0.5 text-[10px] text-[#667085]">
+              دبیرستان دخترانه
             </p>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center lg:flex">
-          <div className="flex items-center gap-0.5 xl:gap-1">
-            {/* Home */}
-            {navLinks.map((link) => (
+        <nav
+          className="mx-auto hidden items-center gap-5 lg:flex"
+          aria-label="ناوبری اصلی"
+        >
+          {navLinks.map((link) => {
+            const active = isActive(
+              link.href,
+              link.href === "/"
+            );
+
+            return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "whitespace-nowrap rounded-lg px-3 py-2 text-[14px] font-medium transition-colors",
-                  isActive(link.href)
-                    ? "text-[#194342]"
-                    : "text-[#475467] hover:text-[#194342]"
+                  "whitespace-nowrap text-sm font-medium transition-colors",
+                  active
+                    ? "text-[#B86F5B]"
+                    : "text-[#194342] hover:text-[#B86F5B]"
                 )}
               >
                 {link.label}
               </Link>
-            ))}
+            );
+          })}
 
-            {/* Courses */}
-            <DesktopDropdown
-              label="دوره‌ها"
-              links={courseLinks}
-              pathname={pathname}
-              open={openDropdown === "courses"}
-              onOpen={() => setOpenDropdown("courses")}
-              onClose={() => setOpenDropdown(null)}
-            />
+          {/* دوره‌ها */}
+          <Link
+            href="/courses"
+            className={cn(
+              "whitespace-nowrap text-sm font-medium transition-colors",
+              isActive("/courses")
+                ? "text-[#B86F5B]"
+                : "text-[#194342] hover:text-[#B86F5B]"
+            )}
+          >
+            دوره‌ها
+          </Link>
 
-            {/* Educational Programs */}
-            <DesktopDropdown
-              label="برنامه‌های آموزشی"
-              links={programLinks}
-              pathname={pathname}
-              open={openDropdown === "programs"}
-              onOpen={() => setOpenDropdown("programs")}
-              onClose={() => setOpenDropdown(null)}
-            />
+          {/* برنامه‌های آموزشی */}
+          <DesktopDropdown
+            label="برنامه‌های آموزشی"
+            href="/programs"
+            links={programLinks}
+            pathname={pathname}
+            searchParams={searchParams}
+          />
 
-            {/* Educational Videos */}
-            <DesktopDropdown
-              label="ویدیوهای آموزشی"
-              links={videoLinks}
-              pathname={pathname}
-              open={openDropdown === "videos"}
-              onOpen={() => setOpenDropdown("videos")}
-              onClose={() => setOpenDropdown(null)}
-            />
+          {/* ویدیوهای آموزشی */}
+          <DesktopDropdown
+            label="ویدیوهای آموزشی"
+            href="/videos"
+            links={videoLinks}
+            pathname={pathname}
+            searchParams={searchParams}
+          />
 
-            {/* Gallery */}
-            <DesktopDropdown
-              label="گالری"
-              links={galleryLinks}
-              pathname={pathname}
-              open={openDropdown === "gallery"}
-              onOpen={() => setOpenDropdown("gallery")}
-              onClose={() => setOpenDropdown(null)}
-            />
+          {/* گالری */}
+          <DesktopDropdown
+            label="گالری"
+            href="/gallery"
+            links={galleryLinks}
+            pathname={pathname}
+            searchParams={searchParams}
+          />
 
-            {/* About */}
-            <Link
-              href="/about"
-              className={cn(
-                "whitespace-nowrap rounded-lg px-3 py-2 text-[14px] font-medium transition-colors",
-                isActive("/about")
-                  ? "text-[#194342]"
-                  : "text-[#475467] hover:text-[#194342]"
-              )}
-            >
-              درباره‌ی ما
-            </Link>
+          {/* درباره ما */}
+          <Link
+            href="/about"
+            className={cn(
+              "whitespace-nowrap text-sm font-medium transition-colors",
+              isActive("/about")
+                ? "text-[#B86F5B]"
+                : "text-[#194342] hover:text-[#B86F5B]"
+            )}
+          >
+            درباره‌ی ما
+          </Link>
 
-            {/* Contact */}
-            <Link
-              href="/contact"
-              className={cn(
-                "whitespace-nowrap rounded-lg px-3 py-2 text-[14px] font-medium transition-colors",
-                isActive("/contact")
-                  ? "text-[#194342]"
-                  : "text-[#475467] hover:text-[#194342]"
-              )}
-            >
-              تماس با ما
-            </Link>
-          </div>
+          {/* تماس با ما */}
+          <Link
+            href="/contact"
+            className={cn(
+              "whitespace-nowrap text-sm font-medium transition-colors",
+              isActive("/contact")
+                ? "text-[#B86F5B]"
+                : "text-[#194342] hover:text-[#B86F5B]"
+            )}
+          >
+            تماس با ما
+          </Link>
         </nav>
 
-        {/* Actions */}
-        <div className="flex shrink-0 items-center gap-2.5">
-          {/* Pre-registration */}
+        {/* Desktop Actions */}
+        <div className="hidden shrink-0 items-center gap-2.5 lg:flex">
           <Link
             href="/registration"
-            className="hidden h-10 items-center justify-center whitespace-nowrap rounded-lg bg-[#B86F5B] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#a8614f] sm:inline-flex"
+            className={cn(
+              "flex h-10 items-center justify-center whitespace-nowrap rounded-[10px] px-4 text-[12.5px] font-medium transition-colors",
+              isActive("/registration")
+                ? "bg-[#A45F4D] text-white"
+                : "bg-[#B86F5B] text-white hover:bg-[#A45F4D]"
+            )}
           >
             پیش‌ثبت‌نام
           </Link>
 
-          {/* Login */}
           <Link
             href="/auth"
-            className="hidden h-10 min-w-[118px] items-center justify-center whitespace-nowrap rounded-lg bg-[#194342] px-4 text-[13px] font-medium text-white transition-colors hover:bg-[#143837] sm:inline-flex"
+            className={cn(
+              "flex h-10 items-center justify-center whitespace-nowrap rounded-[10px] border px-4 text-[12.5px] font-medium transition-colors",
+              isActive("/auth")
+                ? "border-[#194342] bg-[#194342] text-white"
+                : "border-[#194342] bg-transparent text-[#194342] hover:bg-[#194342] hover:text-white"
+            )}
           >
             ورود به سامانه
           </Link>
-
-          {/* Mobile button */}
-          <button
-            type="button"
-            onClick={() => setMobileOpen((current) => !current)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-[#475467] transition-colors hover:bg-[#DBE7C1]/40 hover:text-[#194342] lg:hidden"
-            aria-label={mobileOpen ? "بستن منو" : "باز کردن منو"}
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          type="button"
+          aria-label={
+            mobileMenuOpen
+              ? "بستن منو"
+              : "باز کردن منو"
+          }
+          aria-expanded={mobileMenuOpen}
+          onClick={() =>
+            setMobileMenuOpen(
+              (value) => !value
+            )
+          }
+          className="mr-auto flex h-10 w-10 items-center justify-center rounded-lg text-[#194342] transition-colors hover:bg-[#DBE7C1]/50 lg:hidden"
+        >
+          {mobileMenuOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
+        </button>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className="border-t border-[#E8E3D8] bg-[#FAF8F3] lg:hidden">
-          <nav className="mx-auto max-w-[1440px] px-5 py-4 sm:px-7">
-            {/* Home */}
+      {/* Mobile Navigation */}
+      <div
+        className={cn(
+          "overflow-hidden border-t border-[#E1E8D6] bg-[#F1F5E8] transition-all duration-200 lg:hidden",
+          mobileMenuOpen
+            ? "max-h-[calc(100vh-72px)] opacity-100"
+            : "max-h-0 opacity-0"
+        )}
+      >
+        <nav
+          className="mx-auto max-h-[calc(100vh-72px)] w-full max-w-[1400px] overflow-y-auto px-5 py-4 sm:px-6"
+          aria-label="ناوبری موبایل"
+        >
+          <div className="flex flex-col gap-1">
+
+            {/* صفحه اصلی */}
             <Link
               href="/"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileMenu}
               className={cn(
-                "block rounded-lg px-3 py-3 text-sm font-medium",
-                isActive("/")
-                  ? "bg-[#DBE7C1]/40 text-[#194342]"
-                  : "text-[#475467]"
+                "py-2.5 text-sm font-medium transition-colors",
+                isActive("/", true)
+                  ? "text-[#B86F5B]"
+                  : "text-[#194342]"
               )}
             >
               صفحه اصلی
             </Link>
 
-            {/* Courses */}
-            <MobileDropdown
-              label="دوره‌ها"
-              links={courseLinks}
-              open={openDropdown === "mobile-courses"}
-              onToggle={() => toggleDropdown("mobile-courses")}
-              pathname={pathname}
-              onNavigate={() => setMobileOpen(false)}
-            />
+            {/* دوره‌ها */}
+            <Link
+              href="/courses"
+              onClick={closeMobileMenu}
+              className={cn(
+                "py-2.5 text-sm font-medium transition-colors",
+                isActive("/courses")
+                  ? "text-[#B86F5B]"
+                  : "text-[#194342]"
+              )}
+            >
+              دوره‌ها
+            </Link>
 
-            {/* Educational Programs */}
+            {/* برنامه‌های آموزشی */}
             <MobileDropdown
               label="برنامه‌های آموزشی"
+              href="/programs"
               links={programLinks}
-              open={openDropdown === "mobile-programs"}
-              onToggle={() => toggleDropdown("mobile-programs")}
               pathname={pathname}
-              onNavigate={() => setMobileOpen(false)}
+              searchParams={searchParams}
+              openDropdown={openDropdown}
+              setOpenDropdown={
+                setOpenDropdown
+              }
+              setMobileMenuOpen={
+                setMobileMenuOpen
+              }
             />
 
-            {/* Educational Videos */}
+            {/* ویدیوهای آموزشی */}
             <MobileDropdown
               label="ویدیوهای آموزشی"
+              href="/videos"
               links={videoLinks}
-              open={openDropdown === "mobile-videos"}
-              onToggle={() => toggleDropdown("mobile-videos")}
               pathname={pathname}
-              onNavigate={() => setMobileOpen(false)}
+              searchParams={searchParams}
+              openDropdown={openDropdown}
+              setOpenDropdown={
+                setOpenDropdown
+              }
+              setMobileMenuOpen={
+                setMobileMenuOpen
+              }
             />
 
-            {/* Gallery */}
+            {/* گالری */}
             <MobileDropdown
               label="گالری"
+              href="/gallery"
               links={galleryLinks}
-              open={openDropdown === "mobile-gallery"}
-              onToggle={() => toggleDropdown("mobile-gallery")}
               pathname={pathname}
-              onNavigate={() => setMobileOpen(false)}
+              searchParams={searchParams}
+              openDropdown={openDropdown}
+              setOpenDropdown={
+                setOpenDropdown
+              }
+              setMobileMenuOpen={
+                setMobileMenuOpen
+              }
             />
 
-            {/* About */}
+            {/* درباره ما */}
             <Link
               href="/about"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileMenu}
               className={cn(
-                "block rounded-lg px-3 py-3 text-sm font-medium",
+                "py-2.5 text-sm font-medium transition-colors",
                 isActive("/about")
-                  ? "bg-[#DBE7C1]/40 text-[#194342]"
-                  : "text-[#475467]"
+                  ? "text-[#B86F5B]"
+                  : "text-[#194342]"
               )}
             >
               درباره‌ی ما
             </Link>
 
-            {/* Contact */}
+            {/* تماس با ما */}
             <Link
               href="/contact"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileMenu}
               className={cn(
-                "block rounded-lg px-3 py-3 text-sm font-medium",
+                "py-2.5 text-sm font-medium transition-colors",
                 isActive("/contact")
-                  ? "bg-[#DBE7C1]/40 text-[#194342]"
-                  : "text-[#475467]"
+                  ? "text-[#B86F5B]"
+                  : "text-[#194342]"
               )}
             >
               تماس با ما
             </Link>
 
             {/* Mobile Actions */}
-            <div className="mt-3 flex gap-2 border-t border-[#E8E3D8] pt-4">
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#E1E8D6] pt-4">
               <Link
                 href="/registration"
-                onClick={() => setMobileOpen(false)}
-                className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-[#B86F5B] px-4 text-sm font-medium text-white"
+                onClick={closeMobileMenu}
+                className="flex h-10 items-center justify-center rounded-[10px] bg-[#B86F5B] text-[12.5px] font-medium text-white transition-colors hover:bg-[#A45F4D]"
               >
                 پیش‌ثبت‌نام
               </Link>
 
               <Link
                 href="/auth"
-                onClick={() => setMobileOpen(false)}
-                className="flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-lg bg-[#194342] px-4 text-sm font-medium text-white"
+                onClick={closeMobileMenu}
+                className="flex h-10 items-center justify-center rounded-[10px] border border-[#194342] text-[12.5px] font-medium text-[#194342] transition-colors hover:bg-[#194342] hover:text-white"
               >
                 ورود به سامانه
               </Link>
             </div>
-          </nav>
-        </div>
-      )}
+
+          </div>
+        </nav>
+      </div>
     </header>
-  );
-}
-
-type MobileDropdownProps = {
-  label: string;
-  links: { label: string; href: string }[];
-  open: boolean;
-  onToggle: () => void;
-  pathname: string;
-  onNavigate: () => void;
-};
-
-function MobileDropdown({
-  label,
-  links,
-  open,
-  onToggle,
-  pathname,
-  onNavigate,
-}: MobileDropdownProps) {
-  const isActive = links.some((link) => pathname.startsWith(link.href));
-
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={cn(
-          "flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium",
-          isActive ? "text-[#194342]" : "text-[#475467]"
-        )}
-      >
-        <span>{label}</span>
-
-        <ChevronDown
-          className={cn(
-            "h-4 w-4 transition-transform duration-200",
-            open && "rotate-180"
-          )}
-        />
-      </button>
-
-      {open && (
-        <div className="mb-1 mr-3 border-r border-[#DBE7C1] pr-2">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm",
-                pathname.startsWith(link.href)
-                  ? "bg-[#DBE7C1]/40 text-[#194342]"
-                  : "text-[#667085] hover:bg-white hover:text-[#194342]"
-              )}
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }

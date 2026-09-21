@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
@@ -9,6 +10,7 @@ const contacts = [
   {
     title: "مدیریت",
     description: "برای مسائل اداری، ثبت‌نام و امور کلی مدرسه",
+    department: "management",
     icon: ClipboardList,
     background: "#194342",
     textColor: "#FFFFFF",
@@ -17,6 +19,7 @@ const contacts = [
   {
     title: "معاونت",
     description: "موضوعات انضباطی، برنامه‌ریزی و امور دانش‌آموزی",
+    department: "deputy",
     icon: CalendarDays,
     background: "#B86F5B",
     textColor: "#FFFFFF",
@@ -25,6 +28,7 @@ const contacts = [
   {
     title: "کادر آموزشی",
     description: "مشاوره درسی، پیشرفت تحصیلی و ارتباط با معلمان",
+    department: "education",
     icon: BookOpen,
     background: "#DBE7C1",
     textColor: "#17324D",
@@ -43,8 +47,8 @@ export default function ContactSection() {
           </h2>
 
           <p className="mx-auto max-w-[460px] text-[14px] leading-7 text-[#667085]">
-            پیام خود را به بخش مربوطه ارسال کنید. همکاران ما در اسرع وقت پاسخگوی
-            شما خواهند بود.
+            پیام خود را به بخش مربوطه ارسال کنید. همکاران ما در اسرع وقت
+            پاسخگوی شما خواهند بود.
           </p>
         </div>
 
@@ -92,8 +96,8 @@ export default function ContactSection() {
                 </div>
 
                 {/* Action */}
-                <a
-                  href="#"
+                <Link
+                  href={`/contact?department=${contact.department}`}
                   className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/13 px-[18px] py-2.5 text-[13px] font-semibold transition-colors duration-200 hover:bg-white/20"
                   style={{
                     color: contact.textColor,
@@ -105,7 +109,7 @@ export default function ContactSection() {
                     className="h-[14px] w-[14px]"
                     strokeWidth={1.6}
                   />
-                </a>
+                </Link>
               </article>
             );
           })}
