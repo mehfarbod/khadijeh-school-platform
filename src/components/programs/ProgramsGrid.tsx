@@ -5,6 +5,8 @@ import {
   CalendarDays,
   ClipboardList,
   GraduationCap,
+  UsersRound,
+  HeartHandshake,
   ArrowLeft,
 } from "lucide-react";
 
@@ -33,6 +35,22 @@ const programs = [
     href: "/programs/calendar",
     accent: "#EEF2F7",
   },
+  {
+    title: "جلسات انجمن اولیا و مربیان",
+    description:
+      "اطلاعیه‌ها، زمان‌بندی و اطلاعات مربوط به جلسات انجمن اولیا و مربیان.",
+    icon: UsersRound,
+    href: "/programs/parents-meetings",
+    accent: "#E8DFC8",
+  },
+  {
+    title: "جلسات مشاوره خانواده",
+    description:
+      "اطلاعات و زمان‌بندی جلسات مشاوره خانواده و برنامه‌های مرتبط با والدین.",
+    icon: HeartHandshake,
+    href: "/programs/family-counseling",
+    accent: "#F0DDD8",
+  },
 ];
 
 export default function ProgramsGrid() {
@@ -49,7 +67,7 @@ export default function ProgramsGrid() {
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => {
             const Icon = program.icon;
 

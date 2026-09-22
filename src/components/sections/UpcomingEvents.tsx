@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin, Clock, ArrowLeft } from "lucide-react";
+
 import { formatDateShort, toPersianNumber } from "@/lib/persian";
+import { isUpcomingEventDate } from "@/lib/event-date";
 
 interface EventItem {
   id: string;
@@ -34,10 +36,8 @@ export default function UpcomingEvents() {
 
         const data: EventItem[] = await response.json();
 
-        const today = new Date().toISOString().split("T")[0];
-
         const upcomingEvents = data
-          .filter((event) => event.date >= today)
+          .filter((event) => isUpcomingEventDate(event.date))
           .sort((a, b) => a.date.localeCompare(b.date))
           .slice(0, 4);
 
@@ -62,15 +62,15 @@ export default function UpcomingEvents() {
 
   if (!events) {
     return (
-      <section className="py-12 md:py-16 bg-background">
+      <section className="bg-background py-12 md:py-16">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <div className="h-8 w-48 bg-muted rounded animate-pulse mb-8" />
+          <div className="mb-8 h-8 w-48 animate-pulse rounded bg-muted" />
 
           <div className="grid gap-4 md:grid-cols-2">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4].map((item) => (
               <div
-                key={i}
-                className="h-32 bg-muted rounded-xl animate-pulse"
+                key={item}
+                className="h-32 animate-pulse rounded-xl bg-muted"
               />
             ))}
           </div>
@@ -79,25 +79,27 @@ export default function UpcomingEvents() {
     );
   }
 
-  if (events.length === 0) return null;
+  if (events.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="py-12 md:py-16 bg-background">
+    <section className="bg-background py-12 md:py-16">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-rose uppercase tracking-wider mb-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose">
               رویدادها
             </p>
 
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">
+            <h2 className="text-xl font-bold text-foreground md:text-2xl">
               رویدادهای پیش‌رو
             </h2>
           </div>
 
           <Link
             href="/events"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/80"
           >
             مشاهده همه
             <ArrowLeft className="h-3.5 w-3.5" />
@@ -106,50 +108,53 @@ export default function UpcomingEvents() {
 
         <div className="grid gap-4 md:grid-cols-2">
           {events.map((event) => (
-            <div
+            <Link
               key={event.id}
-              className="group rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm"
+              href={`/events/${event.id}`}
+              className="group block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
-              <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/5 text-center">
-                  <span className="text-[10px] font-medium text-primary/70 leading-none">
-                    {formatDateShort(event.date).split(" ")[1]}
-                  </span>
+              <article className="h-full rounded-xl border border-border/60 bg-card p-5 transition-all group-hover:-translate-y-0.5 group-hover:border-border group-hover:shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/5 text-center">
+                    <span className="text-[10px] font-medium leading-none text-primary/70">
+                      {formatDateShort(event.date).split(" ")[1]}
+                    </span>
 
-                  <span className="text-lg font-bold text-primary leading-none mt-0.5">
-                    {toPersianNumber(
-                      parseInt(event.date.split("-")[2], 10)
-                    )}
-                  </span>
-                </div>
+                    <span className="mt-0.5 text-lg font-bold leading-none text-primary">
+                      {toPersianNumber(
+                        parseInt(event.date.split("-")[2], 10).toString(),
+                      )}
+                    </span>
+                  </div>
 
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                    {event.title}
-                  </h3>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="mb-1 text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+                      {event.title}
+                    </h3>
 
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                    {event.description}
-                  </p>
+                    <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">
+                      {event.description}
+                    </p>
 
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {event.time && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {event.time}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {event.time && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {event.time}
+                        </span>
+                      )}
 
-                    {event.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {event.location}
-                      </span>
-                    )}
+                      {event.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {event.location}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </article>
+            </Link>
           ))}
         </div>
       </div>

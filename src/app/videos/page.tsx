@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import Header from "@/components/layout/Header";
@@ -15,12 +14,12 @@ import VideosGrid, {
   getAvailableSubjects,
 } from "@/components/videos/VideosGrid";
 
-export default function VideosPage() {
+function VideosPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const gradeFromUrl = searchParams.get("grade");
+  const gradeFromUrl = searchParams?.get("grade");
 
   const initialGrade: VideoFilter =
     gradeFromUrl === "grade-10" ||
@@ -29,27 +28,20 @@ export default function VideosPage() {
       ? gradeFromUrl
       : "all";
 
-  const [activeGrade, setActiveGrade] =
-    useState<VideoFilter>(initialGrade);
+  const [activeGrade, setActiveGrade] = useState<VideoFilter>(initialGrade);
 
-  const [activeSubject, setActiveSubject] =
-    useState<SubjectFilter>("all");
+  const [activeSubject, setActiveSubject] = useState<SubjectFilter>("all");
 
-  const availableSubjects =
-    getAvailableSubjects(activeGrade);
+  const availableSubjects = getAvailableSubjects(activeGrade);
 
   useEffect(() => {
-    if (
-      activeSubject !== "all" &&
-      !availableSubjects.includes(activeSubject)
-    ) {
+    if (activeSubject !== "all" && !availableSubjects.includes(activeSubject)) {
       setActiveSubject("all");
     }
   }, [activeGrade, activeSubject, availableSubjects]);
 
   useEffect(() => {
-    const urlGrade =
-      searchParams.get("grade");
+    const urlGrade = searchParams?.get("grade");
 
     const normalizedUrlGrade =
       urlGrade === "grade-10" ||
@@ -68,9 +60,7 @@ export default function VideosPage() {
     setActiveGrade(value);
     setActiveSubject("all");
 
-    const params = new URLSearchParams(
-      searchParams.toString()
-    );
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
 
     if (value === "all") {
       params.delete("grade");
@@ -80,12 +70,13 @@ export default function VideosPage() {
 
     const queryString = params.toString();
 
-    router.replace(
-      queryString
-        ? `${pathname}?${queryString}`
-        : pathname,
-      { scroll: false }
-    );
+    if (!pathname) {
+      return;
+    }
+
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
   }
 
   return (
@@ -103,13 +94,34 @@ export default function VideosPage() {
           onSubjectChange={setActiveSubject}
         />
 
-        <VideosGrid
-          activeGrade={activeGrade}
-          activeSubject={activeSubject}
-        />
+        <VideosGrid activeGrade={activeGrade} activeSubject={activeSubject} />
       </main>
 
       <CoursesFooter />
     </>
+  );
+}
+
+function VideosPageFallback() {
+  return (
+    <>
+      <Header />
+
+      <main className="min-h-screen bg-[#FAF8F3]">
+        <section className="flex min-h-[500px] items-center justify-center px-5">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-[#DBE7C1]" />
+        </section>
+      </main>
+
+      <CoursesFooter />
+    </>
+  );
+}
+
+export default function VideosPage() {
+  return (
+    <Suspense fallback={<VideosPageFallback />}>
+      <VideosPageContent />
+    </Suspense>
   );
 }

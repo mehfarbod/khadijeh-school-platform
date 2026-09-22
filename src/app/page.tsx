@@ -18,11 +18,10 @@ export default function HomePage() {
       <AnnouncementTicker />
       <Hero />
       <QuickAccess />
+      <UpcomingEvents />
        <TopStudents />
       <Birthdays />
       <LatestNews />
-      {/* <SchoolIntro /> */}
-      <UpcomingEvents />
       <ContactSection />
       <AnnouncementsPreview />
     

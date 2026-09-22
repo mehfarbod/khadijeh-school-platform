@@ -63,7 +63,7 @@ export default function Hero() {
           {/* Actions */}
           <div className="mt-5 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
             <Link
-              href="/pre-registration"
+             href="/registration"
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#DBE7C1] px-5 text-xs font-bold text-[#194342] transition-all hover:-translate-y-0.5 hover:bg-white sm:text-sm"
             >
               پیش‌ثبت‌نام مدرسه

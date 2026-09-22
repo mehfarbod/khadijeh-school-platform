@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   BookOpen,
   CalendarDays,
-  FileText,
   GraduationCap,
   Images,
   Newspaper,
@@ -16,7 +15,7 @@ const quickAccessItems = [
   {
     title: "پیش‌ثبت‌نام مدرسه",
     action: "شروع پیش‌ثبت‌نام",
-    href: "/pre-registration",
+    href: "/registration",
     icon: GraduationCap,
   },
   {
@@ -28,13 +27,13 @@ const quickAccessItems = [
   {
     title: "اخبار و اطلاعیه‌ها",
     action: "مشاهده اخبار",
-    href: "/announcements",
+    href: "/news",
     icon: Newspaper,
   },
   {
     title: "برنامه‌های آموزشی",
     action: "مشاهده برنامه‌ها",
-    href: "/educational-programs",
+    href: "/programs",
     icon: CalendarDays,
   },
   {
@@ -48,12 +47,6 @@ const quickAccessItems = [
     action: "مشاهده گالری",
     href: "/gallery",
     icon: Images,
-  },
-  {
-    title: "گزارش‌ها",
-    action: "مشاهده گزارش‌ها",
-    href: "/reports",
-    icon: FileText,
   },
 ];
 
@@ -77,7 +70,7 @@ export default function QuickAccess() {
         </div>
 
         {/* Cards */}
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-7">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-6">
           {quickAccessItems.map((item) => {
             const Icon = item.icon;
 

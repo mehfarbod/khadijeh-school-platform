@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   usePathname,
   useRouter,
@@ -16,13 +15,13 @@ import GalleryFilters, {
 } from "@/components/gallery/GalleryFilters";
 import GalleryGrid from "@/components/gallery/GalleryGrid";
 
-export default function GalleryPage() {
+function GalleryPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const categoryFromUrl =
-    searchParams.get("category");
+    searchParams?.get("category");
 
   const initialFilter: GalleryFilter =
     categoryFromUrl === "school-activities" ||
@@ -36,7 +35,7 @@ export default function GalleryPage() {
 
   useEffect(() => {
     const urlCategory =
-      searchParams.get("category");
+      searchParams?.get("category");
 
     const normalizedUrlCategory: GalleryFilter =
       urlCategory === "school-activities" ||
@@ -54,7 +53,7 @@ export default function GalleryPage() {
     setActiveFilter(value);
 
     const params = new URLSearchParams(
-      searchParams.toString()
+      searchParams?.toString() ?? ""
     );
 
     if (value === "all") {
@@ -64,6 +63,10 @@ export default function GalleryPage() {
     }
 
     const queryString = params.toString();
+
+    if (!pathname) {
+      return;
+    }
 
     router.replace(
       queryString
@@ -94,5 +97,29 @@ export default function GalleryPage() {
 
       <CoursesFooter />
     </>
+  );
+}
+
+function GalleryPageFallback() {
+  return (
+    <>
+      <Header />
+
+      <main className="min-h-screen bg-[#FAF8F3]">
+        <section className="flex min-h-[500px] items-center justify-center px-5">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-[#DBE7C1]" />
+        </section>
+      </main>
+
+      <CoursesFooter />
+    </>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={<GalleryPageFallback />}>
+      <GalleryPageContent />
+    </Suspense>
   );
 }

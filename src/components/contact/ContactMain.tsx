@@ -1,26 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  Clock3,
-  Mail,
-  MapPin,
-  Phone,
-  Send,
-} from "lucide-react";
+import { Clock3, Mail, MapPin, Phone, Send } from "lucide-react";
 
-type Department =
-  | "management"
-  | "deputy"
-  | "education";
+type Department = "management" | "deputy" | "education";
 
 const contactInfo = [
   {
     icon: MapPin,
     title: "آدرس مدرسه",
-    value:
-      "تهران، خیابان نمونه، کوچه مدرسه، دبیرستان شاهد حضرت خدیجه (س)",
+    value: "تهران، خیابان نمونه، کوچه مدرسه، دبیرستان شاهد حضرت خدیجه (س)",
   },
   {
     icon: Phone,
@@ -53,10 +43,10 @@ const departmentLabels: Record<Department, string> = {
   education: "کادر آموزشی",
 };
 
-export default function ContactMain() {
+function ContactMainContent() {
   const searchParams = useSearchParams();
 
-  const departmentFromUrl = searchParams.get("department");
+  const departmentFromUrl = searchParams?.get("department");
 
   const initialDepartment: Department | "" =
     departmentFromUrl === "management" ||
@@ -65,15 +55,13 @@ export default function ContactMain() {
       ? departmentFromUrl
       : "";
 
-  const [selectedDepartment, setSelectedDepartment] =
-    useState<Department | "">(initialDepartment);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | "">(
+    initialDepartment,
+  );
 
-  const [isSubmitted, setIsSubmitted] =
-    useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsSubmitted(true);
@@ -99,8 +87,8 @@ export default function ContactMain() {
               </h2>
 
               <p className="mt-3 text-[13px] leading-7 text-[#667085]">
-                برای دریافت اطلاعات بیشتر یا پیگیری امور مختلف،
-                می‌توانید از راه‌های ارتباطی زیر با مدرسه تماس بگیرید.
+                برای دریافت اطلاعات بیشتر یا پیگیری امور مختلف، می‌توانید از
+                راه‌های ارتباطی زیر با مدرسه تماس بگیرید.
               </p>
             </div>
 
@@ -114,10 +102,7 @@ export default function ContactMain() {
                     className="flex gap-3.5 rounded-[14px] border border-[#EEF2E6] bg-[#F8FAF4] p-4"
                   >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#194342]">
-                      <Icon
-                        className="h-[18px] w-[18px]"
-                        strokeWidth={1.8}
-                      />
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
                     </div>
 
                     <div className="min-w-0">
@@ -149,8 +134,7 @@ export default function ContactMain() {
               </h2>
 
               <p className="mt-3 text-[13px] leading-7 text-[#667085]">
-                فرم زیر را تکمیل کنید تا پیام شما به بخش موردنظر
-                ارسال شود.
+                فرم زیر را تکمیل کنید تا پیام شما به بخش موردنظر ارسال شود.
               </p>
             </div>
 
@@ -169,10 +153,7 @@ export default function ContactMain() {
                 </p>
               </div>
             ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="mt-8 space-y-5"
-              >
+              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
                 {/* Department */}
                 <div>
                   <label
@@ -188,9 +169,7 @@ export default function ContactMain() {
                     required
                     value={selectedDepartment}
                     onChange={(event) =>
-                      setSelectedDepartment(
-                        event.target.value as Department
-                      )
+                      setSelectedDepartment(event.target.value as Department)
                     }
                     className="h-11 w-full rounded-[11px] border border-[#DCE5D4] bg-[#FAF8F3] px-3.5 text-[12px] text-[#1F2933] outline-none focus:border-[#194342]"
                   >
@@ -198,17 +177,11 @@ export default function ContactMain() {
                       انتخاب واحد موردنظر
                     </option>
 
-                    <option value="management">
-                      مدیریت
-                    </option>
+                    <option value="management">مدیریت</option>
 
-                    <option value="deputy">
-                      معاونت
-                    </option>
+                    <option value="deputy">معاونت</option>
 
-                    <option value="education">
-                      کادر آموزشی
-                    </option>
+                    <option value="education">کادر آموزشی</option>
                   </select>
                 </div>
 
@@ -272,10 +245,7 @@ export default function ContactMain() {
                     </option>
 
                     {subjects.map((subject) => (
-                      <option
-                        key={subject}
-                        value={subject}
-                      >
+                      <option key={subject} value={subject}>
                         {subject}
                       </option>
                     ))}
@@ -315,5 +285,21 @@ export default function ContactMain() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ContactMainFallback() {
+  return (
+    <section className="flex min-h-[500px] items-center justify-center bg-[#FAF8F3] px-5">
+      <div className="h-10 w-10 animate-pulse rounded-full bg-[#DBE7C1]" />
+    </section>
+  );
+}
+
+export default function ContactMain() {
+  return (
+    <Suspense fallback={<ContactMainFallback />}>
+      <ContactMainContent />
+    </Suspense>
   );
 }

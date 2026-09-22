@@ -1,89 +1,105 @@
-"use client";
-
+import { BookOpen, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
-import { Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
-   <footer className="border-t border-[#E1E8D6] bg-[#F1F5E8]">
-      <div className="mx-auto max-w-6xl px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
-                خ
-              </div>
-              <p className="text-sm font-bold text-foreground leading-tight">
-                دبیرستان شاهد حضرت خدیجه (س)
-              </p>
+    <footer className="border-t border-[#E1E8D6] bg-[#F1F5E8] text-[#194342]">
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-10 px-6 py-12 md:grid-cols-3">
+        {/* School info */}
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DBE7C1]">
+              <BookOpen className="h-5 w-5 text-[#194342]" />
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              محیطی امن و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان.
-            </p>
+
+            <h2 className="text-[15px] font-bold text-[#194342]">
+              شاهد حضرت خدیجه (س)
+            </h2>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">دسترسی سریع</h3>
-            <ul className="space-y-2">
-              {[
-                { label: "دوره‌ها", href: "/courses" },
-                { label: "اخبار", href: "/news" },
-                { label: "رویدادها", href: "/events" },
-                { label: "اعلامیه‌ها", href: "/announcements" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">مدرسه</h3>
-            <ul className="space-y-2">
-              {[
-                { label: "درباره مدرسه", href: "/about" },
-                { label: "کادر مدرسه", href: "/teachers" },
-                { label: "دانش‌آموزان", href: "/students" },
-                { label: "سوالات متداول", href: "/faq" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">تماس با ما</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>تهران، خیابان ولیعصر، نبش کوچه گل</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4 shrink-0" />
-                <span>۰۲۱-۸۸۷۷۶۶۵۵</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4 shrink-0" />
-                <span>info@khadijeh-school.ir</span>
-              </li>
-            </ul>
-          </div>
+          <p className="mt-4 max-w-[330px] text-[12.5px] leading-[1.9] text-[#667085]">
+            دبیرستان دخترانه شاهد حضرت خدیجه (س) با هدف پرورش استعدادهای
+            علمی و مهارتی دانش‌آموزان.
+          </p>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
-            © ۱۴۰۵ دبیرستان دخترانه شاهد حضرت خدیجه (ص). تمامی حقوق محفوظ است.
+        {/* Navigation */}
+        <div>
+          <h3 className="text-[13px] font-bold text-[#194342]">
+            دسترسی سریع
+          </h3>
+
+          <nav className="mt-4 flex flex-col gap-3">
+            <Link
+              href="/courses"
+              className="text-[12.5px] text-[#667085] transition-colors hover:text-[#B86F5B]"
+            >
+              دوره‌ها
+            </Link>
+
+            <Link
+              href="/programs"
+              className="text-[12.5px] text-[#667085] transition-colors hover:text-[#B86F5B]"
+            >
+              برنامه‌های آموزشی
+            </Link>
+
+            <Link
+              href="/gallery"
+              className="text-[12.5px] text-[#667085] transition-colors hover:text-[#B86F5B]"
+            >
+              گالری
+            </Link>
+
+            <Link
+              href="/about"
+              className="text-[12.5px] text-[#667085] transition-colors hover:text-[#B86F5B]"
+            >
+              درباره‌ی ما
+            </Link>
+          </nav>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h3 className="text-[13px] font-bold text-[#194342]">
+            تماس با ما
+          </h3>
+
+          <div className="mt-4 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#194342]" />
+
+              <span className="text-[12.5px] leading-6 text-[#667085]">
+                تهران، خیابان آموزش، کوچه مدرسه
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Phone className="h-4 w-4 shrink-0 text-[#194342]" />
+
+              <span dir="ltr" className="text-[12.5px] text-[#667085]">
+                ۰۲۱-۱۲۳۴۵۶۷۸
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Mail className="h-4 w-4 shrink-0 text-[#194342]" />
+
+              <span className="text-[12.5px] text-[#667085]">
+                info@khadijeh-school.ir
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Copyright */}
+      <div className="border-t border-[#E1E8D6]">
+        <div className="mx-auto max-w-[1200px] px-6 py-5 text-center">
+          <p className="text-[11.5px] text-[#667085]">
+            © ۱۴۰۵ دبیرستان شاهد حضرت خدیجه (س) — تمامی حقوق محفوظ است.
           </p>
-          <Link href="/auth" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            ورود به پنل مدیریت
-          </Link>
         </div>
       </div>
     </footer>

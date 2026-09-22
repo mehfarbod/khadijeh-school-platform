@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import Header from "@/components/layout/Header";
@@ -40,11 +40,11 @@ type FormErrors = {
   phone?: string;
 };
 
-export default function CourseRegistrationPage() {
+function CourseRegistrationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const courseId = searchParams.get("course");
+  const courseId = searchParams?.get("course");
 
   const selectedCourse = courses.find((course) => course.id === courseId);
 
@@ -54,7 +54,9 @@ export default function CourseRegistrationPage() {
   const [description, setDescription] = useState("");
 
   const [errors, setErrors] = useState<FormErrors>({});
+
   const [isSubmitted, setIsSubmitted] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -196,6 +198,7 @@ export default function CourseRegistrationPage() {
 
                       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-[#667085]">
                         <span>{selectedCourse.grade}</span>
+
                         <span>{selectedCourse.schedule}</span>
                       </div>
                     </div>
@@ -274,7 +277,9 @@ export default function CourseRegistrationPage() {
                       </option>
 
                       <option value="10">پایه دهم</option>
+
                       <option value="11">پایه یازدهم</option>
+
                       <option value="12">پایه دوازدهم</option>
                     </select>
 
@@ -394,6 +399,7 @@ export default function CourseRegistrationPage() {
                 <p className="mt-2 text-[12px] leading-6 text-[#98A2B3]">
                   پس از بررسی اطلاعات، مدرسه با شما تماس خواهد گرفت.
                 </p>
+
                 <div className="mt-7 flex justify-center">
                   <Link
                     href="/courses"
@@ -410,5 +416,29 @@ export default function CourseRegistrationPage() {
 
       <CoursesFooter />
     </>
+  );
+}
+
+function CourseRegistrationFallback() {
+  return (
+    <>
+      <Header />
+
+      <main className="min-h-screen bg-[#FAF8F3]">
+        <section className="flex min-h-[500px] items-center justify-center px-5">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-[#DBE7C1]" />
+        </section>
+      </main>
+
+      <CoursesFooter />
+    </>
+  );
+}
+
+export default function CourseRegistrationPage() {
+  return (
+    <Suspense fallback={<CourseRegistrationFallback />}>
+      <CourseRegistrationContent />
+    </Suspense>
   );
 }
