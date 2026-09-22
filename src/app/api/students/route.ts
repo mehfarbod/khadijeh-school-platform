@@ -16,6 +16,20 @@ const createStudentSchema = z.object({
     .min(1, "نام خانوادگی الزامی است.")
     .max(100, "نام خانوادگی بیش از حد طولانی است."),
 
+  nationalId: z
+    .string()
+    .trim()
+    .max(20, "کد ملی نامعتبر است.")
+    .optional()
+    .nullable(),
+
+  mobile: z
+    .string()
+    .trim()
+    .max(30, "شماره تلفن همراه نامعتبر است.")
+    .optional()
+    .nullable(),
+
   grade: z
     .string()
     .trim()
@@ -25,8 +39,9 @@ const createStudentSchema = z.object({
   className: z
     .string()
     .trim()
-    .min(1, "کلاس الزامی است.")
-    .max(50, "نام کلاس بیش از حد طولانی است."),
+    .max(50, "نام کلاس بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
   academicYear: z
     .string()
@@ -48,7 +63,7 @@ const createStudentSchema = z.object({
     .nullable()
     .refine(
       (value) => !value || !Number.isNaN(new Date(value).getTime()),
-      "تاریخ تولد نامعتبر است."
+      "تاریخ تولد نامعتبر است.",
     ),
 
   guardianName: z
@@ -81,18 +96,42 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const grade = searchParams.get("grade");
+    const academicYear = searchParams.get("academicYear");
     const activeOnly = searchParams.get("activeOnly") !== "false";
 
     const students = await prisma.student.findMany({
       where: {
         ...(activeOnly ? { isActive: true } : {}),
-        ...(grade ? { grade } : {}),
+        ...(grade || academicYear
+          ? {
+              enrollments: {
+                some: {
+                  ...(grade ? { grade } : {}),
+                  ...(academicYear
+                    ? {
+                        academicYear: {
+                          title: academicYear,
+                        },
+                      }
+                    : {}),
+                },
+              },
+            }
+          : {}),
       },
-      orderBy: [
-        { grade: "asc" },
-        { lastName: "asc" },
-        { firstName: "asc" },
-      ],
+      include: {
+        enrollments: {
+          include: {
+            academicYear: true,
+          },
+          orderBy: {
+            academicYear: {
+              title: "desc",
+            },
+          },
+        },
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
     return NextResponse.json(students);
@@ -101,7 +140,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       { error: "خطا در دریافت اطلاعات دانش‌آموزان" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -119,7 +158,7 @@ export async function POST(request: NextRequest) {
           error: "اطلاعات واردشده معتبر نیست.",
           details: result.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -129,15 +168,39 @@ export async function POST(request: NextRequest) {
       data: {
         firstName: data.firstName,
         lastName: data.lastName,
-        grade: data.grade,
-        className: data.className,
-        academicYear: data.academicYear,
+        nationalId: data.nationalId || null,
+        mobile: data.mobile || null,
         photo: data.photo || null,
         birthday: data.birthday ? new Date(data.birthday) : null,
         guardianName: data.guardianName || null,
         guardianPhone: data.guardianPhone || null,
         email: data.email || null,
         isActive: data.isActive ?? true,
+
+        enrollments: {
+          create: {
+            grade: data.grade,
+            className: data.className || null,
+
+            academicYear: {
+              connectOrCreate: {
+                where: {
+                  title: data.academicYear,
+                },
+                create: {
+                  title: data.academicYear,
+                },
+              },
+            },
+          },
+        },
+      },
+      include: {
+        enrollments: {
+          include: {
+            academicYear: true,
+          },
+        },
       },
     });
 
@@ -148,20 +211,20 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json(
         { error: "احراز هویت الزامی است." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json(
         { error: "شما مجوز انجام این عملیات را ندارید." },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     return NextResponse.json(
       { error: "خطا در ایجاد دانش‌آموز" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
