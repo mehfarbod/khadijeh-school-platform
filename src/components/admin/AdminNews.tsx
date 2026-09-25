@@ -1,7 +1,7 @@
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Eye,
   Pencil,
@@ -304,7 +304,7 @@ function Field({
   className = "",
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
