@@ -66,12 +66,41 @@ export async function PATCH(
       return NextResponse.json({ error: "این ایمیل قبلاً برای کاربر دیگری ثبت شده است." }, { status: 409 });
     }
 
+    const staffId = body.staffId === undefined ? undefined : body.staffId === null || body.staffId === "" ? null : String(body.staffId);
+
+    if (staffId) {
+      const staff = await prisma.staff.findUnique({
+        where: { id: staffId },
+        select: { id: true, userId: true },
+      });
+      if (!staff) {
+        return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
+      }
+      if (staff.userId && staff.userId !== id) {
+        return NextResponse.json({ error: "این عضو کادر به کاربر دیگری متصل است." }, { status: 409 });
+      }
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({
         where: { id },
         data: { name: name || null, email, role, isActive },
         select: { id: true, name: true, email: true, role: true, isActive: true },
       });
+
+      if (staffId !== undefined) {
+        await tx.staff.updateMany({
+          where: { userId: id },
+          data: { userId: null },
+        });
+
+        if (staffId) {
+          await tx.staff.update({
+            where: { id: staffId },
+            data: { userId: id },
+          });
+        }
+      }
 
       if (Array.isArray(body.permissions)) {
         if (currentRole !== "SUPER_ADMIN" && target.role === "SUPER_ADMIN") {
