@@ -79,6 +79,8 @@ const updateStaffSchema = z.object({
     .nullable()
     .optional(),
 
+  userId: z.string().trim().min(1).nullable().optional(),
+
   isActive: z.boolean().optional(),
 });
 
@@ -138,6 +140,9 @@ export async function PATCH(
         }),
         ...(data.email !== undefined && {
           email: data.email || null,
+        }),
+        ...(data.userId !== undefined && {
+          userId: data.userId || null,
         }),
         ...(data.isActive !== undefined && {
           isActive: data.isActive,
