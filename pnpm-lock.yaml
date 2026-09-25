@@ -131,6 +131,9 @@ importers:
       input-otp:
         specifier: ^1.5.0
         version: 1.5.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      jalaali-js:
+        specifier: ^2.0.1
+        version: 2.0.1
       lucide-react:
         specifier: ^0.555.0
         version: 0.555.0(react@19.3.0)
@@ -149,6 +152,9 @@ importers:
       react:
         specifier: ^19.2.0
         version: 19.3.0
+      react-date-object:
+        specifier: ^2.1.9
+        version: 2.1.9
       react-day-picker:
         specifier: ^10.0.1
         version: 10.0.1(@types/react@19.3.0)(react@19.3.0)
@@ -158,6 +164,9 @@ importers:
       react-hook-form:
         specifier: ^7.67.0
         version: 7.88.0(react@19.3.0)
+      react-multi-date-picker:
+        specifier: ^4.5.2
+        version: 4.5.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-resizable-panels:
         specifier: ^2.1.7
         version: 2.1.7(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2151,6 +2160,10 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  jalaali-js@2.0.1:
+    resolution: {integrity: sha512-qzTmjw6lZ3V4znyNA8ceYoGgFR+CcF+xEfIYZNcK2ZR0mzdMpMZ6iAcdRPvMgxUVdPMh6QLWCANpTcCJow2U+Q==}
+    engines: {node: '>=20'}
+
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
@@ -2512,6 +2525,9 @@ packages:
   rc9@3.1.0:
     resolution: {integrity: sha512-ufjkNVzbRHKcCOmTahZkmVsyc3W+MSk3jY03m+a7tGHkIsdVMG9l10/3HvFbWkkKzY5VFp3pkRsIo/UYgmFL7Q==}
 
+  react-date-object@2.1.9:
+    resolution: {integrity: sha512-BHxD/quWOTo9fLKV/cfL/M31ePoj4a1JaJ/CnOf8Ndg3mrkh4x9wEMMkCfTrzduxDOgU8ZgR8uarhqI5G71sTg==}
+
   react-day-picker@10.0.1:
     resolution: {integrity: sha512-eNh6BlwcYInWaJtRv18mXQ06Ys/H6rdTZAnTaSdOYJuTpwP1JMCHNd1FDRadA+gbeinq+psdULN5Xnowy9mV8w==}
     engines: {node: '>=18'}
@@ -2527,6 +2543,12 @@ packages:
     peerDependencies:
       react: ^19.3.0
 
+  react-element-popper@2.1.7:
+    resolution: {integrity: sha512-tuM2OxKlW32h+6uFSK6EENHPeZ2OGgOipHfOAl+VLWEv9/j3QkSGbD+ADX3A9uJlmq24i37n28RjJmAbGTfpEg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
   react-hook-form@7.88.0:
     resolution: {integrity: sha512-QRaLOWhX93YCnMiRfnOFRSwWXZNt8qhm2JTZwypoDvKpSffTJHmpzMXt8U6PV5UThvL3IiiLDUWe2nHMtz6Mmw==}
     engines: {node: '>=18.0.0'}
@@ -2538,6 +2560,12 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  react-multi-date-picker@4.5.2:
+    resolution: {integrity: sha512-FgWjZB3Z6IA6XpcWiLPk85PwcRUhOiYhKK42o5k672gD/n2I6rzPfQ8bUrldOIiF/Z7FfOCdH7a6FeubzqteLg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
 
   react-remove-scroll-bar@2.3.8:
     resolution: {integrity: sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==}
@@ -4621,6 +4649,8 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  jalaali-js@2.0.1: {}
+
   jiti@2.7.0: {}
 
   jose@4.15.9: {}
@@ -4948,6 +4978,8 @@ snapshots:
       defu: 6.1.7
       destr: 2.0.5
 
+  react-date-object@2.1.9: {}
+
   react-day-picker@10.0.1(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       '@date-fns/tz': 1.5.0
@@ -4961,6 +4993,11 @@ snapshots:
       react: 19.3.0
       scheduler: 0.28.0
 
+  react-element-popper@2.1.7(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+
   react-hook-form@7.88.0(react@19.3.0):
     dependencies:
       react: 19.3.0
@@ -4968,6 +5005,13 @@ snapshots:
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
+
+  react-multi-date-picker@4.5.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+      react-date-object: 2.1.9
+      react-dom: 19.3.0(react@19.3.0)
+      react-element-popper: 2.1.7(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
 
   react-remove-scroll-bar@2.3.8(@types/react@19.3.0)(react@19.3.0):
     dependencies:

@@ -5,36 +5,34 @@ import { FormEvent, useState } from "react";
 
 import Header from "@/components/layout/Header";
 import CoursesFooter from "@/components/courses/CoursesFooter";
+import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
+
+import { isValidJalaliDate, normalizeDigits } from "@/lib/date/jalali";
 
 type FormErrors = {
-  studentName?: string;
+  studentFirstName?: string;
+  studentLastName?: string;
   birthDate?: string;
   nationalId?: string;
   birthCertificateSerial?: string;
   grade?: string;
   studentPhone?: string;
-
-  fatherName?: string;
+  fatherFirstName?: string;
+  fatherLastName?: string;
   fatherNationalId?: string;
   fatherJob?: string;
   fatherEducation?: string;
   fatherPhone?: string;
-
-  motherName?: string;
+  motherFirstName?: string;
+  motherLastName?: string;
   motherNationalId?: string;
   motherJob?: string;
   motherEducation?: string;
   motherPhone?: string;
-
   address?: string;
   landlinePhone?: string;
+  description?: string;
 };
-
-function normalizeDigits(value: string) {
-  return value
-    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
-}
 
 function normalizePhone(value: string) {
   return normalizeDigits(value).replace(/\s/g, "").replace(/-/g, "");
@@ -56,7 +54,6 @@ function isValidIranianNationalId(value: string) {
   }
 
   const digits = nationalId.split("").map(Number);
-
   const checkDigit = digits[9];
 
   const weightedSum = digits
@@ -65,66 +62,34 @@ function isValidIranianNationalId(value: string) {
 
   const remainder = weightedSum % 11;
 
-  const calculatedCheckDigit =
-    remainder < 2 ? remainder : 11 - remainder;
+  const calculatedCheckDigit = remainder < 2 ? remainder : 11 - remainder;
 
   return checkDigit === calculatedCheckDigit;
 }
 
-function isValidJalaliDate(value: string) {
-  const normalized = normalizeDigits(value).trim();
-
-  const match = normalized.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-
-  if (!match) {
-    return false;
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-
-  if (year < 1300 || year > 1500) {
-    return false;
-  }
-
-  if (month < 1 || month > 12) {
-    return false;
-  }
-
-  const maxDay = month <= 6 ? 31 : month <= 11 ? 30 : 30;
-
-  if (day < 1 || day > maxDay) {
-    return false;
-  }
-
-  return true;
-}
-
 export default function RegistrationPage() {
-  // Student
-  const [studentName, setStudentName] = useState("");
+  const [studentFirstName, setStudentFirstName] = useState("");
+  const [studentLastName, setStudentLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [birthCertificateSerial, setBirthCertificateSerial] = useState("");
   const [grade, setGrade] = useState("");
   const [studentPhone, setStudentPhone] = useState("");
 
-  // Father
-  const [fatherName, setFatherName] = useState("");
+  const [fatherFirstName, setFatherFirstName] = useState("");
+  const [fatherLastName, setFatherLastName] = useState("");
   const [fatherNationalId, setFatherNationalId] = useState("");
   const [fatherJob, setFatherJob] = useState("");
   const [fatherEducation, setFatherEducation] = useState("");
   const [fatherPhone, setFatherPhone] = useState("");
 
-  // Mother
-  const [motherName, setMotherName] = useState("");
+  const [motherFirstName, setMotherFirstName] = useState("");
+  const [motherLastName, setMotherLastName] = useState("");
   const [motherNationalId, setMotherNationalId] = useState("");
   const [motherJob, setMotherJob] = useState("");
   const [motherEducation, setMotherEducation] = useState("");
   const [motherPhone, setMotherPhone] = useState("");
 
-  // Contact
   const [address, setAddress] = useState("");
   const [landlinePhone, setLandlinePhone] = useState("");
   const [description, setDescription] = useState("");
@@ -132,973 +97,801 @@ export default function RegistrationPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function validateForm() {
-    const newErrors: FormErrors = {};
+    const nextErrors: FormErrors = {};
 
-    // -----------------------------
-    // Student
-    // -----------------------------
+    const normalizedStudentPhone = normalizePhone(studentPhone);
+    const normalizedNationalId = normalizeNationalId(nationalId);
+    const normalizedFatherNationalId = normalizeNationalId(fatherNationalId);
+    const normalizedMotherNationalId = normalizeNationalId(motherNationalId);
+    const normalizedFatherPhone = normalizePhone(fatherPhone);
+    const normalizedMotherPhone = normalizePhone(motherPhone);
+    const normalizedLandlinePhone = normalizePhone(landlinePhone);
 
-    if (!studentName.trim()) {
-      newErrors.studentName = "نام و نام خانوادگی دانش‌آموز را وارد کنید.";
-    } else if (studentName.trim().length < 3) {
-      newErrors.studentName = "نام واردشده معتبر نیست.";
+    if (!studentFirstName.trim()) {
+      nextErrors.studentFirstName = "نام دانش‌آموز الزامی است.";
+    }
+
+    if (!studentLastName.trim()) {
+      nextErrors.studentLastName = "نام خانوادگی دانش‌آموز الزامی است.";
     }
 
     if (!birthDate.trim()) {
-      newErrors.birthDate = "تاریخ تولد را وارد کنید.";
+      nextErrors.birthDate = "تاریخ تولد الزامی است.";
     } else if (!isValidJalaliDate(birthDate)) {
-      newErrors.birthDate =
-        "تاریخ تولد را به شکل ۱۴۰۰/۰۱/۰۱ وارد کنید.";
+      nextErrors.birthDate = "تاریخ تولد معتبر نیست.";
     }
 
-    const normalizedNationalId = normalizeNationalId(nationalId);
-
     if (!normalizedNationalId) {
-      newErrors.nationalId = "کد ملی دانش‌آموز را وارد کنید.";
+      nextErrors.nationalId = "کد ملی دانش‌آموز الزامی است.";
     } else if (!isValidIranianNationalId(normalizedNationalId)) {
-      newErrors.nationalId = "کد ملی واردشده معتبر نیست.";
+      nextErrors.nationalId = "کد ملی دانش‌آموز معتبر نیست.";
     }
 
     if (!birthCertificateSerial.trim()) {
-      newErrors.birthCertificateSerial = "سریال شناسنامه را وارد کنید.";
+      nextErrors.birthCertificateSerial = "سری شناسنامه الزامی است.";
     }
 
     if (!grade) {
-      newErrors.grade = "پایه موردنظر را انتخاب کنید.";
+      nextErrors.grade = "پایه تحصیلی را انتخاب کنید.";
     }
-
-    const normalizedStudentPhone = normalizePhone(studentPhone);
 
     if (!normalizedStudentPhone) {
-      newErrors.studentPhone = "شماره تلفن همراه دانش‌آموز را وارد کنید.";
+      nextErrors.studentPhone = "شماره تلفن همراه دانش‌آموز الزامی است.";
     } else if (!/^09\d{9}$/.test(normalizedStudentPhone)) {
-      newErrors.studentPhone =
-        "شماره تلفن همراه باید به شکل ۰۹۱۲۱۲۳۴۵۶۷ وارد شود.";
+      nextErrors.studentPhone = "شماره تلفن همراه معتبر نیست.";
     }
 
-    // -----------------------------
-    // Father
-    // -----------------------------
-
-    if (!fatherName.trim()) {
-      newErrors.fatherName = "نام و نام خانوادگی پدر را وارد کنید.";
-    } else if (fatherName.trim().length < 3) {
-      newErrors.fatherName = "نام واردشده معتبر نیست.";
+    if (!fatherFirstName.trim()) {
+      nextErrors.fatherFirstName = "نام پدر الزامی است.";
     }
 
-    const normalizedFatherNationalId = normalizeNationalId(fatherNationalId);
+    if (!fatherLastName.trim()) {
+      nextErrors.fatherLastName = "نام خانوادگی پدر الزامی است.";
+    }
 
     if (!normalizedFatherNationalId) {
-      newErrors.fatherNationalId = "کد ملی پدر را وارد کنید.";
+      nextErrors.fatherNationalId = "کد ملی پدر الزامی است.";
     } else if (!isValidIranianNationalId(normalizedFatherNationalId)) {
-      newErrors.fatherNationalId = "کد ملی واردشده معتبر نیست.";
+      nextErrors.fatherNationalId = "کد ملی پدر معتبر نیست.";
     }
 
     if (!fatherJob.trim()) {
-      newErrors.fatherJob = "شغل پدر را وارد کنید.";
+      nextErrors.fatherJob = "شغل پدر الزامی است.";
     }
 
     if (!fatherEducation.trim()) {
-      newErrors.fatherEducation = "تحصیلات پدر را وارد کنید.";
+      nextErrors.fatherEducation = "تحصیلات پدر الزامی است.";
     }
-
-    const normalizedFatherPhone = normalizePhone(fatherPhone);
 
     if (!normalizedFatherPhone) {
-      newErrors.fatherPhone = "شماره تلفن همراه پدر را وارد کنید.";
+      nextErrors.fatherPhone = "شماره تلفن همراه پدر الزامی است.";
     } else if (!/^09\d{9}$/.test(normalizedFatherPhone)) {
-      newErrors.fatherPhone =
-        "شماره تلفن همراه باید به شکل ۰۹۱۲۱۲۳۴۵۶۷ وارد شود.";
+      nextErrors.fatherPhone = "شماره تلفن همراه پدر معتبر نیست.";
     }
 
-    // -----------------------------
-    // Mother
-    // -----------------------------
-
-    if (!motherName.trim()) {
-      newErrors.motherName = "نام و نام خانوادگی مادر را وارد کنید.";
-    } else if (motherName.trim().length < 3) {
-      newErrors.motherName = "نام واردشده معتبر نیست.";
+    if (!motherFirstName.trim()) {
+      nextErrors.motherFirstName = "نام مادر الزامی است.";
     }
 
-    const normalizedMotherNationalId = normalizeNationalId(motherNationalId);
+    if (!motherLastName.trim()) {
+      nextErrors.motherLastName = "نام خانوادگی مادر الزامی است.";
+    }
 
     if (!normalizedMotherNationalId) {
-      newErrors.motherNationalId = "کد ملی مادر را وارد کنید.";
+      nextErrors.motherNationalId = "کد ملی مادر الزامی است.";
     } else if (!isValidIranianNationalId(normalizedMotherNationalId)) {
-      newErrors.motherNationalId = "کد ملی واردشده معتبر نیست.";
+      nextErrors.motherNationalId = "کد ملی مادر معتبر نیست.";
     }
 
     if (!motherJob.trim()) {
-      newErrors.motherJob = "شغل مادر را وارد کنید.";
+      nextErrors.motherJob = "شغل مادر الزامی است.";
     }
 
     if (!motherEducation.trim()) {
-      newErrors.motherEducation = "تحصیلات مادر را وارد کنید.";
+      nextErrors.motherEducation = "تحصیلات مادر الزامی است.";
     }
-
-    const normalizedMotherPhone = normalizePhone(motherPhone);
 
     if (!normalizedMotherPhone) {
-      newErrors.motherPhone = "شماره تلفن همراه مادر را وارد کنید.";
+      nextErrors.motherPhone = "شماره تلفن همراه مادر الزامی است.";
     } else if (!/^09\d{9}$/.test(normalizedMotherPhone)) {
-      newErrors.motherPhone =
-        "شماره تلفن همراه باید به شکل ۰۹۱۲۱۲۳۴۵۶۷ وارد شود.";
+      nextErrors.motherPhone = "شماره تلفن همراه مادر معتبر نیست.";
     }
-
-    // -----------------------------
-    // Contact
-    // -----------------------------
 
     if (!address.trim()) {
-      newErrors.address = "آدرس کامل را وارد کنید.";
+      nextErrors.address = "آدرس الزامی است.";
     }
 
-    if (landlinePhone.trim()) {
-      const normalizedLandlinePhone = normalizePhone(landlinePhone);
-
-      if (!/^0\d{9,10}$/.test(normalizedLandlinePhone)) {
-        newErrors.landlinePhone = "شماره تلفن ثابت واردشده معتبر نیست.";
-      }
+    if (
+      normalizedLandlinePhone &&
+      !/^0\d{9,10}$/.test(normalizedLandlinePhone)
+    ) {
+      nextErrors.landlinePhone = "شماره تلفن ثابت معتبر نیست.";
     }
 
-    setErrors(newErrors);
+    setErrors(nextErrors);
 
-    return Object.keys(newErrors).length === 0;
-  }
-
-  function clearError(field: keyof FormErrors) {
-    if (errors[field]) {
-      setErrors((current) => ({
-        ...current,
-        [field]: undefined,
-      }));
-    }
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsSubmitted(false);
+    setSubmitError("");
 
-    const isValid = validateForm();
-
-    if (!isValid) {
+    if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
 
-    /*
-     * فعلاً Prisma متصل نیست.
-     * در مرحله بعد همین بخش به Server Action
-     * و سپس Prisma متصل خواهد شد.
-     */
+    try {
+      const response = await fetch("/api/admission-applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentFirstName: studentFirstName.trim(),
+          studentLastName: studentLastName.trim(),
 
-    await new Promise((resolve) => setTimeout(resolve, 700));
+          birthDate: normalizeDigits(birthDate).trim(),
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+          nationalId: normalizeNationalId(nationalId),
 
-    // Student
-    setStudentName("");
-    setBirthDate("");
-    setNationalId("");
-    setBirthCertificateSerial("");
-    setGrade("");
-    setStudentPhone("");
+          birthCertificateSerial: normalizeDigits(
+            birthCertificateSerial,
+          ).trim(),
 
-    // Father
-    setFatherName("");
-    setFatherNationalId("");
-    setFatherJob("");
-    setFatherEducation("");
-    setFatherPhone("");
+          requestedGrade: grade,
 
-    // Mother
-    setMotherName("");
-    setMotherNationalId("");
-    setMotherJob("");
-    setMotherEducation("");
-    setMotherPhone("");
+          studentMobile: normalizePhone(studentPhone),
 
-    // Contact
-    setAddress("");
-    setLandlinePhone("");
-    setDescription("");
+          fatherFirstName: fatherFirstName.trim(),
+          fatherLastName: fatherLastName.trim(),
+          fatherNationalId: normalizeNationalId(fatherNationalId),
+          fatherJob: fatherJob.trim(),
+          fatherEducation: fatherEducation.trim(),
+          fatherMobile: normalizePhone(fatherPhone),
 
-    setErrors({});
+          motherFirstName: motherFirstName.trim(),
+          motherLastName: motherLastName.trim(),
+          motherNationalId: normalizeNationalId(motherNationalId),
+          motherJob: motherJob.trim(),
+          motherEducation: motherEducation.trim(),
+          motherMobile: normalizePhone(motherPhone),
+
+          address: address.trim(),
+          landline: normalizePhone(landlinePhone),
+          description: description.trim() || null,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.error === "این کد ملی قبلاً در سیستم مدرسه ثبت شده است.") {
+          setErrors((previous) => ({
+            ...previous,
+            nationalId: result.error,
+          }));
+        } else {
+          setSubmitError(result.error || "ثبت درخواست ثبت‌نام انجام نشد.");
+        }
+
+        if (result.details) {
+          console.error("Admission validation errors:", result.details);
+        }
+
+        return;
+      }
+
+      setIsSubmitted(true);
+      setErrors({});
+      setSubmitError("");
+
+      setStudentFirstName("");
+      setStudentLastName("");
+      setBirthDate("");
+      setNationalId("");
+      setBirthCertificateSerial("");
+      setGrade("");
+      setStudentPhone("");
+
+      setFatherFirstName("");
+      setFatherLastName("");
+      setFatherNationalId("");
+      setFatherJob("");
+      setFatherEducation("");
+      setFatherPhone("");
+
+      setMotherFirstName("");
+      setMotherLastName("");
+      setMotherNationalId("");
+      setMotherJob("");
+      setMotherEducation("");
+      setMotherPhone("");
+
+      setAddress("");
+      setLandlinePhone("");
+      setDescription("");
+    } catch (error) {
+      console.error("Registration submission error:", error);
+
+      setSubmitError("ارتباط با سرور برقرار نشد. لطفاً دوباره تلاش کنید.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-
-  const inputClass = (error?: string) =>
-    `h-11 w-full rounded-[10px] border bg-white px-4 text-[13px] text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] ${
-      error
-        ? "border-red-400 focus:border-red-500"
-        : "border-[#DBE7C1] focus:border-[#194342]"
-    }`;
-
-  const selectClass = (error?: string) =>
-    `h-11 w-full rounded-[10px] border bg-white px-4 text-[13px] outline-none transition-colors ${
-      error
-        ? "border-red-400 text-[#667085] focus:border-red-500"
-        : "border-[#DBE7C1] text-[#667085] focus:border-[#194342]"
-    }`;
 
   return (
     <>
       <Header />
 
       <main className="min-h-screen bg-[#FAF8F3]">
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-[#194342]">
-          <div className="absolute -right-[70px] -top-[70px] h-[240px] w-[240px] rounded-full border border-[#DBE7C1]/15" />
+        <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="mb-10">
+            <Link
+              href="/"
+              className="mb-4 inline-flex text-sm text-[#194342]/70 transition hover:text-[#194342]"
+            >
+              بازگشت به صفحه اصلی
+            </Link>
 
-          <div className="absolute -right-[35px] -top-[35px] h-[155px] w-[155px] rounded-full border border-[#DBE7C1]/10" />
-
-          <div className="absolute -bottom-[100px] -left-[100px] h-[280px] w-[280px] rounded-full border border-[#DBE7C1]/10" />
-
-          <div className="relative z-10 mx-auto w-full max-w-[1200px] px-5 py-12 text-center sm:px-6">
-            <span className="inline-flex rounded-full border border-[#DBE7C1]/30 bg-[#DBE7C1]/[0.18] px-3.5 py-1 text-xs font-medium text-[#DBE7C1]">
-              شاهد حضرت خدیجه (س)
-            </span>
-
-            <h1 className="mt-4 text-[clamp(26px,5vw,38px)] font-bold leading-[1.4] text-white">
+            <h1 className="text-3xl font-bold text-[#194342] sm:text-4xl">
               پیش‌ثبت‌نام مدرسه
             </h1>
 
-            <p className="mx-auto mt-3 max-w-[560px] text-[13.5px] leading-[1.9] text-[#DBE7C1]/85 sm:text-[15px]">
-              اطلاعات اولیه دانش‌آموز را وارد کنید تا درخواست پیش‌ثبت‌نام شما
-              بررسی شود.
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[#194342]/70 sm:text-base">
+              اطلاعات مورد نیاز را با دقت وارد کنید. پس از بررسی اطلاعات، نتیجه
+              درخواست توسط مدرسه اعلام خواهد شد.
             </p>
           </div>
-        </section>
 
-        {/* Form */}
-        <section className="mx-auto w-full max-w-[760px] px-5 py-10 sm:px-6 sm:py-14">
-          {!isSubmitted ? (
-            <>
-              <Link
-                href="/"
-                className="mb-5 inline-flex items-center text-[12.5px] font-medium text-[#194342] transition-colors hover:text-[#B86F5B]"
-              >
-                ← بازگشت به صفحه اصلی
-              </Link>
-
-              <div className="rounded-[20px] border border-[#DBE7C1] bg-white p-5 sm:p-8">
-                <div>
-                  <h2 className="text-[18px] font-bold text-[#194342]">
-                    اطلاعات پیش‌ثبت‌نام
-                  </h2>
-
-                  <p className="mt-2 text-[12.5px] leading-6 text-[#667085]">
-                    لطفاً اطلاعات زیر را با دقت وارد کنید.
-                  </p>
-                </div>
-
-                <form
-                  onSubmit={handleSubmit}
-                  noValidate
-                  className="mt-8 space-y-8"
-                >
-                  {/* Student Information */}
-                  <section>
-                    <div className="mb-5 flex items-center gap-3">
-                      <div className="h-8 w-1 rounded-full bg-[#B86F5B]" />
-
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#194342]">
-                          اطلاعات دانش‌آموز
-                        </h3>
-
-                        <p className="mt-1 text-[11.5px] text-[#98A2B3]">
-                          اطلاعات شناسایی و تحصیلی دانش‌آموز
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor="studentName"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          نام و نام خانوادگی دانش‌آموز
-                        </label>
-
-                        <input
-                          id="studentName"
-                          name="studentName"
-                          type="text"
-                          value={studentName}
-                          onChange={(event) => {
-                            setStudentName(event.target.value);
-                            clearError("studentName");
-                          }}
-                          placeholder="نام و نام خانوادگی"
-                          className={inputClass(errors.studentName)}
-                        />
-
-                        {errors.studentName && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.studentName}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="birthDate"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          تاریخ تولد
-                        </label>
-
-                        <input
-                          id="birthDate"
-                          name="birthDate"
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={10}
-                          value={birthDate}
-                          onChange={(event) => {
-                            setBirthDate(event.target.value);
-                            clearError("birthDate");
-                          }}
-                          placeholder="۱۴۰۰/۰۱/۰۱"
-                          dir="ltr"
-                          className={inputClass(errors.birthDate)}
-                        />
-
-                        {errors.birthDate && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.birthDate}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="nationalId"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          کد ملی
-                        </label>
-
-                        <input
-                          id="nationalId"
-                          name="nationalId"
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={10}
-                          value={nationalId}
-                          onChange={(event) => {
-                            setNationalId(event.target.value);
-                            clearError("nationalId");
-                          }}
-                          placeholder="کد ملی ۱۰ رقمی"
-                          dir="ltr"
-                          className={inputClass(errors.nationalId)}
-                        />
-
-                        {errors.nationalId && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.nationalId}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="birthCertificateSerial"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          سریال شناسنامه
-                        </label>
-
-                        <input
-                          id="birthCertificateSerial"
-                          name="birthCertificateSerial"
-                          type="text"
-                          value={birthCertificateSerial}
-                          onChange={(event) => {
-                            setBirthCertificateSerial(event.target.value);
-                            clearError("birthCertificateSerial");
-                          }}
-                          placeholder="سریال شناسنامه"
-                          className={inputClass(errors.birthCertificateSerial)}
-                        />
-
-                        {errors.birthCertificateSerial && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.birthCertificateSerial}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="grade"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          پایه موردنظر
-                        </label>
-
-                        <select
-                          id="grade"
-                          name="grade"
-                          value={grade}
-                          onChange={(event) => {
-                            setGrade(event.target.value);
-                            clearError("grade");
-                          }}
-                          className={selectClass(errors.grade)}
-                        >
-                          <option value="" disabled>
-                            پایه موردنظر را انتخاب کنید
-                          </option>
-
-                          <option value="10">پایه دهم</option>
-                          <option value="11">پایه یازدهم</option>
-                          <option value="12">پایه دوازدهم</option>
-                        </select>
-
-                        {errors.grade && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.grade}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="studentPhone"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          شماره تلفن همراه دانش‌آموز
-                        </label>
-
-                        <input
-                          id="studentPhone"
-                          name="studentPhone"
-                          type="tel"
-                          inputMode="tel"
-                          value={studentPhone}
-                          onChange={(event) => {
-                            setStudentPhone(event.target.value);
-                            clearError("studentPhone");
-                          }}
-                          placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                          dir="ltr"
-                          className={inputClass(errors.studentPhone)}
-                        />
-
-                        {errors.studentPhone && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.studentPhone}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-
-                  <div className="h-px bg-[#DBE7C1]" />
-
-                  {/* Father Information */}
-                  <section>
-                    <div className="mb-5 flex items-center gap-3">
-                      <div className="h-8 w-1 rounded-full bg-[#B86F5B]" />
-
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#194342]">
-                          اطلاعات پدر
-                        </h3>
-
-                        <p className="mt-1 text-[11.5px] text-[#98A2B3]">
-                          اطلاعات هویتی و تماس پدر
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div>
-                        <label
-                          htmlFor="fatherName"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          نام و نام خانوادگی پدر
-                        </label>
-
-                        <input
-                          id="fatherName"
-                          name="fatherName"
-                          type="text"
-                          value={fatherName}
-                          onChange={(event) => {
-                            setFatherName(event.target.value);
-                            clearError("fatherName");
-                          }}
-                          placeholder="نام و نام خانوادگی"
-                          className={inputClass(errors.fatherName)}
-                        />
-
-                        {errors.fatherName && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.fatherName}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="fatherNationalId"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          کد ملی پدر
-                        </label>
-
-                        <input
-                          id="fatherNationalId"
-                          name="fatherNationalId"
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={10}
-                          value={fatherNationalId}
-                          onChange={(event) => {
-                            setFatherNationalId(event.target.value);
-                            clearError("fatherNationalId");
-                          }}
-                          placeholder="کد ملی ۱۰ رقمی"
-                          dir="ltr"
-                          className={inputClass(errors.fatherNationalId)}
-                        />
-
-                        {errors.fatherNationalId && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.fatherNationalId}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="fatherJob"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          شغل
-                        </label>
-
-                        <input
-                          id="fatherJob"
-                          name="fatherJob"
-                          type="text"
-                          value={fatherJob}
-                          onChange={(event) => {
-                            setFatherJob(event.target.value);
-                            clearError("fatherJob");
-                          }}
-                          placeholder="شغل پدر"
-                          className={inputClass(errors.fatherJob)}
-                        />
-
-                        {errors.fatherJob && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.fatherJob}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="fatherEducation"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          تحصیلات
-                        </label>
-
-                        <input
-                          id="fatherEducation"
-                          name="fatherEducation"
-                          type="text"
-                          value={fatherEducation}
-                          onChange={(event) => {
-                            setFatherEducation(event.target.value);
-                            clearError("fatherEducation");
-                          }}
-                          placeholder="مثلاً کارشناسی"
-                          className={inputClass(errors.fatherEducation)}
-                        />
-
-                        {errors.fatherEducation && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.fatherEducation}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor="fatherPhone"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          شماره تلفن همراه پدر
-                        </label>
-
-                        <input
-                          id="fatherPhone"
-                          name="fatherPhone"
-                          type="tel"
-                          inputMode="tel"
-                          value={fatherPhone}
-                          onChange={(event) => {
-                            setFatherPhone(event.target.value);
-                            clearError("fatherPhone");
-                          }}
-                          placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                          dir="ltr"
-                          className={inputClass(errors.fatherPhone)}
-                        />
-
-                        {errors.fatherPhone && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.fatherPhone}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-
-                  <div className="h-px bg-[#DBE7C1]" />
-
-                  {/* Mother Information */}
-                  <section>
-                    <div className="mb-5 flex items-center gap-3">
-                      <div className="h-8 w-1 rounded-full bg-[#B86F5B]" />
-
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#194342]">
-                          اطلاعات مادر
-                        </h3>
-
-                        <p className="mt-1 text-[11.5px] text-[#98A2B3]">
-                          اطلاعات هویتی و تماس مادر
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div>
-                        <label
-                          htmlFor="motherName"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          نام و نام خانوادگی مادر
-                        </label>
-
-                        <input
-                          id="motherName"
-                          name="motherName"
-                          type="text"
-                          value={motherName}
-                          onChange={(event) => {
-                            setMotherName(event.target.value);
-                            clearError("motherName");
-                          }}
-                          placeholder="نام و نام خانوادگی"
-                          className={inputClass(errors.motherName)}
-                        />
-
-                        {errors.motherName && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.motherName}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="motherNationalId"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          کد ملی مادر
-                        </label>
-
-                        <input
-                          id="motherNationalId"
-                          name="motherNationalId"
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={10}
-                          value={motherNationalId}
-                          onChange={(event) => {
-                            setMotherNationalId(event.target.value);
-                            clearError("motherNationalId");
-                          }}
-                          placeholder="کد ملی ۱۰ رقمی"
-                          dir="ltr"
-                          className={inputClass(errors.motherNationalId)}
-                        />
-
-                        {errors.motherNationalId && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.motherNationalId}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="motherJob"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          شغل
-                        </label>
-
-                        <input
-                          id="motherJob"
-                          name="motherJob"
-                          type="text"
-                          value={motherJob}
-                          onChange={(event) => {
-                            setMotherJob(event.target.value);
-                            clearError("motherJob");
-                          }}
-                          placeholder="شغل مادر"
-                          className={inputClass(errors.motherJob)}
-                        />
-
-                        {errors.motherJob && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.motherJob}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="motherEducation"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          تحصیلات
-                        </label>
-
-                        <input
-                          id="motherEducation"
-                          name="motherEducation"
-                          type="text"
-                          value={motherEducation}
-                          onChange={(event) => {
-                            setMotherEducation(event.target.value);
-                            clearError("motherEducation");
-                          }}
-                          placeholder="مثلاً کارشناسی"
-                          className={inputClass(errors.motherEducation)}
-                        />
-
-                        {errors.motherEducation && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.motherEducation}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor="motherPhone"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          شماره تلفن همراه مادر
-                        </label>
-
-                        <input
-                          id="motherPhone"
-                          name="motherPhone"
-                          type="tel"
-                          inputMode="tel"
-                          value={motherPhone}
-                          onChange={(event) => {
-                            setMotherPhone(event.target.value);
-                            clearError("motherPhone");
-                          }}
-                          placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                          dir="ltr"
-                          className={inputClass(errors.motherPhone)}
-                        />
-
-                        {errors.motherPhone && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.motherPhone}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </section>
-
-                  <div className="h-px bg-[#DBE7C1]" />
-
-                  {/* Contact Information */}
-                  <section>
-                    <div className="mb-5 flex items-center gap-3">
-                      <div className="h-8 w-1 rounded-full bg-[#B86F5B]" />
-
-                      <div>
-                        <h3 className="text-[15px] font-bold text-[#194342]">
-                          اطلاعات تماس
-                        </h3>
-
-                        <p className="mt-1 text-[11.5px] text-[#98A2B3]">
-                          اطلاعات محل سکونت و توضیحات تکمیلی
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <label
-                          htmlFor="address"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          آدرس کامل
-                        </label>
-
-                        <textarea
-                          id="address"
-                          name="address"
-                          rows={3}
-                          value={address}
-                          onChange={(event) => {
-                            setAddress(event.target.value);
-                            clearError("address");
-                          }}
-                          placeholder="آدرس کامل محل سکونت"
-                          className={`w-full resize-none rounded-[10px] border bg-white px-4 py-3 text-[13px] leading-7 text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] ${
-                            errors.address
-                              ? "border-red-400 focus:border-red-500"
-                              : "border-[#DBE7C1] focus:border-[#194342]"
-                          }`}
-                        />
-
-                        {errors.address && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.address}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="landlinePhone"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          شماره تلفن ثابت
-                          <span className="mr-1 font-normal text-[#98A2B3]">
-                            (اختیاری)
-                          </span>
-                        </label>
-
-                        <input
-                          id="landlinePhone"
-                          name="landlinePhone"
-                          type="tel"
-                          inputMode="tel"
-                          value={landlinePhone}
-                          onChange={(event) => {
-                            setLandlinePhone(event.target.value);
-                            clearError("landlinePhone");
-                          }}
-                          placeholder="۰۲۱۱۲۳۴۵۶۷۸"
-                          dir="ltr"
-                          className={inputClass(errors.landlinePhone)}
-                        />
-
-                        {errors.landlinePhone && (
-                          <p className="mt-1.5 text-[11.5px] text-red-500">
-                            {errors.landlinePhone}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="description"
-                          className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                        >
-                          توضیحات
-                          <span className="mr-1 font-normal text-[#98A2B3]">
-                            (اختیاری)
-                          </span>
-                        </label>
-
-                        <textarea
-                          id="description"
-                          name="description"
-                          rows={3}
-                          value={description}
-                          onChange={(event) =>
-                            setDescription(event.target.value)
-                          }
-                          placeholder="اگر درخواست یا توضیح خاصی دارید، اینجا بنویسید."
-                          className="w-full resize-none rounded-[10px] border border-[#DBE7C1] bg-white px-4 py-3 text-[13px] leading-7 text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#194342]"
-                        />
-                      </div>
-                    </div>
-                  </section>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex h-11 w-full items-center justify-center rounded-[10px] bg-[#B86F5B] text-[13px] font-medium text-white transition-colors hover:bg-[#A45F4D] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isSubmitting
-                      ? "در حال ثبت درخواست..."
-                      : "ثبت درخواست پیش‌ثبت‌نام"}
-                  </button>
-                </form>
-              </div>
-            </>
-          ) : (
-            <div className="rounded-[20px] border border-[#DBE7C1] bg-white p-6 sm:p-10">
-              <div className="py-8 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#DBE7C1]">
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-8 w-8 text-[#194342]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                </div>
-
-                <h2 className="mt-5 text-[20px] font-bold text-[#194342]">
-                  درخواست پیش‌ثبت‌نام ثبت شد
-                </h2>
-
-                <p className="mx-auto mt-3 max-w-[440px] text-[13px] leading-7 text-[#667085]">
-                  اطلاعات شما با موفقیت دریافت شد و درخواست پیش‌ثبت‌نام برای
-                  مدرسه ثبت شد.
-                </p>
-
-                <p className="mt-2 text-[12px] leading-6 text-[#98A2B3]">
-                  پس از بررسی اطلاعات، مدرسه با شما تماس خواهد گرفت.
-                </p>
-
-                <div className="mt-7 flex justify-center">
-                  <Link
-                    href="/"
-                    className="flex h-10 items-center justify-center rounded-[10px] bg-[#194342] px-6 text-[12.5px] font-medium text-white transition-colors hover:bg-[#143837]"
-                  >
-                    بازگشت به صفحه اصلی
-                  </Link>
-                </div>
-              </div>
+          {isSubmitted && (
+            <div className="mb-8 rounded-2xl border border-green-200 bg-green-50 p-5 text-sm leading-7 text-green-800">
+              درخواست ثبت‌نام شما با موفقیت ثبت شد. اطلاعات شما پس از بررسی توسط
+              مدرسه پیگیری خواهد شد.
             </div>
           )}
+
+          {submitError && (
+            <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm leading-7 text-red-700">
+              {submitError}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* اطلاعات دانش‌آموز */}
+
+            <section className="rounded-3xl border border-[#194342]/10 bg-white p-6 shadow-sm sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-[#194342]">
+                  اطلاعات دانش‌آموز
+                </h2>
+
+                <p className="mt-2 text-sm text-[#194342]/60">
+                  اطلاعات هویتی و تحصیلی دانش‌آموز
+                </p>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    نام
+                  </label>
+
+                  <input
+                    type="text"
+                    value={studentFirstName}
+                    onChange={(event) =>
+                      setStudentFirstName(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="مثلاً سارا"
+                  />
+
+                  {errors.studentFirstName && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.studentFirstName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    نام خانوادگی
+                  </label>
+
+                  <input
+                    type="text"
+                    value={studentLastName}
+                    onChange={(event) => setStudentLastName(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="مثلاً احمدی"
+                  />
+
+                  {errors.studentLastName && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.studentLastName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    تاریخ تولد
+                  </label>
+
+                  <JalaliDatePicker
+                    value={birthDate}
+                    onChange={setBirthDate}
+                    placeholder="تاریخ تولد"
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.birthDate && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.birthDate}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    کد ملی
+                  </label>
+
+                  <input
+                    type="text"
+                    dir="ltr"
+                    inputMode="numeric"
+                    value={nationalId}
+                    onChange={(event) => setNationalId(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="۱۰ رقم"
+                  />
+
+                  {errors.nationalId && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.nationalId}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    سری شناسنامه
+                  </label>
+
+                  <input
+                    type="text"
+                    value={birthCertificateSerial}
+                    onChange={(event) =>
+                      setBirthCertificateSerial(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="سری شناسنامه"
+                  />
+
+                  {errors.birthCertificateSerial && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.birthCertificateSerial}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    پایه مورد درخواست
+                  </label>
+
+                  <select
+                    value={grade}
+                    onChange={(event) => setGrade(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  >
+                    <option value="">انتخاب پایه</option>
+                    <option value="10">پایه دهم</option>
+                    <option value="11">پایه یازدهم</option>
+                    <option value="12">پایه دوازدهم</option>
+                  </select>
+
+                  {errors.grade && (
+                    <p className="mt-2 text-xs text-red-600">{errors.grade}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    شماره تلفن همراه
+                  </label>
+
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    inputMode="tel"
+                    value={studentPhone}
+                    onChange={(event) => setStudentPhone(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="09123456789"
+                  />
+
+                  {errors.studentPhone && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.studentPhone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* اطلاعات پدر */}
+
+            <section className="rounded-3xl border border-[#194342]/10 bg-white p-6 shadow-sm sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-[#194342]">
+                  اطلاعات پدر
+                </h2>
+
+                <p className="mt-2 text-sm text-[#194342]/60">
+                  اطلاعات تماس و مشخصات پدر
+                </p>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    نام
+                  </label>
+
+                  <input
+                    type="text"
+                    value={fatherFirstName}
+                    onChange={(event) => setFatherFirstName(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.fatherFirstName && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.fatherFirstName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    نام خانوادگی
+                  </label>
+
+                  <input
+                    type="text"
+                    value={fatherLastName}
+                    onChange={(event) => setFatherLastName(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.fatherLastName && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.fatherLastName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    کد ملی پدر
+                  </label>
+
+                  <input
+                    type="text"
+                    dir="ltr"
+                    inputMode="numeric"
+                    value={fatherNationalId}
+                    onChange={(event) =>
+                      setFatherNationalId(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.fatherNationalId && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.fatherNationalId}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    شغل پدر
+                  </label>
+
+                  <input
+                    type="text"
+                    value={fatherJob}
+                    onChange={(event) => setFatherJob(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.fatherJob && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.fatherJob}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    تحصیلات پدر
+                  </label>
+
+                  <input
+                    type="text"
+                    value={fatherEducation}
+                    onChange={(event) => setFatherEducation(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.fatherEducation && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.fatherEducation}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    شماره تلفن همراه پدر
+                  </label>
+
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    inputMode="tel"
+                    value={fatherPhone}
+                    onChange={(event) => setFatherPhone(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="09123456789"
+                  />
+
+                  {errors.fatherPhone && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.fatherPhone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* اطلاعات مادر */}
+
+            <section className="rounded-3xl border border-[#194342]/10 bg-white p-6 shadow-sm sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-[#194342]">
+                  اطلاعات مادر
+                </h2>
+
+                <p className="mt-2 text-sm text-[#194342]/60">
+                  اطلاعات تماس و مشخصات مادر
+                </p>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    نام
+                  </label>
+
+                  <input
+                    type="text"
+                    value={motherFirstName}
+                    onChange={(event) => setMotherFirstName(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.motherFirstName && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.motherFirstName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    نام خانوادگی
+                  </label>
+
+                  <input
+                    type="text"
+                    value={motherLastName}
+                    onChange={(event) => setMotherLastName(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.motherLastName && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.motherLastName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    کد ملی مادر
+                  </label>
+
+                  <input
+                    type="text"
+                    dir="ltr"
+                    inputMode="numeric"
+                    value={motherNationalId}
+                    onChange={(event) =>
+                      setMotherNationalId(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.motherNationalId && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.motherNationalId}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    شغل مادر
+                  </label>
+
+                  <input
+                    type="text"
+                    value={motherJob}
+                    onChange={(event) => setMotherJob(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.motherJob && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.motherJob}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    تحصیلات مادر
+                  </label>
+
+                  <input
+                    type="text"
+                    value={motherEducation}
+                    onChange={(event) => setMotherEducation(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                  />
+
+                  {errors.motherEducation && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.motherEducation}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    شماره تلفن همراه مادر
+                  </label>
+
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    inputMode="tel"
+                    value={motherPhone}
+                    onChange={(event) => setMotherPhone(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 bg-white px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="09123456789"
+                  />
+
+                  {errors.motherPhone && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.motherPhone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* اطلاعات تماس و آدرس */}
+
+            <section className="rounded-3xl border border-[#194342]/10 bg-white p-6 shadow-sm sm:p-8">
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-[#194342]">
+                  اطلاعات تماس و آدرس
+                </h2>
+
+                <p className="mt-2 text-sm text-[#194342]/60">
+                  اطلاعات محل سکونت و راه‌های ارتباطی
+                </p>
+              </div>
+
+              <div className="space-y-5">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    آدرس
+                  </label>
+
+                  <textarea
+                    value={address}
+                    onChange={(event) => setAddress(event.target.value)}
+                    rows={4}
+                    className="w-full resize-none rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="آدرس کامل محل سکونت"
+                  />
+
+                  {errors.address && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.address}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    تلفن ثابت
+                  </label>
+
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    inputMode="tel"
+                    value={landlinePhone}
+                    onChange={(event) => setLandlinePhone(event.target.value)}
+                    className="w-full rounded-xl border border-[#194342]/15 px-4 py-3 text-left text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="02112345678"
+                  />
+
+                  {errors.landlinePhone && (
+                    <p className="mt-2 text-xs text-red-600">
+                      {errors.landlinePhone}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#194342]">
+                    توضیحات
+                  </label>
+
+                  <textarea
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    rows={5}
+                    className="w-full resize-none rounded-xl border border-[#194342]/15 px-4 py-3 text-sm outline-none transition focus:border-[#194342]"
+                    placeholder="در صورت نیاز توضیحات تکمیلی خود را وارد کنید."
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* دکمه ارسال */}
+
+            <div className="flex flex-col items-center gap-4">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full rounded-xl bg-[#194342] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#143736] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-56"
+              >
+                {isSubmitting ? "در حال ارسال..." : "ثبت درخواست ثبت‌نام"}
+              </button>
+
+              <p className="text-center text-xs leading-6 text-[#194342]/50">
+                با ثبت این فرم، اطلاعات شما برای بررسی درخواست پیش‌ثبت‌نام در
+                اختیار مدرسه قرار می‌گیرد.
+              </p>
+            </div>
+          </form>
         </section>
       </main>
 

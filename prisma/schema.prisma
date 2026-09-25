@@ -35,19 +35,47 @@ model User {
 }
 
 model Student {
-  id            String    @id @default(cuid())
-  firstName     String
-  lastName      String
-  nationalId    String?   @unique
-  mobile        String?
-  photo         String?
-  birthday      DateTime?
+  id                     String    @id @default(cuid())
+  firstName              String
+  lastName               String
+  nationalId             String?   @unique
+  birthCertificateSerial String?
+  mobile                 String?
+  birthday               DateTime?
+  photo                  String?
+
+  // Father information
+  fatherFirstName  String?
+  fatherLastName   String?
+  fatherNationalId String?
+  fatherJob        String?
+  fatherEducation  String?
+  fatherMobile     String?
+
+  // Mother information
+  motherFirstName  String?
+  motherLastName   String?
+  motherNationalId String?
+  motherJob        String?
+  motherEducation  String?
+  motherMobile     String?
+
+  // Contact information
+  address     String?
+  landline    String?
+  description String?
+
+  // Legacy guardian fields
+  // These will be removed after all related code is migrated.
   guardianName  String?
   guardianPhone String?
-  email         String?
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  // Optional for future use
+  email String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   enrollments         StudentEnrollment[]
   courseRegistrations CourseRegistration[]
@@ -55,6 +83,8 @@ model Student {
 
   @@index([isActive])
   @@index([birthday])
+  @@index([fatherNationalId])
+  @@index([motherNationalId])
 }
 
 model Staff {
@@ -129,6 +159,13 @@ model CourseRegistration {
   @@index([courseId])
   @@index([studentId])
   @@index([status])
+}
+
+enum AdmissionApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
 }
 
 model TopStudent {
@@ -257,7 +294,8 @@ model AcademicYear {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  enrollments StudentEnrollment[]
+  enrollments           StudentEnrollment[]
+  admissionApplications AdmissionApplication[]
 
   @@index([isCurrent])
 }
@@ -278,4 +316,53 @@ model StudentEnrollment {
   @@index([studentId])
   @@index([academicYearId])
   @@index([grade])
+}
+
+model AdmissionApplication {
+  id String @id @default(cuid())
+
+  // Student information
+  studentFirstName       String
+  studentLastName        String
+  birthDate              DateTime?
+  nationalId             String
+  birthCertificateSerial String?
+  requestedGrade         String
+  studentMobile          String
+
+  // Father information
+  fatherFirstName  String
+  fatherLastName   String
+  fatherNationalId String?
+  fatherJob        String?
+  fatherEducation  String?
+  fatherMobile     String?
+
+  // Mother information
+  motherFirstName  String
+  motherLastName   String
+  motherNationalId String?
+  motherJob        String?
+  motherEducation  String?
+  motherMobile     String?
+
+  // Contact information
+  address     String
+  landline    String?
+  description String?
+
+  // Admission information
+  academicYearId  String
+  status          AdmissionApplicationStatus @default(PENDING)
+  rejectionReason String?
+  reviewedAt      DateTime?
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+
+  @@index([nationalId])
+  @@index([academicYearId])
+  @@index([status])
+  @@index([createdAt])
 }

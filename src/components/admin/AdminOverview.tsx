@@ -93,11 +93,11 @@ export default function AdminOverview() {
     <AdminLayout>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-foreground">
-          داشبورد
+          داشبورد مدیریت مدرسه
         </h1>
 
-        <p className="text-sm text-muted-foreground mt-1">
-          خلاصه وضعیت مدرسه
+        <p className="mt-1 text-sm text-muted-foreground">
+          نمای کلی وضعیت مدرسه و بخش‌های مدیریتی
         </p>
       </div>
 
@@ -107,21 +107,19 @@ export default function AdminOverview() {
             key={card.label}
             className="rounded-xl border border-border/60 bg-card p-5"
           >
-            <div className="flex items-center gap-3 mb-3">
+            <div className="mb-3 flex items-center gap-3">
               <div
                 className={`flex h-9 w-9 items-center justify-center rounded-lg ${card.color}`}
               >
                 <card.icon className="h-4 w-4" />
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                {card.label}
-              </p>
+              <p className="text-xs text-muted-foreground">{card.label}</p>
             </div>
 
             <p className="text-2xl font-bold text-foreground">
               {card.value === undefined ? (
-                <span className="inline-block h-7 w-12 bg-muted rounded animate-pulse" />
+                <span className="inline-block h-7 w-12 animate-pulse rounded bg-muted" />
               ) : (
                 card.value
               )}
