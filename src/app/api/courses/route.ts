@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         gradeLevel: data.gradeLevel || null,
         registrationDeadline: toDate(data.registrationDeadline),
         isActive: data.isActive ?? true,
-        createdById: user.id,
+        createdById: user.user.id,
       },
     });
 
