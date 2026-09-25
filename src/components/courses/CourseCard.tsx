@@ -14,7 +14,8 @@ import {
 export type CourseStatus = "active" | "upcoming";
 
 export interface Course {
-  id: number;
+  id: string;
+  slug: string;
   title: string;
   description: string;
   grade: string;
@@ -133,7 +134,7 @@ export default function CourseCard({ course }: { course: Course }) {
         {/* Registration */}
         {isActive ? (
           <Link
-  href={`/courses/registration?course=${course.id}`}
+  href={`/courses/registration?course=${encodeURIComponent(course.slug)}`}
           className="mt-4 flex h-10 w-full items-center justify-center rounded-[10px] bg-[#B86F5B] text-[12.5px] font-medium text-white transition-colors hover:bg-[#A45F4D]"
           >
             ثبت‌نام در دوره
