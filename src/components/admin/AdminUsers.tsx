@@ -381,7 +381,7 @@ export default function AdminUsers() {
                           size="sm"
                           className="gap-1.5"
                           onClick={() => openPermissions(user)}
-                          disabled={!data.canManagePermissions}
+                          disabled={!data?.canManagePermissions}
                         >
                           <KeyRound className="h-3.5 w-3.5" />
                           مدیریت
@@ -394,7 +394,7 @@ export default function AdminUsers() {
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
                           )}
-                          {user.id !== data.currentUserId && data.canEdit && (
+                          {user.id !== data?.currentUserId && data?.canEdit && (
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => void handleDelete(user)} title="حذف">
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
