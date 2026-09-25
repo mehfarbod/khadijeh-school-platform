@@ -71,6 +71,8 @@ const createStaffSchema = z.object({
     .nullable()
     .optional(),
 
+  userId: z.string().trim().min(1).nullable().optional(),
+
   isActive: z.boolean().optional(),
 });
 
@@ -136,6 +138,7 @@ export async function POST(request: NextRequest) {
         photo: data.photo || null,
         phone: data.phone || null,
         email: data.email || null,
+        userId: data.userId || null,
         isActive: data.isActive ?? true,
       },
     });
