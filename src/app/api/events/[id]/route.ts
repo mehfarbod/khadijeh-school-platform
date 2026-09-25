@@ -66,6 +66,27 @@ const updateEventSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export async function GET(
+  _request: NextRequest,
+  context: RouteContext
+) {
+  try {
+    const { id } = await context.params;
+    const event = await prisma.event.findFirst({
+      where: { OR: [{ id }, { slug: id }], isActive: true },
+    });
+
+    if (!event) {
+      return NextResponse.json({ error: "رویداد پیدا نشد" }, { status: 404 });
+    }
+
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error("GET /api/events/[id] error:", error);
+    return NextResponse.json({ error: "خطا در دریافت رویداد" }, { status: 500 });
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   context: RouteContext
