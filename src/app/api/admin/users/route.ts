@@ -60,7 +60,7 @@ export async function GET() {
     await syncPermissionCatalog();
     await syncRoleDefaults();
 
-    const [users, permissions, rolePermissions] = await Promise.all([
+    const [users, permissions, rolePermissions, staff] = await Promise.all([
       prisma.user.findMany({
         orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
         include: {
@@ -82,6 +82,10 @@ export async function GET() {
       }),
       prisma.permission.findMany({
         orderBy: [{ group: "asc" }, { name: "asc" }],
+      }),
+      prisma.staff.findMany({
+        orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+        select: { id: true, firstName: true, lastName: true, position: true, userId: true },
       }),
       prisma.rolePermission.findMany({
         select: { role: true, permission: { select: { key: true } } },
@@ -115,6 +119,7 @@ export async function GET() {
         })),
       })),
       permissions,
+      staff,
       rolePermissions: rolePermissions.reduce<Record<string, string[]>>((result, item) => {
         (result[item.role] ??= []).push(item.permission.key);
         return result;
