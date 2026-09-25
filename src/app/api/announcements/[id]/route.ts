@@ -122,7 +122,7 @@ export async function DELETE(
   context: RouteContext
 ) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("announcements.manage");
 
     const { id } = await context.params;
 
