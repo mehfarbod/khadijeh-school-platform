@@ -214,23 +214,25 @@ export default function AdminRegistrations() {
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
                         {item.status === "PENDING" && (
-                          <button
-                            type="button"
-                            title="تأیید"
-                            onClick={() => setStatus(item.id, "APPROVED")}
-                            className="rounded-md p-2 text-green-700 hover:bg-green-50"
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              title="تأیید"
+                              onClick={() => setStatus(item.id, "APPROVED")}
+                              className="rounded-md p-2 text-green-700 hover:bg-green-50"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
 
-                          <button
-                            type="button"
-                            title="رد"
-                            onClick={() => setStatus(item.id, "REJECTED")}
-                            className="rounded-md p-2 text-red-700 hover:bg-red-50"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+                            <button
+                              type="button"
+                              title="رد"
+                              onClick={() => setStatus(item.id, "REJECTED")}
+                              className="rounded-md p-2 text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                         <button
                           type="button"
