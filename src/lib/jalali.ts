@@ -1,5 +1,9 @@
 import { toGregorian, toJalaali } from "jalaali-js";
 
+function normalizeDigits(value: string) {
+  return value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+}
+
 function pad(value: number) {
   return String(value).padStart(2, "0");
 }
@@ -24,7 +28,7 @@ export function isValidJalaliDate(value: string) {
 export function jalaliToGregorianDate(value: string) {
   if (!isValidJalaliDate(value)) return null;
 
-  const [jy, jm, jd] = value.replaceAll("-", "/").split("/").map(Number);
+  const [jy, jm, jd] = normalizeDigits(value).replaceAll("-", "/").split("/").map(Number);
   const { gy, gm, gd } = toGregorian(jy, jm, jd);
 
   return `${gy}-${pad(gm)}-${pad(gd)}`;
