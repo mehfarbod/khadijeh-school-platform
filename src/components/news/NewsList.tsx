@@ -163,7 +163,7 @@ export default function NewsList() {
             return (
               <Link
                 key={item.id}
-                href={`/news/${item.id}`}
+                href={`/news/${item.slug}`}
                 className="group block rounded-[18px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#194342]/40"
               >
                 <article className="h-full overflow-hidden rounded-[18px] border border-[#DBE7C1] bg-white transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
