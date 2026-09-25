@@ -7,33 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import CoursesFooter from "@/components/courses/CoursesFooter";
 
-const courses = [
-  {
-    id: "1",
-    title: "کلاس تقویتی ریاضی",
-    grade: "پایه دهم",
-    schedule: "شنبه‌ها، ساعت ۱۶",
-  },
-  {
-    id: "2",
-    title: "کارگاه مهارت‌های زندگی",
-    grade: "پایه‌های دهم و یازدهم",
-    schedule: "دوشنبه‌ها، ساعت ۱۵",
-  },
-  {
-    id: "3",
-    title: "آمادگی آزمون‌های نهایی",
-    grade: "پایه دوازدهم",
-    schedule: "یکشنبه‌ها، ساعت ۱۴",
-  },
-  {
-    id: "6",
-    title: "دوره زبان انگلیسی",
-    grade: "پایه‌های دهم تا دوازدهم",
-    schedule: "پنجشنبه‌ها، ساعت ۱۳",
-  },
-];
-
 type FormErrors = {
   fullName?: string;
   grade?: string;
@@ -44,9 +17,18 @@ function CourseRegistrationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const courseId = searchParams?.get("course");
+  const courseSlug = searchParams?.get("course");
 
-  const selectedCourse = courses.find((course) => course.id === courseId);
+  const [selectedCourse, setSelectedCourse] = useState<{
+    id: string;
+    slug: string;
+    title: string;
+    gradeLevel: string | null;
+    schedule: string | null;
+    duration: string | null;
+  } | null>(null);
+  const [isCourseLoading, setIsCourseLoading] = useState(true);
+  const [courseError, setCourseError] = useState("");
 
   const [fullName, setFullName] = useState("");
   const [grade, setGrade] = useState("");
@@ -60,13 +42,64 @@ function CourseRegistrationContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!courseId || !selectedCourse) {
-      router.replace("/courses");
-    }
-  }, [courseId, selectedCourse, router]);
+    let cancelled = false;
 
-  if (!courseId || !selectedCourse) {
-    return null;
+    async function loadCourse() {
+      if (!courseSlug) {
+        router.replace("/courses");
+        return;
+      }
+
+      try {
+        setIsCourseLoading(true);
+        setCourseError("");
+        const response = await fetch(
+          `/api/courses?slug=${encodeURIComponent(courseSlug)}`,
+          { cache: "no-store" },
+        );
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || "دوره موردنظر پیدا نشد.");
+        if (!cancelled) setSelectedCourse(data);
+      } catch (error) {
+        if (!cancelled) {
+          setCourseError(error instanceof Error ? error.message : "دوره موردنظر پیدا نشد.");
+        }
+      } finally {
+        if (!cancelled) setIsCourseLoading(false);
+      }
+    }
+
+    loadCourse();
+    return () => { cancelled = true; };
+  }, [courseSlug, router]);
+
+  if (!courseSlug) return null;
+
+  if (isCourseLoading) {
+    return (
+      <>
+        <Header />
+        <main className="flex min-h-[500px] items-center justify-center bg-[#FAF8F3]">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-[#DBE7C1]" />
+        </main>
+        <CoursesFooter />
+      </>
+    );
+  }
+
+  if (courseError || !selectedCourse) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[500px] bg-[#FAF8F3] px-5 py-20 text-center">
+          <p className="text-sm text-red-600">{courseError || "دوره موردنظر پیدا نشد."}</p>
+          <Link href="/courses" className="mt-6 inline-flex rounded-[10px] bg-[#194342] px-5 py-2.5 text-sm text-white">
+            بازگشت به دوره‌ها
+          </Link>
+        </main>
+        <CoursesFooter />
+      </>
+    );
   }
 
   function validateForm() {
@@ -111,22 +144,43 @@ function CourseRegistrationContent() {
 
     setIsSubmitting(true);
 
-    /*
-     * فعلاً Prisma نداریم.
-     * در مرحله بعد همین بخش را به API / Server Action
-     * و سپس Prisma متصل می‌کنیم.
-     */
+    try {
+      const nameParts = fullName.trim().split(/\s+/);
+      const studentFirstName = nameParts.shift() || "";
+      const studentLastName = nameParts.join(" ") || studentFirstName;
+      const normalizedPhone = phone
+        .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+        .replace(/[\s-]/g, "");
 
-    await new Promise((resolve) => setTimeout(resolve, 700));
+      const response = await fetch("/api/course-registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseSlug,
+          studentFirstName,
+          studentLastName,
+          grade,
+          phone: normalizedPhone,
+          notes: description.trim() || null,
+        }),
+      });
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "ثبت درخواست ثبت‌نام انجام نشد.");
 
-    setFullName("");
-    setGrade("");
-    setPhone("");
-    setDescription("");
-    setErrors({});
+      setIsSubmitted(true);
+      setFullName("");
+      setGrade("");
+      setPhone("");
+      setDescription("");
+      setErrors({});
+    } catch (error) {
+      setErrors({
+        fullName: error instanceof Error ? error.message : "ثبت درخواست ثبت‌نام انجام نشد.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -197,9 +251,11 @@ function CourseRegistrationContent() {
                       </p>
 
                       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-[#667085]">
-                        <span>{selectedCourse.grade}</span>
+                        <span>{selectedCourse.gradeLevel || "همه پایه‌ها"}</span>
 
-                        <span>{selectedCourse.schedule}</span>
+                        {selectedCourse.schedule && <span>{selectedCourse.schedule}</span>}
+
+                        {selectedCourse.duration && <span>{selectedCourse.duration}</span>}
                       </div>
                     </div>
                   </div>
