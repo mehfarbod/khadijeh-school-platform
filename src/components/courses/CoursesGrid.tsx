@@ -1,110 +1,99 @@
+import { useEffect, useState } from "react";
 import CourseCard, { type Course } from "./CourseCard";
 import type { FilterTab } from "./CourseFilters";
 
-const courses: Course[] = [
-  {
-    id: 1,
-    title: "کلاس تقویتی ریاضی",
-    description: "تقویت مفاهیم پایه و آمادگی برای امتحانات مدرسه",
-    grade: "پایه دهم",
-    sessions: "۱۲ جلسه",
-    schedule: "شنبه‌ها، ساعت ۱۶",
-    capacity: "ظرفیت ۲۰ نفر",
-    instructor: "خانم احمدی",
-    initials: "ا",
-    status: "active",
-    bgColor: "#DBE7C1",
-    icon: "math",
-  },
-  {
-    id: 2,
-    title: "کارگاه مهارت‌های زندگی",
-    description: "آموزش مهارت‌های اجتماعی، تصمیم‌گیری و خودشناسی",
-    grade: "پایه‌های دهم و یازدهم",
-    sessions: "۸ جلسه",
-    schedule: "دوشنبه‌ها، ساعت ۱۵",
-    capacity: "ظرفیت ۲۵ نفر",
-    instructor: "خانم رضایی",
-    initials: "ر",
-    status: "active",
-    bgColor: "#BFD7EA",
-    icon: "life",
-  },
-  {
-    id: 3,
-    title: "آمادگی آزمون‌های نهایی",
-    description: "مرور جامع مباحث و تمرین آزمون‌های استاندارد",
-    grade: "پایه دوازدهم",
-    sessions: "۱۶ جلسه",
-    schedule: "یکشنبه‌ها، ساعت ۱۴",
-    capacity: "ظرفیت ۱۸ نفر",
-    instructor: "خانم موسوی",
-    initials: "م",
-    status: "active",
-    bgColor: "#EEF2F7",
-    icon: "exam",
-  },
-  {
-    id: 4,
-    title: "کارگاه پژوهش و المپیاد",
-    description: "آشنایی با روش تحقیق علمی و آمادگی برای المپیادهای علمی",
-    grade: "پایه‌های دهم تا دوازدهم",
-    sessions: "۱۰ جلسه",
-    schedule: "چهارشنبه‌ها، ساعت ۱۵",
-    capacity: "ظرفیت ۱۵ نفر",
-    instructor: "خانم کریمی",
-    initials: "ک",
-    status: "upcoming",
-    bgColor: "#DBE7C1",
-    icon: "research",
-  },
-  {
-    id: 5,
-    title: "کارگاه هنر و خلاقیت",
-    description: "کشف استعداد‌های هنری و پرورش خلاقیت در فضایی آزاد",
-    grade: "پایه‌های دهم و یازدهم",
-    sessions: "۱۰ جلسه",
-    schedule: "سه‌شنبه‌ها، ساعت ۱۶",
-    capacity: "ظرفیت ۲۰ نفر",
-    instructor: "خانم صادقی",
-    initials: "ص",
-    status: "upcoming",
-    bgColor: "#EEF2F7",
-    icon: "art",
-  },
-  {
-    id: 6,
-    title: "دوره زبان انگلیسی",
-    description: "تقویت مهارت‌های گفتاری، نوشتاری و درک مطلب زبان انگلیسی",
-    grade: "پایه‌های دهم تا دوازدهم",
-    sessions: "۱۴ جلسه",
-    schedule: "پنجشنبه‌ها، ساعت ۱۳",
-    capacity: "ظرفیت ۲۲ نفر",
-    instructor: "خانم نجفی",
-    initials: "ن",
-    status: "active",
-    bgColor: "#BFD7EA",
-    icon: "language",
-  },
-];
+type ApiCourse = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  instructor: string | null;
+  schedule: string | null;
+  duration: string | null;
+  capacity: number;
+  status: "active" | "upcoming";
+  category: string;
+  gradeLevel: string | null;
+};
+
+const backgroundColors = ["#DBE7C1", "#BFD7EA", "#EEF2F7"];
+
+function toCourse(course: ApiCourse, index: number): Course {
+  return {
+    id: course.id,
+    slug: course.slug,
+    title: course.title,
+    description: course.description,
+    grade: course.gradeLevel || "همه پایه‌ها",
+    sessions: course.duration || "برنامه آموزشی",
+    schedule: course.schedule || "زمان‌بندی متعاقباً اعلام می‌شود",
+    capacity: `ظرفیت ${course.capacity} نفر`,
+    instructor: course.instructor || "کادر آموزشی مدرسه",
+    initials: course.instructor?.trim().charAt(0) || "م",
+    status: course.status,
+    bgColor: backgroundColors[index % backgroundColors.length],
+    icon: course.category.includes("زبان")
+      ? "language"
+      : course.category.includes("هنر")
+        ? "art"
+        : course.category.includes("پژوه")
+          ? "research"
+          : course.category.includes("زندگی")
+            ? "life"
+            : course.category.includes("آزمون")
+              ? "exam"
+              : "math",
+  };
+}
 
 interface CoursesGridProps {
   filter: FilterTab;
 }
 
 export default function CoursesGrid({ filter }: CoursesGridProps) {
-  const filteredCourses =
-    filter === "all"
-      ? courses
-      : courses.filter((course) => course.status === filter);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCourses() {
+      try {
+        setIsLoading(true);
+        setError("");
+        const response = await fetch("/api/courses?activeOnly=false", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || "خطا در دریافت دوره‌ها.");
+        if (!cancelled) setCourses((data as ApiCourse[]).map(toCourse));
+      } catch (error) {
+        if (!cancelled) {
+          setError(error instanceof Error ? error.message : "خطا در دریافت دوره‌ها.");
+          setCourses([]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    loadCourses();
+    return () => { cancelled = true; };
+  }, []);
+
+  const filteredCourses = filter === "all" ? courses : courses.filter((course) => course.status === filter);
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-6 pb-20 pt-8">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredCourses.map((course) => (
-          <CourseCard key={course.id} course={course} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="py-16 text-center text-sm text-[#667085]">در حال دریافت دوره‌ها...</div>
+      ) : error ? (
+        <div className="rounded-[14px] border border-red-200 bg-red-50 p-5 text-center text-sm text-red-700">{error}</div>
+      ) : filteredCourses.length === 0 ? (
+        <div className="rounded-[14px] border border-[#DBE7C1] bg-white p-12 text-center text-sm text-[#667085]">دوره‌ای برای نمایش وجود ندارد.</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredCourses.map((course) => <CourseCard key={course.id} course={course} />)}
+        </div>
+      )}
     </section>
   );
 }
