@@ -119,7 +119,7 @@ export default function AdminNews() {
       const payload = {
         ...form,
         slug: form.slug.trim() || makeSlug(form.title) || `news-${Date.now()}`,
-        coverImage: form.coverImage.trim() || null,
+        coverImage: form.coverImage?.trim() || null,
         author: form.author.trim() || null,
         tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
       };
