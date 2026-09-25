@@ -26,7 +26,7 @@ type NewsItem = {
   createdAt: string;
 };
 
-type NewsForm = Omit<NewsItem, "id" | "createdAt" | "isFeatured" | "isActive" | "tags"> & {
+type NewsForm = Omit<NewsItem, "id" | "createdAt" | "slug" | "isFeatured" | "isActive" | "tags"> & {
   tags: string;
   isFeatured: boolean;
   isActive: boolean;
@@ -34,7 +34,6 @@ type NewsForm = Omit<NewsItem, "id" | "createdAt" | "isFeatured" | "isActive" | 
 
 const emptyForm: NewsForm = {
   title: "",
-  slug: "",
   excerpt: "",
   content: "",
   coverImage: "",
@@ -98,7 +97,6 @@ export default function AdminNews() {
     setEditId(item.id);
     setForm({
       title: item.title,
-      slug: item.slug,
       excerpt: item.excerpt,
       content: item.content,
       coverImage: item.coverImage ?? "",
@@ -118,7 +116,7 @@ export default function AdminNews() {
       setSaving(true);
       const payload = {
         ...form,
-        slug: form.slug.trim() || makeSlug(form.title) || `news-${Date.now()}`,
+        slug: makeSlug(form.title) || `news-${Date.now()}`,
         coverImage: form.coverImage?.trim() || null,
         author: form.author?.trim() || null,
         tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
@@ -248,9 +246,6 @@ export default function AdminNews() {
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="عنوان" className="md:col-span-2">
                 <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} />
-              </Field>
-              <Field label="Slug">
-                <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="مثلاً school-news" dir="ltr" className={inputClass} />
               </Field>
               <Field label="دسته‌بندی">
                 <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass} />
