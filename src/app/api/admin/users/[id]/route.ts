@@ -116,7 +116,7 @@ export async function PATCH(
               typeof (item as { allowed?: unknown }).allowed === "boolean"),
         );
 
-        const keys = [...new Set(permissionItems.map((item: { key: string; allowed: boolean | null }) => item.key))];
+        const keys: string[] = Array.from(new Set(permissionItems.map((item: { key: string; allowed: boolean | null }) => item.key)));
         const permissions = await tx.permission.findMany({
           where: { key: { in: keys } },
           select: { id: true, key: true },
