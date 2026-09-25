@@ -1,12 +1,39 @@
 "use client";
 
-const announcements = [
-  "ثبت‌نام دوره‌های آموزشی ترم جدید آغاز شد",
-  "برنامه امتحانات نیمسال اول منتشر شد",
-  "جلسه اولیا و مربیان روز سه‌شنبه برگزار می‌شود",
-];
+import { useEffect, useState } from "react";
+
+type Announcement = {
+  id: string;
+  title: string;
+};
 
 export default function AnnouncementTicker() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/announcements?activeOnly=true&tickerOnly=true", {
+      cache: "no-store",
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to load announcements");
+        return response.json();
+      })
+      .then((data: Announcement[]) => {
+        if (!cancelled) setAnnouncements(data);
+      })
+      .catch(() => {
+        if (!cancelled) setAnnouncements([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (announcements.length === 0) return null;
+
   return (
     <section
       aria-label="اطلاعیه‌های مهم"
@@ -22,12 +49,12 @@ export default function AnnouncementTicker() {
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="ticker-track flex w-max items-center gap-16 pr-8">
             {[...announcements, ...announcements].map((announcement, index) => (
-           <span
-  key={`${announcement}-${index}`}
-  className="whitespace-nowrap text-xs text-white/80"
->
-  ⬥ {announcement}
-</span>
+              <span
+                key={`${announcement.id}-${index}`}
+                className="whitespace-nowrap text-xs text-white/80"
+              >
+                ⬥ {announcement.title}
+              </span>
             ))}
           </div>
         </div>
