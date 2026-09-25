@@ -83,12 +83,12 @@ export async function GET() {
       prisma.permission.findMany({
         orderBy: [{ group: "asc" }, { name: "asc" }],
       }),
+      prisma.rolePermission.findMany({
+        select: { role: true, permission: { select: { key: true } } },
+      }),
       prisma.staff.findMany({
         orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
         select: { id: true, firstName: true, lastName: true, position: true, userId: true },
-      }),
-      prisma.rolePermission.findMany({
-        select: { role: true, permission: { select: { key: true } } },
       }),
     ]);
 
