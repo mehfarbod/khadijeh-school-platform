@@ -79,11 +79,12 @@ export async function PATCH(
         }
 
         const permissionItems = body.permissions.filter(
-          (item: unknown): item is { key: string; allowed: boolean } =>
+          (item: unknown): item is { key: string; allowed: boolean | null } =>
             typeof item === "object" &&
             item !== null &&
             typeof (item as { key?: unknown }).key === "string" &&
-            typeof (item as { allowed?: unknown }).allowed === "boolean",
+            ((item as { allowed?: unknown }).allowed === null ||
+              typeof (item as { allowed?: unknown }).allowed === "boolean"),
         );
 
         const keys = [...new Set(permissionItems.map((item) => item.key))];
@@ -96,6 +97,13 @@ export async function PATCH(
           permissionItems.map(async (item) => {
             const permission = permissions.find((candidate) => candidate.key === item.key);
             if (!permission) return;
+
+            if (item.allowed === null) {
+              await tx.userPermission.deleteMany({
+                where: { userId: id, permissionId: permission.id },
+              });
+              return;
+            }
 
             await tx.userPermission.upsert({
               where: {
