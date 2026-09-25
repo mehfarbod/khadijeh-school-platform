@@ -88,8 +88,17 @@ export async function GET() {
       }),
     ]);
 
+    const [canCreate, canEdit, canManagePermissions] = await Promise.all([
+      hasPermission(session.user.id, "users.create"),
+      hasPermission(session.user.id, "users.edit"),
+      hasPermission(session.user.id, "users.manage_permissions"),
+    ]);
+
     return NextResponse.json({
       currentUserId: session.user.id,
+      canCreate,
+      canEdit,
+      canManagePermissions,
       roleLabels,
       users: users.map((user) => ({
         id: user.id,
