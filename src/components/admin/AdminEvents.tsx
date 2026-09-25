@@ -220,7 +220,7 @@ export default function AdminEvents() {
 
       <div className="rounded-xl border border-border/60 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[900px] text-sm">
             <thead>
               <tr className="border-b border-border/60 bg-muted/30">
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">
@@ -258,7 +258,7 @@ export default function AdminEvents() {
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-4 py-12 text-center text-sm text-muted-foreground"
                   >
                     موردی یافت نشد.
