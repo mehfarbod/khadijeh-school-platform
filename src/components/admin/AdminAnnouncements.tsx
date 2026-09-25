@@ -82,7 +82,7 @@ export default function AdminAnnouncements() {
       setItems(data);
     } catch (error) {
       console.error(error);
-      toast.error("خطا در دریافت اعلامیه‌ها");
+      toast.error("خطا در دریافت اطلاعیه‌ها");
     } finally {
       setLoading(false);
     }
@@ -140,14 +140,14 @@ export default function AdminAnnouncements() {
 
       if (!response.ok) {
         throw new Error(
-          data.error || "خطا در ذخیره اعلامیه"
+          data.error || "خطا در ذخیره اطلاعیه"
         );
       }
 
       toast.success(
         editId
-          ? "اعلامیه ویرایش شد"
-          : "اعلامیه اضافه شد"
+          ? "اطلاعیه ویرایش شد"
+          : "اطلاعیه اضافه شد"
       );
 
       setDialogOpen(false);
@@ -161,7 +161,7 @@ export default function AdminAnnouncements() {
       toast.error(
         error instanceof Error
           ? error.message
-          : "خطا در ذخیره اعلامیه"
+          : "خطا در ذخیره اطلاعیه"
       );
     }
   };
@@ -181,12 +181,12 @@ export default function AdminAnnouncements() {
 
       if (!response.ok) {
         throw new Error(
-          data.error || "خطا در حذف اعلامیه"
+          data.error || "خطا در حذف اطلاعیه"
         );
       }
 
       setDeleteId(null);
-      toast.success("اعلامیه حذف شد");
+      toast.success("اطلاعیه حذف شد");
 
       await loadAnnouncements();
     } catch (error) {
@@ -195,7 +195,7 @@ export default function AdminAnnouncements() {
       toast.error(
         error instanceof Error
           ? error.message
-          : "خطا در حذف اعلامیه"
+          : "خطا در حذف اطلاعیه"
       );
     }
   };
@@ -205,11 +205,11 @@ export default function AdminAnnouncements() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">
-            اعلامیه‌ها
+            اطلاعیه‌ها
           </h1>
 
           <p className="text-sm text-muted-foreground mt-1">
-            مدیریت اعلامیه‌های مدرسه
+            مدیریت اطلاعیه‌های مدرسه
           </p>
         </div>
 
@@ -353,8 +353,8 @@ export default function AdminAnnouncements() {
           <DialogHeader>
             <DialogTitle>
               {editId
-                ? "ویرایش اعلامیه"
-                : "افزودن اعلامیه"}
+                ? "ویرایش اطلاعیه"
+                : "افزودن اطلاعیه"}
             </DialogTitle>
           </DialogHeader>
 
@@ -456,11 +456,11 @@ export default function AdminAnnouncements() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              حذف اعلامیه
+              حذف اطلاعیه
             </AlertDialogTitle>
 
             <AlertDialogDescription>
-              آیا از حذف این اعلامیه اطمینان دارید؟
+              آیا از حذف این اطلاعیه اطمینان دارید؟
             </AlertDialogDescription>
           </AlertDialogHeader>
 
