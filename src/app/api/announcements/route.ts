@@ -7,20 +7,20 @@ const createAnnouncementSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "عنوان اعلامیه الزامی است.")
-    .max(200, "عنوان اعلامیه بیش از حد طولانی است."),
+    .min(1, "عنوان اطلاعیه الزامی است.")
+    .max(200, "عنوان اطلاعیه بیش از حد طولانی است."),
 
   content: z
     .string()
     .trim()
-    .min(1, "متن اعلامیه الزامی است.")
-    .max(10000, "متن اعلامیه بیش از حد طولانی است."),
+    .min(1, "متن اطلاعیه الزامی است.")
+    .max(10000, "متن اطلاعیه بیش از حد طولانی است."),
 
   category: z
     .string()
     .trim()
-    .min(1, "دسته‌بندی اعلامیه الزامی است.")
-    .max(100, "دسته‌بندی اعلامیه نامعتبر است."),
+    .min(1, "دسته‌بندی اطلاعیه الزامی است.")
+    .max(100, "دسته‌بندی اطلاعیه نامعتبر است."),
 
   isPinned: z.boolean().optional(),
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     console.error("GET /api/announcements error:", error);
 
     return NextResponse.json(
-      { error: "خطا در دریافت اعلامیه‌ها" },
+      { error: "خطا در دریافت اطلاعیه‌ها" },
       { status: 500 }
     );
   }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "خطا در ایجاد اعلامیه" },
+      { error: "خطا در ایجاد اطلاعیه" },
       { status: 500 }
     );
   }
