@@ -183,8 +183,6 @@ model CourseRegistration {
   studentFirstName String
   studentLastName  String
   grade            String
-  guardianName     String
-  guardianPhone    String
   email            String?
   notes            String?
   status           CourseRegistrationStatus @default(PENDING)
@@ -325,7 +323,7 @@ model EmailOtp {
 
 model AcademicYear {
   id        String    @id @default(cuid())
-  title     String    @unique
+  title     String   @unique
   startDate DateTime?
   endDate   DateTime?
   isCurrent Boolean   @default(false)
