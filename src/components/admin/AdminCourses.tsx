@@ -2,7 +2,7 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Edit3, Plus, Power, Trash2, X } from "lucide-react";
+import { BookOpen, Check, Edit3, Plus, Power, Trash2, X } from "lucide-react";
 import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
 import { gregorianToJalali } from "@/lib/date/jalali";
 
@@ -12,6 +12,16 @@ type Course = {
   schedule: string | null; duration: string | null; capacity: number; price: number | null;
   status: "active" | "upcoming"; category: string; gradeLevel: string | null;
   registrationDeadline: string | null; isActive: boolean; currentRegistrations: number;
+};
+
+type Registration = {
+  id: string;
+  studentFirstName: string;
+  studentLastName: string;
+  grade: string;
+  notes: string | null;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  createdAt: string;
 };
 
 type FormState = {
@@ -28,6 +38,18 @@ const emptyForm: FormState = {
 };
 
 const statusLabel = (status: string) => status === "active" ? "در حال ثبت‌نام" : "به‌زودی";
+const registrationLabels: Record<Registration["status"], string> = {
+  PENDING: "در انتظار بررسی",
+  APPROVED: "تأیید شده",
+  REJECTED: "رد شده",
+  CANCELLED: "لغو شده",
+};
+const registrationClasses: Record<Registration["status"], string> = {
+  PENDING: "bg-amber-50 text-amber-700",
+  APPROVED: "bg-green-50 text-green-700",
+  REJECTED: "bg-red-50 text-red-700",
+  CANCELLED: "bg-gray-100 text-gray-600",
+};
 const inputClass = "mt-1.5 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary";
 const toInputDate = (value: string | null) => value ? gregorianToJalali(value) : "";
 
@@ -38,6 +60,9 @@ export default function AdminCourses() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [registrations, setRegistrations] = useState<Registration[] | null>(null);
+  const [registrationsError, setRegistrationsError] = useState("");
 
   const load = async () => {
     const response = await fetch("/api/courses?activeOnly=false", { cache: "no-store" });
@@ -47,6 +72,28 @@ export default function AdminCourses() {
   };
 
   useEffect(() => { load().catch((e) => { console.error(e); setCourses([]); }); }, []);
+
+  const openRegistrations = async (course: Course) => {
+    setSelectedCourse(course);
+    setRegistrations(null);
+    setRegistrationsError("");
+
+    try {
+      const response = await fetch(`/api/course-registrations?courseId=${course.id}`, {
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "خطا در دریافت ثبت‌نام‌های دوره");
+      }
+
+      setRegistrations(data);
+    } catch (e) {
+      setRegistrations([]);
+      setRegistrationsError(e instanceof Error ? e.message : "خطا در دریافت ثبت‌نام‌های دوره");
+    }
+  };
 
   const openCreate = () => { setEditing(null); setForm(emptyForm); setError(""); setOpen(true); };
   const openEdit = (course: Course) => {
@@ -137,7 +184,16 @@ export default function AdminCourses() {
               {!courses ? <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">در حال دریافت...</td></tr> :
               courses.length === 0 ? <tr><td colSpan={7} className="p-12 text-center text-muted-foreground"><BookOpen className="mx-auto mb-2 h-8 w-8 opacity-30"/>هنوز دوره‌ای ثبت نشده.</td></tr> :
               courses.map((course)=><tr key={course.id} className="border-b border-border/30 last:border-0">
-                <td className="px-4 py-3 font-medium">{course.title}</td>
+                
+                <td className="px-4 py-3 font-medium">
+                  <button
+                    type="button"
+                    onClick={() => openRegistrations(course)}
+                    className="text-right font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {course.title}
+                  </button>
+                </td>
                 <td className="px-4 py-3">{course.category}</td>
                 <td className="px-4 py-3">{statusLabel(course.status)}</td>
                 <td className="px-4 py-3">{course.capacity}</td>
@@ -153,6 +209,55 @@ export default function AdminCourses() {
           </table>
         </div>
       </div>
+
+      {selectedCourse && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4" onMouseDown={(e)=>{if(e.target===e.currentTarget)setSelectedCourse(null)}}>
+        <div className="max-h-[88vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-background p-5 shadow-2xl sm:p-6">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold">ثبت‌نام‌شده‌های «{selectedCourse.title}»</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {registrations ? `${registrations.length} ثبت‌نام` : "در حال دریافت..."} · ظرفیت {selectedCourse.capacity} نفر
+              </p>
+            </div>
+            <button onClick={()=>setSelectedCourse(null)} className="rounded-md p-2 hover:bg-muted"><X className="h-5 w-5"/></button>
+          </div>
+
+          {registrationsError && <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{registrationsError}</div>}
+
+          {registrations && registrations.length > 0 ? (
+            <div className="overflow-hidden rounded-xl border border-border/60">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-sm">
+                  <thead><tr className="border-b border-border/60 bg-muted/30">
+                    {["دانش‌آموز","پایه","وضعیت","توضیحات","تاریخ ثبت"].map((h)=><th key={h} className="px-4 py-3 text-right font-medium text-muted-foreground">{h}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {registrations.map((item)=><tr key={item.id} className="border-b border-border/30 last:border-0">
+                      <td className="px-4 py-3 font-medium">{item.studentFirstName} {item.studentLastName}</td>
+                      <td className="px-4 py-3">{item.grade}</td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2.5 py-1 text-xs ${registrationClasses[item.status]}`}>
+                          {registrationLabels[item.status]}
+                        </span>
+                      </td>
+                      <td className="max-w-[260px] px-4 py-3 text-xs text-muted-foreground">{item.notes || "—"}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{new Intl.DateTimeFormat("fa-IR").format(new Date(item.createdAt))}</td>
+                    </tr>)}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : registrations ? (
+            <div className="rounded-xl border border-border/60 p-10 text-center text-sm text-muted-foreground">
+              هنوز کسی برای این دوره ثبت‌نام نکرده است.
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/60 p-10 text-center text-sm text-muted-foreground">
+              در حال دریافت ثبت‌نام‌ها...
+            </div>
+          )}
+        </div>
+      </div>}
 
       {open && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4" onMouseDown={(e)=>{if(e.target===e.currentTarget)setOpen(false)}}>
         <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-background p-5 shadow-2xl sm:p-6">
