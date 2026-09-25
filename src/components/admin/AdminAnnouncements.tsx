@@ -47,6 +47,8 @@ interface Form {
   content: string;
   category: string;
   isPinned: boolean;
+  isActive: boolean;
+  expiresAt: string;
 }
 
 const emptyForm: Form = {
@@ -54,6 +56,8 @@ const emptyForm: Form = {
   content: "",
   category: "عمومی",
   isPinned: false,
+  isActive: true,
+  expiresAt: "",
 };
 
 export default function AdminAnnouncements() {
@@ -110,6 +114,8 @@ export default function AdminAnnouncements() {
       content: item.content,
       category: item.category,
       isPinned: item.isPinned,
+      isActive: item.isActive,
+      expiresAt: item.expiresAt ?? "",
     });
 
     setDialogOpen(true);
@@ -129,10 +135,7 @@ export default function AdminAnnouncements() {
         body: JSON.stringify(
           editId
             ? form
-            : {
-                ...form,
-                isActive: true,
-              }
+            : form
         ),
       });
 
@@ -252,6 +255,10 @@ export default function AdminAnnouncements() {
                 </th>
 
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                  وضعیت
+                </th>
+
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
                   عملیات
                 </th>
               </tr>
@@ -279,7 +286,7 @@ export default function AdminAnnouncements() {
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-4 py-12 text-center text-sm text-muted-foreground"
                   >
                     موردی یافت نشد.
@@ -308,6 +315,8 @@ export default function AdminAnnouncements() {
                         "—"
                       )}
                     </td>
+
+                    <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs ${item.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"}`}>{item.isActive ? "نمایش" : "مخفی"}</span></td>
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
@@ -381,7 +390,8 @@ export default function AdminAnnouncements() {
                 متن
               </Label>
 
-              <Input
+              <textarea
+                rows={5}
                 value={form.content}
                 onChange={(e) =>
                   setForm({
@@ -389,7 +399,7 @@ export default function AdminAnnouncements() {
                     content: e.target.value,
                   })
                 }
-                className="mt-1"
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
@@ -428,6 +438,33 @@ export default function AdminAnnouncements() {
                   سنجاق شده
                 </Label>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs">تاریخ انقضا</Label>
+                <Input
+                  type="datetime-local"
+                  value={form.expiresAt}
+                  onChange={(e) =>
+                    setForm({ ...form, expiresAt: e.target.value })
+                  }
+                  className="mt-1"
+                  dir="ltr"
+                />
+              </div>
+
+              <label className="mt-6 flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) =>
+                    setForm({ ...form, isActive: e.target.checked })
+                  }
+                  className="h-4 w-4"
+                />
+                نمایش اطلاعیه در سایت
+              </label>
             </div>
           </div>
 
