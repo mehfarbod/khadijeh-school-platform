@@ -1,136 +1,182 @@
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
-import { useEffect, useState } from "react";
-import { BookOpen } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { BookOpen, Edit3, Plus, Power, Trash2, X } from "lucide-react";
 
-interface Course {
-  id: string;
-  title: string;
-  status: string;
-  capacity: number;
-  currentRegistrations: number;
-  isActive: boolean;
-}
+type Course = {
+  id: string; title: string; slug: string; description: string; fullDescription: string | null;
+  coverImage: string | null; instructor: string | null; startDate: string | null; endDate: string | null;
+  schedule: string | null; duration: string | null; capacity: number; price: number | null;
+  status: "active" | "upcoming"; category: string; gradeLevel: string | null;
+  registrationDeadline: string | null; isActive: boolean; currentRegistrations: number;
+};
+
+type FormState = {
+  title: string; description: string; fullDescription: string; coverImage: string; instructor: string;
+  startDate: string; endDate: string; schedule: string; duration: string; capacity: string;
+  price: string; status: "active" | "upcoming"; category: string; gradeLevel: string;
+  registrationDeadline: string; isActive: boolean;
+};
+
+const emptyForm: FormState = {
+  title: "", description: "", fullDescription: "", coverImage: "", instructor: "",
+  startDate: "", endDate: "", schedule: "", duration: "", capacity: "20", price: "",
+  status: "upcoming", category: "آموزشی", gradeLevel: "", registrationDeadline: "", isActive: true,
+};
+
+const statusLabel = (status: string) => status === "active" ? "در حال ثبت‌نام" : "به‌زودی";
+const inputClass = "mt-1.5 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary";
+const toInputDate = (value: string | null) => value ? value.slice(0, 10) : "";
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState<Course[] | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [editing, setEditing] = useState<Course | null>(null);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const loadCourses = async () => {
-      try {
-        const response = await fetch("/api/courses?activeOnly=false");
+  const load = async () => {
+    const response = await fetch("/api/courses?activeOnly=false", { cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error || "خطا در دریافت دوره‌ها");
+    setCourses(data);
+  };
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch courses");
-        }
+  useEffect(() => { load().catch((e) => { console.error(e); setCourses([]); }); }, []);
 
-        const data: Course[] = await response.json();
-        setCourses(data);
-      } catch (error) {
-        console.error("Failed to load courses:", error);
-        setCourses([]);
-      }
-    };
+  const openCreate = () => { setEditing(null); setForm(emptyForm); setError(""); setOpen(true); };
+  const openEdit = (course: Course) => {
+    setEditing(course);
+    setForm({
+      title: course.title, description: course.description, fullDescription: course.fullDescription || "",
+      coverImage: course.coverImage || "", instructor: course.instructor || "", startDate: toInputDate(course.startDate),
+      endDate: toInputDate(course.endDate), schedule: course.schedule || "", duration: course.duration || "",
+      capacity: String(course.capacity), price: course.price == null ? "" : String(course.price),
+      status: course.status, category: course.category, gradeLevel: course.gradeLevel || "",
+      registrationDeadline: toInputDate(course.registrationDeadline), isActive: course.isActive,
+    });
+    setError(""); setOpen(true);
+  };
 
-    loadCourses();
-  }, []);
+  const update = (key: keyof FormState, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
+
+  const save = async () => {
+    if (!form.title.trim() || !form.description.trim() || !form.category.trim()) {
+      setError("عنوان، توضیح کوتاه و دسته‌بندی الزامی است."); return;
+    }
+    setSaving(true); setError("");
+    try {
+      const response = await fetch(editing ? `/api/courses?id=${editing.id}` : "/api/courses", {
+        method: editing ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          capacity: Number(form.capacity),
+          price: form.price ? Number(form.price) : null,
+          coverImage: form.coverImage || null,
+          fullDescription: form.fullDescription || null,
+          instructor: form.instructor || null,
+          startDate: form.startDate || null, endDate: form.endDate || null,
+          schedule: form.schedule || null, duration: form.duration || null,
+          gradeLevel: form.gradeLevel || null, registrationDeadline: form.registrationDeadline || null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "ذخیره دوره انجام نشد.");
+      setOpen(false); await load();
+    } catch (e) { setError(e instanceof Error ? e.message : "خطا در ذخیره دوره."); }
+    finally { setSaving(false); }
+  };
+
+  const toggle = async (course: Course) => {
+    const response = await fetch(`/api/courses?id=${course.id}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !course.isActive }),
+    });
+    if (response.ok) await load();
+  };
+
+  const remove = async (course: Course) => {
+    if (!window.confirm(`دوره «${course.title}» حذف/غیرفعال شود؟`)) return;
+    const response = await fetch(`/api/courses?id=${course.id}`, { method: "DELETE" });
+    if (response.ok) await load();
+    else { const data = await response.json(); window.alert(data?.error || "عملیات انجام نشد."); }
+  };
+
+  const activeCount = useMemo(() => courses?.filter((c) => c.isActive).length ?? 0, [courses]);
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-foreground">
-          دوره‌ها
-        </h1>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          مدیریت دوره‌های آموزشی
-        </p>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">دوره‌ها</h1>
+          <p className="mt-1 text-sm text-muted-foreground">ایجاد و مدیریت دوره‌هایی که مستقیماً در سایت اصلی نمایش داده می‌شوند.</p>
+        </div>
+        <button onClick={openCreate} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground">
+          <Plus className="h-4 w-4" /> افزودن دوره
+        </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border/60">
+      <div className="mb-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-border/60 bg-card p-4"><p className="text-xs text-muted-foreground">کل دوره‌ها</p><p className="mt-1 text-2xl font-bold">{courses?.length ?? "—"}</p></div>
+        <div className="rounded-xl border border-border/60 bg-card p-4"><p className="text-xs text-muted-foreground">فعال در سایت</p><p className="mt-1 text-2xl font-bold">{courses ? activeCount : "—"}</p></div>
+        <div className="rounded-xl border border-border/60 bg-card p-4"><p className="text-xs text-muted-foreground">ثبت‌نام‌های دوره‌ها</p><p className="mt-1 text-2xl font-bold">{courses?.reduce((s,c)=>s+c.currentRegistrations,0) ?? "—"}</p></div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/60 bg-muted/30">
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  عنوان
-                </th>
-
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  وضعیت
-                </th>
-
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  ظرفیت
-                </th>
-
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  ثبت‌نام
-                </th>
-              </tr>
-            </thead>
-
+          <table className="w-full min-w-[900px] text-sm">
+            <thead><tr className="border-b border-border/60 bg-muted/30">
+              {["عنوان دوره","دسته‌بندی","وضعیت","ظرفیت","ثبت‌نام","نمایش","عملیات"].map((h)=><th key={h} className="px-4 py-3 text-right font-medium text-muted-foreground">{h}</th>)}
+            </tr></thead>
             <tbody>
-              {!courses ? (
-                Array.from({ length: 3 }).map((_, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-border/30"
-                  >
-                    {Array.from({ length: 4 }).map(
-                      (_, columnIndex) => (
-                        <td
-                          key={columnIndex}
-                          className="px-4 py-3"
-                        >
-                          <div className="h-4 animate-pulse rounded bg-muted" />
-                        </td>
-                      )
-                    )}
-                  </tr>
-                ))
-              ) : courses.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-12 text-center text-sm text-muted-foreground"
-                  >
-                    <BookOpen className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
-                    هنوز دوره‌ای ثبت نشده.
-                  </td>
-                </tr>
-              ) : (
-                courses.map((course) => (
-                  <tr
-                    key={course.id}
-                    className="border-b border-border/30"
-                  >
-                    <td className="px-4 py-3 font-medium">
-                      {course.title}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-primary/5 px-2 py-0.5 text-xs text-primary">
-                        {course.status}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {course.capacity}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      {course.currentRegistrations}/
-                      {course.capacity}
-                    </td>
-                  </tr>
-                ))
-              )}
+              {!courses ? <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">در حال دریافت...</td></tr> :
+              courses.length === 0 ? <tr><td colSpan={7} className="p-12 text-center text-muted-foreground"><BookOpen className="mx-auto mb-2 h-8 w-8 opacity-30"/>هنوز دوره‌ای ثبت نشده.</td></tr> :
+              courses.map((course)=><tr key={course.id} className="border-b border-border/30 last:border-0">
+                <td className="px-4 py-3 font-medium">{course.title}</td>
+                <td className="px-4 py-3">{course.category}</td>
+                <td className="px-4 py-3">{statusLabel(course.status)}</td>
+                <td className="px-4 py-3">{course.capacity}</td>
+                <td className="px-4 py-3">{course.currentRegistrations}/{course.capacity}</td>
+                <td className="px-4 py-3">{course.isActive ? "نمایش" : "مخفی"}</td>
+                <td className="px-4 py-3"><div className="flex items-center gap-1">
+                  <button title="ویرایش" onClick={()=>openEdit(course)} className="rounded-md p-2 hover:bg-muted"><Edit3 className="h-4 w-4"/></button>
+                  <button title={course.isActive ? "مخفی کردن" : "فعال کردن"} onClick={()=>toggle(course)} className="rounded-md p-2 hover:bg-muted"><Power className="h-4 w-4"/></button>
+                  <button title="حذف" onClick={()=>remove(course)} className="rounded-md p-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4"/></button>
+                </div></td>
+              </tr>)}
             </tbody>
           </table>
         </div>
       </div>
+
+      {open && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4" onMouseDown={(e)=>{if(e.target===e.currentTarget)setOpen(false)}}>
+        <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-background p-5 shadow-2xl sm:p-6">
+          <div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-bold">{editing ? "ویرایش دوره" : "ایجاد دوره جدید"}</h2><p className="mt-1 text-xs text-muted-foreground">عنوان این فرم همان عنوانی است که در سایت اصلی نمایش داده می‌شود.</p></div><button onClick={()=>setOpen(false)} className="rounded-md p-2 hover:bg-muted"><X className="h-5 w-5"/></button></div>
+          {error && <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="sm:col-span-2 text-sm">عنوان دوره<input className={inputClass} value={form.title} onChange={e=>update("title",e.target.value)} placeholder="مثلاً کلاس تقویتی ریاضی"/></label>
+            <label className="sm:col-span-2 text-sm">توضیح کوتاه<textarea className="mt-1.5 min-h-20 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.description} onChange={e=>update("description",e.target.value)}/></label>
+            <label className="text-sm">دسته‌بندی<input className={inputClass} value={form.category} onChange={e=>update("category",e.target.value)} placeholder="آموزشی"/></label>
+            <label className="text-sm">پایه<input className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value)} placeholder="دهم تا دوازدهم"/></label>
+            <label className="text-sm">مدرس<input className={inputClass} value={form.instructor} onChange={e=>update("instructor",e.target.value)}/></label>
+            <label className="text-sm">مدت دوره<input className={inputClass} value={form.duration} onChange={e=>update("duration",e.target.value)} placeholder="مثلاً ۱۲ جلسه"/></label>
+            <label className="text-sm">زمان‌بندی<input className={inputClass} value={form.schedule} onChange={e=>update("schedule",e.target.value)} placeholder="شنبه‌ها، ساعت ۱۶"/></label>
+            <label className="text-sm">ظرفیت<input type="number" min="1" className={inputClass} value={form.capacity} onChange={e=>update("capacity",e.target.value)}/></label>
+            <label className="text-sm">هزینه (تومان)<input type="number" min="0" className={inputClass} value={form.price} onChange={e=>update("price",e.target.value)} placeholder="اختیاری"/></label>
+            <label className="text-sm">وضعیت<select className={inputClass} value={form.status} onChange={e=>update("status",e.target.value as FormState["status"])}><option value="active">در حال ثبت‌نام</option><option value="upcoming">به‌زودی</option></select></label>
+            <label className="text-sm">مهلت ثبت‌نام<input type="date" className={inputClass} value={form.registrationDeadline} onChange={e=>update("registrationDeadline",e.target.value)}/></label>
+            <label className="text-sm">تاریخ شروع<input type="date" className={inputClass} value={form.startDate} onChange={e=>update("startDate",e.target.value)}/></label>
+            <label className="text-sm">تاریخ پایان<input type="date" className={inputClass} value={form.endDate} onChange={e=>update("endDate",e.target.value)}/></label>
+            <label className="sm:col-span-2 text-sm">تصویر دوره (اختیاری)<input className={inputClass} value={form.coverImage} onChange={e=>update("coverImage",e.target.value)} placeholder="https://..."/></label>
+            <label className="sm:col-span-2 text-sm">توضیحات کامل<textarea className="mt-1.5 min-h-32 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.fullDescription} onChange={e=>update("fullDescription",e.target.value)}/></label>
+            <label className="sm:col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={e=>update("isActive",e.target.checked)}/> نمایش دوره در سایت</label>
+          </div>
+          <div className="mt-6 flex justify-end gap-2"><button onClick={()=>setOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm">انصراف</button><button disabled={saving} onClick={save} className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">{saving ? "در حال ذخیره..." : "ذخیره دوره"}</button></div>
+        </div>
+      </div>}
     </AdminLayout>
   );
 }

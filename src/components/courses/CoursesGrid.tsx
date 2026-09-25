@@ -1,110 +1,30 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import CourseCard, { type Course } from "./CourseCard";
 import type { FilterTab } from "./CourseFilters";
 
-const courses: Course[] = [
-  {
-    id: 1,
-    title: "کلاس تقویتی ریاضی",
-    description: "تقویت مفاهیم پایه و آمادگی برای امتحانات مدرسه",
-    grade: "پایه دهم",
-    sessions: "۱۲ جلسه",
-    schedule: "شنبه‌ها، ساعت ۱۶",
-    capacity: "ظرفیت ۲۰ نفر",
-    instructor: "خانم احمدی",
-    initials: "ا",
-    status: "active",
-    bgColor: "#DBE7C1",
-    icon: "math",
-  },
-  {
-    id: 2,
-    title: "کارگاه مهارت‌های زندگی",
-    description: "آموزش مهارت‌های اجتماعی، تصمیم‌گیری و خودشناسی",
-    grade: "پایه‌های دهم و یازدهم",
-    sessions: "۸ جلسه",
-    schedule: "دوشنبه‌ها، ساعت ۱۵",
-    capacity: "ظرفیت ۲۵ نفر",
-    instructor: "خانم رضایی",
-    initials: "ر",
-    status: "active",
-    bgColor: "#BFD7EA",
-    icon: "life",
-  },
-  {
-    id: 3,
-    title: "آمادگی آزمون‌های نهایی",
-    description: "مرور جامع مباحث و تمرین آزمون‌های استاندارد",
-    grade: "پایه دوازدهم",
-    sessions: "۱۶ جلسه",
-    schedule: "یکشنبه‌ها، ساعت ۱۴",
-    capacity: "ظرفیت ۱۸ نفر",
-    instructor: "خانم موسوی",
-    initials: "م",
-    status: "active",
-    bgColor: "#EEF2F7",
-    icon: "exam",
-  },
-  {
-    id: 4,
-    title: "کارگاه پژوهش و المپیاد",
-    description: "آشنایی با روش تحقیق علمی و آمادگی برای المپیادهای علمی",
-    grade: "پایه‌های دهم تا دوازدهم",
-    sessions: "۱۰ جلسه",
-    schedule: "چهارشنبه‌ها، ساعت ۱۵",
-    capacity: "ظرفیت ۱۵ نفر",
-    instructor: "خانم کریمی",
-    initials: "ک",
-    status: "upcoming",
-    bgColor: "#DBE7C1",
-    icon: "research",
-  },
-  {
-    id: 5,
-    title: "کارگاه هنر و خلاقیت",
-    description: "کشف استعداد‌های هنری و پرورش خلاقیت در فضایی آزاد",
-    grade: "پایه‌های دهم و یازدهم",
-    sessions: "۱۰ جلسه",
-    schedule: "سه‌شنبه‌ها، ساعت ۱۶",
-    capacity: "ظرفیت ۲۰ نفر",
-    instructor: "خانم صادقی",
-    initials: "ص",
-    status: "upcoming",
-    bgColor: "#EEF2F7",
-    icon: "art",
-  },
-  {
-    id: 6,
-    title: "دوره زبان انگلیسی",
-    description: "تقویت مهارت‌های گفتاری، نوشتاری و درک مطلب زبان انگلیسی",
-    grade: "پایه‌های دهم تا دوازدهم",
-    sessions: "۱۴ جلسه",
-    schedule: "پنجشنبه‌ها، ساعت ۱۳",
-    capacity: "ظرفیت ۲۲ نفر",
-    instructor: "خانم نجفی",
-    initials: "ن",
-    status: "active",
-    bgColor: "#BFD7EA",
-    icon: "language",
-  },
-];
+export default function CoursesGrid({ filter }: { filter: FilterTab }) {
+  const [courses, setCourses] = useState<Course[] | null>(null);
 
-interface CoursesGridProps {
-  filter: FilterTab;
-}
+  useEffect(() => {
+    fetch("/api/courses", { cache: "no-store" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data?.error || "خطا");
+        return data;
+      })
+      .then(setCourses)
+      .catch((e) => { console.error(e); setCourses([]); });
+  }, []);
 
-export default function CoursesGrid({ filter }: CoursesGridProps) {
-  const filteredCourses =
-    filter === "all"
-      ? courses
-      : courses.filter((course) => course.status === filter);
+  const filtered = courses?.filter((course) => filter === "all" || course.status === filter) ?? [];
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-6 pb-20 pt-8">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredCourses.map((course) => (
-          <CourseCard key={course.id} course={course} />
-        ))}
-      </div>
+      {courses === null ? <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">{Array.from({length:6}).map((_,i)=><div key={i} className="h-[420px] animate-pulse rounded-[18px] bg-[#EEF2F7]"/>)}</div> :
+      filtered.length === 0 ? <div className="rounded-[18px] border border-[#DBE7C1] bg-white py-16 text-center text-sm text-[#667085]">در این بخش دوره‌ای وجود ندارد.</div> :
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">{filtered.map(course => <CourseCard key={course.id} course={course}/>)}</div>}
     </section>
   );
 }
