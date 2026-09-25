@@ -403,7 +403,7 @@ export default function AdminEvents() {
             <div className="col-span-2">
               <Label className="text-xs">تصویر رویداد (URL)</Label>
               <Input
-                value={form.coverImage}
+                value={form.coverImage ?? ""}
                 onChange={(e) =>
                   setForm({ ...form, coverImage: e.target.value })
                 }
