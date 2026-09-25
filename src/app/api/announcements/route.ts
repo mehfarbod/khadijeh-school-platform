@@ -24,6 +24,8 @@ const createAnnouncementSchema = z.object({
 
   isPinned: z.boolean().optional(),
 
+  isTicker: z.boolean().optional(),
+
   isActive: z.boolean().optional(),
 
   expiresAt: z
@@ -41,9 +43,13 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get("activeOnly") !== "false";
+    const tickerOnly = searchParams.get("tickerOnly") === "true";
 
     const announcements = await prisma.announcement.findMany({
-      where: activeOnly ? { isActive: true } : undefined,
+      where: {
+        ...(activeOnly ? { isActive: true } : {}),
+        ...(tickerOnly ? { isTicker: true } : {}),
+      },
       orderBy: [
         { isPinned: "desc" },
         { createdAt: "desc" },
@@ -95,6 +101,7 @@ export async function POST(request: NextRequest) {
         content: data.content,
         category: data.category,
         isPinned: data.isPinned ?? false,
+        isTicker: data.isTicker ?? false,
         isActive: data.isActive ?? true,
        expiresAt: data.expiresAt || null,
       },
