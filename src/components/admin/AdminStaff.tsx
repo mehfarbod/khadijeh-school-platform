@@ -237,7 +237,7 @@ export default function AdminStaff() {
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
-  const handleSubmit = async () =>
+  const handleSubmit = async () => {
     if (!form.firstName.trim() || !form.lastName.trim() || !form.position.trim() || !form.category.trim()) {
       toast.error("نام، نام خانوادگی، سمت و دسته‌بندی الزامی است.");
       return;
@@ -245,6 +245,22 @@ export default function AdminStaff() {
 
     setSaving(true);
     try {
+      let photoUrl = form.photo.trim() || null;
+
+      if (selectedPhoto) {
+        const uploadData = new FormData();
+        uploadData.append("file", selectedPhoto);
+        const uploadResponse = await fetch("/api/admin/uploads/staff-photo", {
+          method: "POST",
+          body: uploadData,
+        });
+        const uploadResult = await uploadResponse.json();
+        if (!uploadResponse.ok) {
+          throw new Error(uploadResult.error || "خطا در آپلود تصویر");
+        }
+        photoUrl = uploadResult.url;
+      }
+
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
