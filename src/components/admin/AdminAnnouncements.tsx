@@ -30,6 +30,7 @@ import {
   Pin,
 } from "lucide-react";
 import { toast } from "sonner";
+import { gregorianToJalaliDate, jalaliToGregorianDate, toPersianDigits } from "@/lib/jalali";
 
 interface Announcement {
   id: string;
@@ -37,6 +38,7 @@ interface Announcement {
   content: string;
   category: string;
   isPinned: boolean;
+  isTicker: boolean;
   isActive: boolean;
   expiresAt: string | null;
   createdAt: string;
@@ -47,6 +49,7 @@ interface Form {
   content: string;
   category: string;
   isPinned: boolean;
+  isTicker: boolean;
   isActive: boolean;
   expiresAt: string;
 }
@@ -56,6 +59,7 @@ const emptyForm: Form = {
   content: "",
   category: "عمومی",
   isPinned: false,
+  isTicker: false,
   isActive: true,
   expiresAt: "",
 };
@@ -114,14 +118,24 @@ export default function AdminAnnouncements() {
       content: item.content,
       category: item.category,
       isPinned: item.isPinned,
+      isTicker: item.isTicker,
       isActive: item.isActive,
-      expiresAt: item.expiresAt ?? "",
+      expiresAt: item.expiresAt ? gregorianToJalaliDate(item.expiresAt) : "",
     });
 
     setDialogOpen(true);
   };
 
   const handleSubmit = async () => {
+    const normalizedExpiry = form.expiresAt.trim();
+    const gregorianExpiry = normalizedExpiry
+      ? jalaliToGregorianDate(normalizedExpiry)
+      : null;
+
+    if (normalizedExpiry && !gregorianExpiry) {
+      toast.error("تاریخ انقضا را به شکل ۱۴۰۵/۰۷/۱۵ وارد کنید.");
+      return;
+    }
     try {
       const url = editId
         ? `/api/announcements/${editId}`
@@ -132,11 +146,10 @@ export default function AdminAnnouncements() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(
-          editId
-            ? form
-            : form
-        ),
+        body: JSON.stringify({
+          ...form,
+          expiresAt: gregorianExpiry,
+        }),
       });
 
       const data = await response.json();
@@ -255,6 +268,10 @@ export default function AdminAnnouncements() {
                 </th>
 
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                  نوار مهم
+                </th>
+
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
                   وضعیت
                 </th>
 
@@ -271,7 +288,7 @@ export default function AdminAnnouncements() {
                     key={i}
                     className="border-b border-border/30"
                   >
-                    {Array.from({ length: 4 }).map(
+                    {Array.from({ length: 5 }).map(
                       (_, j) => (
                         <td
                           key={j}
@@ -314,6 +331,10 @@ export default function AdminAnnouncements() {
                       ) : (
                         "—"
                       )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {item.isTicker ? "✓" : "—"}
                     </td>
 
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs ${item.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"}`}>{item.isActive ? "نمایش" : "مخفی"}</span></td>
@@ -438,20 +459,33 @@ export default function AdminAnnouncements() {
                   سنجاق شده
                 </Label>
               </div>
+
+              <label className="mt-6 flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.isTicker}
+                  onChange={(e) =>
+                    setForm({ ...form, isTicker: e.target.checked })
+                  }
+                  className="h-4 w-4"
+                />
+                نمایش در نوار اطلاعیه‌های مهم
+              </label>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs">تاریخ انقضا</Label>
                 <Input
-                  type="datetime-local"
                   value={form.expiresAt}
                   onChange={(e) =>
-                    setForm({ ...form, expiresAt: e.target.value })
+                    setForm({ ...form, expiresAt: e.target.value.replace(/[^0-9۰-۹/]/g, "") })
                   }
+                  placeholder={toPersianDigits("1405/07/15")}
                   className="mt-1"
                   dir="ltr"
                 />
+                <p className="mt-1 text-[11px] text-muted-foreground">مثال: ۱۴۰۵/۰۷/۱۵ — خالی = بدون انقضا</p>
               </div>
 
               <label className="mt-6 flex items-center gap-2 text-sm">
