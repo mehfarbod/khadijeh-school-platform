@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
+import { formatGregorianDateAsJalali, gregorianToJalaliDate, jalaliToGregorianDate } from "@/lib/jalali";
 
 interface EventItem {
   id: string;
@@ -121,7 +122,7 @@ export default function AdminEvents() {
       title: event.title,
       slug: event.slug,
       description: event.description,
-      date: event.date,
+      date: gregorianToJalaliDate(event.date),
       time: event.time ?? "",
       location: event.location ?? "",
       eventType: event.eventType,
@@ -134,11 +135,18 @@ export default function AdminEvents() {
 
   const handleSubmit = async () => {
     try {
+      const gregorianDate = jalaliToGregorianDate(form.date.trim());
+
+      if (!gregorianDate) {
+        toast.error("تاریخ را به شکل ۱۴۰۵/۰۷/۲۰ وارد کنید.");
+        return;
+      }
+
       const data = {
         title: form.title,
         slug: form.slug.trim() || makeSlug(form.title) || `event-${Date.now()}`,
         description: form.description,
-        date: form.date,
+        date: gregorianDate,
         time: form.time || null,
         location: form.location || null,
         eventType: form.eventType,
@@ -285,7 +293,7 @@ export default function AdminEvents() {
                     </td>
 
                     <td className="px-4 py-3">
-                      {event.date}
+                      {formatGregorianDateAsJalali(event.date)}
                     </td>
 
                     <td className="px-4 py-3">
@@ -354,8 +362,8 @@ export default function AdminEvents() {
               <Label className="text-xs">تاریخ</Label>
 
               <Input
-                type="date"
                 value={form.date}
+                placeholder="۱۴۰۵/۰۷/۲۰"
                 onChange={(e) =>
                   setForm({ ...form, date: e.target.value })
                 }
