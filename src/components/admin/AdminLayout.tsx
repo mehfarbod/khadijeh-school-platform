@@ -322,7 +322,7 @@ export default function AdminLayout({
               {user?.name?.[0] || "م"}
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 lg:w-[calc(100%-272px)]">
               <p className="truncate text-xs font-semibold text-[#1A2332]">
                 {user?.name || "مدیر"}
               </p>
