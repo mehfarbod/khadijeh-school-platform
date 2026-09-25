@@ -50,4 +50,35 @@ export const PERMISSIONS = [
   { key: "settings.manage", name: "مدیریت تنظیمات مدرسه", group: "تنظیمات" },
 ] as const;
 
+export const ROLE_DEFAULT_PERMISSION_KEYS: Record<string, PermissionKey[]> = {
+  SUPER_ADMIN: PERMISSIONS.map((permission) => permission.key),
+  SCHOOL_ADMIN: PERMISSIONS.map((permission) => permission.key),
+  CONTENT_MANAGER: [
+    "news.view", "news.create", "news.edit", "news.manage",
+    "events.view", "events.manage",
+    "announcements.view", "announcements.manage",
+    "top_students.manage", "birthdays.manage",
+    "messages.view", "messages.manage",
+    "programs.manage",
+    "videos.view", "videos.create", "videos.edit_own", "videos.delete_own",
+  ],
+  TEACHER: [
+    "students.view",
+    "courses.view",
+    "registrations.view",
+    "videos.view", "videos.create", "videos.edit_own", "videos.delete_own",
+  ],
+  STAFF: [
+    "students.view",
+    "staff.view",
+    "courses.view",
+    "registrations.view",
+    "admissions.view",
+    "news.view",
+    "events.view",
+    "announcements.view",
+    "messages.view",
+  ],
+};
+
 export type PermissionKey = (typeof PERMISSIONS)[number]["key"];
