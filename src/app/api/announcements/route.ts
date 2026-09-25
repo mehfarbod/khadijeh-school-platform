@@ -50,7 +50,16 @@ export async function GET(request: NextRequest) {
       ],
     });
 
-    return NextResponse.json(announcements);
+    const visibleAnnouncements = activeOnly
+      ? announcements.filter(
+          (item) =>
+            !item.expiresAt ||
+            Number.isNaN(new Date(item.expiresAt).getTime()) ||
+            new Date(item.expiresAt).getTime() > Date.now(),
+        )
+      : announcements;
+
+    return NextResponse.json(visibleAnnouncements);
   } catch (error) {
     console.error("GET /api/announcements error:", error);
 
