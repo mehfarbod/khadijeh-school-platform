@@ -31,6 +31,8 @@ const updateAnnouncementSchema = z.object({
 
   isPinned: z.boolean().optional(),
 
+  isTicker: z.boolean().optional(),
+
   isActive: z.boolean().optional(),
 
   expiresAt: z
@@ -82,6 +84,9 @@ export async function PATCH(
         }),
         ...(data.isPinned !== undefined && {
           isPinned: data.isPinned,
+        }),
+        ...(data.isTicker !== undefined && {
+          isTicker: data.isTicker,
         }),
         ...(data.isActive !== undefined && {
           isActive: data.isActive,
