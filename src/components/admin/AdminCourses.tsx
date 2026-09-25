@@ -3,6 +3,8 @@
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Edit3, Plus, Power, Trash2, X } from "lucide-react";
+import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
+import { gregorianToJalali } from "@/lib/date/jalali";
 
 type Course = {
   id: string; title: string; slug: string; description: string; fullDescription: string | null;
@@ -27,7 +29,7 @@ const emptyForm: FormState = {
 
 const statusLabel = (status: string) => status === "active" ? "در حال ثبت‌نام" : "به‌زودی";
 const inputClass = "mt-1.5 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary";
-const toInputDate = (value: string | null) => value ? value.slice(0, 10) : "";
+const toInputDate = (value: string | null) => value ? gregorianToJalali(value) : "";
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState<Course[] | null>(null);
@@ -167,9 +169,9 @@ export default function AdminCourses() {
             <label className="text-sm">ظرفیت<input type="number" min="1" className={inputClass} value={form.capacity} onChange={e=>update("capacity",e.target.value)}/></label>
             <label className="text-sm">هزینه (تومان)<input type="number" min="0" className={inputClass} value={form.price} onChange={e=>update("price",e.target.value)} placeholder="اختیاری"/></label>
             <label className="text-sm">وضعیت<select className={inputClass} value={form.status} onChange={e=>update("status",e.target.value as FormState["status"])}><option value="active">در حال ثبت‌نام</option><option value="upcoming">به‌زودی</option></select></label>
-            <label className="text-sm">مهلت ثبت‌نام<input type="date" className={inputClass} value={form.registrationDeadline} onChange={e=>update("registrationDeadline",e.target.value)}/></label>
-            <label className="text-sm">تاریخ شروع<input type="date" className={inputClass} value={form.startDate} onChange={e=>update("startDate",e.target.value)}/></label>
-            <label className="text-sm">تاریخ پایان<input type="date" className={inputClass} value={form.endDate} onChange={e=>update("endDate",e.target.value)}/></label>
+            <div className="text-sm">مهلت ثبت‌نام<JalaliDatePicker value={form.registrationDeadline} onChange={(value) => update("registrationDeadline", value)} placeholder="انتخاب تاریخ" className={inputClass} /></div>
+            <div className="text-sm">تاریخ شروع<JalaliDatePicker value={form.startDate} onChange={(value) => update("startDate", value)} placeholder="انتخاب تاریخ" className={inputClass} /></div>
+            <div className="text-sm">تاریخ پایان<JalaliDatePicker value={form.endDate} onChange={(value) => update("endDate", value)} placeholder="انتخاب تاریخ" className={inputClass} /></div>
             <label className="sm:col-span-2 text-sm">تصویر دوره (اختیاری)<input className={inputClass} value={form.coverImage} onChange={e=>update("coverImage",e.target.value)} placeholder="https://..."/></label>
             <label className="sm:col-span-2 text-sm">توضیحات کامل<textarea className="mt-1.5 min-h-32 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.fullDescription} onChange={e=>update("fullDescription",e.target.value)}/></label>
             <label className="sm:col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={e=>update("isActive",e.target.checked)}/> نمایش دوره در سایت</label>

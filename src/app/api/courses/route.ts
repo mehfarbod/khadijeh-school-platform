@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { jalaliToGregorian } from "@/lib/date/jalali";
 
 const courseSchema = z.object({
   title: z.string().trim().min(2).max(200),
@@ -55,8 +56,13 @@ async function uniqueSlug(title: string, excludeId?: string) {
 
 function toDate(value?: string | null) {
   if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+
+  try {
+    return jalaliToGregorian(value);
+  } catch {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
 }
 
 function serialize(course: any) {
