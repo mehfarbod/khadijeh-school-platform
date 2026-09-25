@@ -11,22 +11,22 @@ const updateAnnouncementSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "عنوان اعلامیه نمی‌تواند خالی باشد.")
-    .max(200, "عنوان اعلامیه بیش از حد طولانی است.")
+    .min(1, "عنوان اطلاعیه نمی‌تواند خالی باشد.")
+    .max(200, "عنوان اطلاعیه بیش از حد طولانی است.")
     .optional(),
 
   content: z
     .string()
     .trim()
-    .min(1, "متن اعلامیه نمی‌تواند خالی باشد.")
-    .max(10000, "متن اعلامیه بیش از حد طولانی است.")
+    .min(1, "متن اطلاعیه نمی‌تواند خالی باشد.")
+    .max(10000, "متن اطلاعیه بیش از حد طولانی است.")
     .optional(),
 
   category: z
     .string()
     .trim()
-    .min(1, "دسته‌بندی اعلامیه نمی‌تواند خالی باشد.")
-    .max(100, "دسته‌بندی اعلامیه نامعتبر است.")
+    .min(1, "دسته‌بندی اطلاعیه نمی‌تواند خالی باشد.")
+    .max(100, "دسته‌بندی اطلاعیه نامعتبر است.")
     .optional(),
 
   isPinned: z.boolean().optional(),
@@ -111,7 +111,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { error: "خطا در ویرایش اعلامیه" },
+      { error: "خطا در ویرایش اطلاعیه" },
       { status: 500 }
     );
   }
@@ -149,7 +149,7 @@ export async function DELETE(
     }
 
     return NextResponse.json(
-      { error: "خطا در حذف اعلامیه" },
+      { error: "خطا در حذف اطلاعیه" },
       { status: 500 }
     );
   }
