@@ -265,7 +265,7 @@ export default function AdminNews() {
                 <input value={form.coverImage ?? ""} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} dir="ltr" className={inputClass} />
               </Field>
               <Field label="نویسنده">
-                <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className={inputClass} />
+                <input value={form.author ?? ""} onChange={(e) => setForm({ ...form, author: e.target.value })} className={inputClass} />
               </Field>
               <Field label="برچسب‌ها" className="md:col-span-2">
                 <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="مدرسه، آموزشی، مسابقات" className={inputClass} />
