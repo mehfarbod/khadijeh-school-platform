@@ -185,11 +185,7 @@ export async function PATCH(
            * These are kept temporarily for compatibility with
            * older parts of the system.
            */
-          guardianName:
-            `${application.fatherFirstName} ${application.fatherLastName}`.trim(),
-
-          guardianPhone: application.fatherMobile,
-
+        
           /*
            * Email is intentionally left null for now.
            * It is optional in the Student model and can be

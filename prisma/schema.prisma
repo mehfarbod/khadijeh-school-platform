@@ -65,11 +65,6 @@ model Student {
   landline    String?
   description String?
 
-  // Legacy guardian fields
-  // These will be removed after all related code is migrated.
-  guardianName  String?
-  guardianPhone String?
-
   // Optional for future use
   email String?
 

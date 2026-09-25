@@ -32,6 +32,8 @@ import {
   Users,
   GraduationCap,
   School,
+  UserRound,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -54,42 +56,128 @@ interface Student {
   firstName: string;
   lastName: string;
   nationalId: string | null;
+  birthCertificateSerial: string | null;
   mobile: string | null;
   birthday: string | null;
-  guardianName: string | null;
-  guardianPhone: string | null;
+
+  fatherFirstName: string | null;
+  fatherLastName: string | null;
+  fatherNationalId: string | null;
+  fatherJob: string | null;
+  fatherEducation: string | null;
+  fatherMobile: string | null;
+
+  motherFirstName: string | null;
+  motherLastName: string | null;
+  motherNationalId: string | null;
+  motherJob: string | null;
+  motherEducation: string | null;
+  motherMobile: string | null;
+
+  address: string | null;
+  landline: string | null;
+  description: string | null;
+
   email: string | null;
   isActive: boolean;
   enrollments: Enrollment[];
 }
 
 interface StudentForm {
+  // Student
   firstName: string;
   lastName: string;
   nationalId: string;
+  birthCertificateSerial: string;
   mobile: string;
   birthday: string;
-  guardianName: string;
-  guardianPhone: string;
-  email: string;
+
+  // Father
+  fatherFirstName: string;
+  fatherLastName: string;
+  fatherNationalId: string;
+  fatherJob: string;
+  fatherEducation: string;
+  fatherMobile: string;
+
+  // Mother
+  motherFirstName: string;
+  motherLastName: string;
+  motherNationalId: string;
+  motherJob: string;
+  motherEducation: string;
+  motherMobile: string;
+
+  // Contact
+  address: string;
+  landline: string;
+  description: string;
+
+  // Academic
   academicYearId: string;
   grade: string;
   className: string;
 }
 
-const grades = ["دهم", "یازدهم", "دوازدهم"];
+const grades = [
+  {
+    value: "10",
+    label: "دهم",
+  },
+  {
+    value: "11",
+    label: "یازدهم",
+  },
+  {
+    value: "12",
+    label: "دوازدهم",
+  },
+];
+
+const gradeLabels: Record<string, string> = {
+  "10": "دهم",
+  "11": "یازدهم",
+  "12": "دوازدهم",
+
+  // Compatibility with old records
+  دهم: "دهم",
+  یازدهم: "یازدهم",
+  دوازدهم: "دوازدهم",
+};
 
 const emptyForm: StudentForm = {
+  // Student
   firstName: "",
   lastName: "",
   nationalId: "",
+  birthCertificateSerial: "",
   mobile: "",
   birthday: "",
-  guardianName: "",
-  guardianPhone: "",
-  email: "",
+
+  // Father
+  fatherFirstName: "",
+  fatherLastName: "",
+  fatherNationalId: "",
+  fatherJob: "",
+  fatherEducation: "",
+  fatherMobile: "",
+
+  // Mother
+  motherFirstName: "",
+  motherLastName: "",
+  motherNationalId: "",
+  motherJob: "",
+  motherEducation: "",
+  motherMobile: "",
+
+  // Contact
+  address: "",
+  landline: "",
+  description: "",
+
+  // Academic
   academicYearId: "",
-  grade: "دهم",
+  grade: "10",
   className: "",
 };
 
@@ -191,7 +279,9 @@ export default function AdminStudents() {
   const selectedYear = academicYears.find((year) => year.id === selectedYearId);
 
   const availableClasses = useMemo(() => {
-    if (!students) return [];
+    if (!students) {
+      return [];
+    }
 
     const classes = new Set<string>();
 
@@ -217,7 +307,9 @@ export default function AdminStudents() {
   }, [availableClasses, selectedClass]);
 
   const filteredStudents = useMemo(() => {
-    if (!students) return [];
+    if (!students) {
+      return [];
+    }
 
     const normalizedSearch = search.trim().toLowerCase();
 
@@ -237,7 +329,9 @@ export default function AdminStudents() {
   }, [students, search]);
 
   const classSummary = useMemo(() => {
-    if (!students) return [];
+    if (!students) {
+      return [];
+    }
 
     const summary = new Map<string, number>();
 
@@ -270,12 +364,6 @@ export default function AdminStudents() {
       }));
   }, [students, selectedYearId, selectedGrade]);
 
-  /*
-   * در حالت عادی، enrollment مربوط به سال انتخاب‌شده را پیدا می‌کنیم.
-   * اگر به هر دلیل آن enrollment در پاسخ API نبود،
-   * اولین enrollment موجود را برمی‌گردانیم تا فرم ویرایش
-   * بدون academicYearId خالی باز نشود.
-   */
   const getCurrentEnrollment = (student: Student) => {
     return (
       student.enrollments.find(
@@ -290,7 +378,7 @@ export default function AdminStudents() {
     setForm({
       ...emptyForm,
       academicYearId: selectedYearId || academicYears[0]?.id || "",
-      grade: selectedGrade || "دهم",
+      grade: selectedGrade || "10",
       className: selectedClass || "",
     });
 
@@ -300,42 +388,49 @@ export default function AdminStudents() {
   const openEdit = (student: Student) => {
     const enrollment = getCurrentEnrollment(student);
 
-    /*
-     * سال تحصیلی را از enrollment خود دانش‌آموز می‌گیریم.
-     * اگر enrollment وجود نداشت، از سال انتخاب‌شده و در نهایت
-     * اولین سال موجود استفاده می‌کنیم.
-     */
     const academicYearId =
       enrollment?.academicYearId ||
       selectedYearId ||
       academicYears[0]?.id ||
       "";
 
-    const grade = enrollment?.grade || selectedGrade || "دهم";
+    const grade = enrollment?.grade || selectedGrade || "10";
 
     const className = enrollment?.className || selectedClass || "";
-
-    console.log("EDIT STUDENT:", student);
-    console.log("EDIT ENROLLMENTS:", student.enrollments);
-    console.log("SELECTED YEAR:", selectedYearId);
-    console.log("ACADEMIC YEARS:", academicYears);
-    console.log("CURRENT ENROLLMENT:", enrollment);
 
     setEditId(student.id);
 
     setForm({
+      // Student
       firstName: student.firstName,
       lastName: student.lastName,
       nationalId: student.nationalId ?? "",
+      birthCertificateSerial: student.birthCertificateSerial ?? "",
       mobile: student.mobile ?? "",
-
-      // تاریخ موجود در دیتابیس میلادی است.
-      // برای نمایش در فرم، آن را به تاریخ شمسی تبدیل می‌کنیم.
       birthday: student.birthday ? gregorianToJalali(student.birthday) : "",
 
-      guardianName: student.guardianName ?? "",
-      guardianPhone: student.guardianPhone ?? "",
-      email: student.email ?? "",
+      // Father
+      fatherFirstName: student.fatherFirstName ?? "",
+      fatherLastName: student.fatherLastName ?? "",
+      fatherNationalId: student.fatherNationalId ?? "",
+      fatherJob: student.fatherJob ?? "",
+      fatherEducation: student.fatherEducation ?? "",
+      fatherMobile: student.fatherMobile ?? "",
+
+      // Mother
+      motherFirstName: student.motherFirstName ?? "",
+      motherLastName: student.motherLastName ?? "",
+      motherNationalId: student.motherNationalId ?? "",
+      motherJob: student.motherJob ?? "",
+      motherEducation: student.motherEducation ?? "",
+      motherMobile: student.motherMobile ?? "",
+
+      // Contact
+      address: student.address ?? "",
+      landline: student.landline ?? "",
+      description: student.description ?? "",
+
+      // Academic
       academicYearId,
       grade,
       className,
@@ -364,33 +459,46 @@ export default function AdminStudents() {
       setSaving(true);
 
       const payload = {
+        // Student
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         nationalId: form.nationalId.trim() || null,
+        birthCertificateSerial: form.birthCertificateSerial.trim() || null,
         mobile: form.mobile.trim() || null,
-
-        // تاریخ به صورت Jalali string به API ارسال می‌شود.
-        // API آن را به Gregorian DateTime تبدیل می‌کند.
         birthday: form.birthday.trim() || null,
 
-        guardianName: form.guardianName.trim() || null,
-        guardianPhone: form.guardianPhone.trim() || null,
-        email: form.email.trim() || null,
+        // Father
+        fatherFirstName: form.fatherFirstName.trim() || null,
+        fatherLastName: form.fatherLastName.trim() || null,
+        fatherNationalId: form.fatherNationalId.trim() || null,
+        fatherJob: form.fatherJob.trim() || null,
+        fatherEducation: form.fatherEducation.trim() || null,
+        fatherMobile: form.fatherMobile.trim() || null,
+
+        // Mother
+        motherFirstName: form.motherFirstName.trim() || null,
+        motherLastName: form.motherLastName.trim() || null,
+        motherNationalId: form.motherNationalId.trim() || null,
+        motherJob: form.motherJob.trim() || null,
+        motherEducation: form.motherEducation.trim() || null,
+        motherMobile: form.motherMobile.trim() || null,
+
+        // Contact
+        address: form.address.trim() || null,
+        landline: form.landline.trim() || null,
+        description: form.description.trim() || null,
+
+        // Enrollment
         academicYearId: form.academicYearId,
         grade: form.grade,
         className: form.className.trim() || null,
+
         ...(editId
           ? {}
           : {
               isActive: true,
             }),
       };
-
-      console.log("SENDING PAYLOAD:", payload);
-      console.log(
-        "FETCH URL:",
-        editId ? `/api/students/${editId}` : "/api/students",
-      );
 
       const response = await fetch(
         editId ? `/api/students/${editId}` : "/api/students",
@@ -403,11 +511,7 @@ export default function AdminStudents() {
         },
       );
 
-      console.log("RESPONSE STATUS:", response.status);
-
       const data = await response.json();
-
-      console.dir(data.details, { depth: null });
 
       if (!response.ok) {
         throw new Error(data.error || "خطا در ذخیره‌سازی اطلاعات");
@@ -434,7 +538,9 @@ export default function AdminStudents() {
   };
 
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteId) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/students/${deleteId}`, {
@@ -495,7 +601,7 @@ export default function AdminStudents() {
         </Button>
       </div>
 
-      {/* Year selector */}
+      {/* Filters */}
       <div className="mb-5 rounded-xl border border-border/60 bg-card p-4">
         <div className="flex flex-wrap items-end gap-4">
           <div className="min-w-[220px]">
@@ -537,8 +643,8 @@ export default function AdminStudents() {
               <option value="">همه پایه‌ها</option>
 
               {grades.map((grade) => (
-                <option key={grade} value={grade}>
-                  {grade}
+                <option key={grade.value} value={grade.value}>
+                  {grade.label}
                 </option>
               ))}
             </select>
@@ -574,7 +680,7 @@ export default function AdminStudents() {
 
             {selectedGrade && (
               <span className="text-xs text-muted-foreground">
-                {selectedGrade}
+                {gradeLabels[selectedGrade] ?? selectedGrade}
               </span>
             )}
           </div>
@@ -620,7 +726,7 @@ export default function AdminStudents() {
 
         {selectedGrade && (
           <span className="rounded-full bg-muted px-3 py-1 text-xs">
-            {selectedGrade}
+            {gradeLabels[selectedGrade] ?? selectedGrade}
           </span>
         )}
 
@@ -683,9 +789,7 @@ export default function AdminStudents() {
               {!students ? (
                 Array.from({ length: 5 }).map((_, index) => (
                   <tr key={index} className="border-b border-border/30">
-                    {Array.from({
-                      length: 6,
-                    }).map((__, columnIndex) => (
+                    {Array.from({ length: 6 }).map((__, columnIndex) => (
                       <td key={columnIndex} className="px-4 py-3">
                         <div className="h-4 animate-pulse rounded bg-muted" />
                       </td>
@@ -719,7 +823,11 @@ export default function AdminStudents() {
                         {student.nationalId || "—"}
                       </td>
 
-                      <td className="px-4 py-3">{enrollment?.grade || "—"}</td>
+                      <td className="px-4 py-3">
+                        {enrollment
+                          ? (gradeLabels[enrollment.grade] ?? enrollment.grade)
+                          : "—"}
+                      </td>
 
                       <td className="px-4 py-3">
                         {enrollment?.className || "—"}
@@ -743,14 +851,7 @@ export default function AdminStudents() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            onClick={() => {
-                              console.log("=== EDIT BUTTON ===");
-                              console.log("STUDENT ID:", student.id);
-                              console.log("STUDENT:", student);
-                              console.log("ENROLLMENTS:", student.enrollments);
-
-                              openEdit(student);
-                            }}
+                            onClick={() => openEdit(student)}
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -786,165 +887,450 @@ export default function AdminStudents() {
         }}
       >
         <DialogContent
-          className="max-h-[90vh] max-w-2xl overflow-y-auto"
+          className="max-h-[90vh] max-w-3xl overflow-y-auto"
           dir="rtl"
         >
           <DialogHeader>
             <DialogTitle>
-              {editId ? "ویرایش دانش‌آموز" : "افزودن دانش‌آموز"}
+              {editId ? "ویرایش اطلاعات دانش‌آموز" : "افزودن دانش‌آموز"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4 py-2">
-            <div>
-              <Label className="text-xs">نام</Label>
+          <div className="space-y-6 py-2">
+            {/* Student information */}
+            <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="mb-4 flex items-center gap-2">
+                <UserRound className="h-5 w-5 text-muted-foreground" />
 
-              <Input
-                value={form.firstName}
-                onChange={(event) =>
-                  updateForm("firstName", event.target.value)
-                }
-                className="mt-1"
-              />
-            </div>
+                <div>
+                  <h3 className="font-semibold">اطلاعات دانش‌آموز</h3>
 
-            <div>
-              <Label className="text-xs">نام خانوادگی</Label>
-
-              <Input
-                value={form.lastName}
-                onChange={(event) => updateForm("lastName", event.target.value)}
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs">کد ملی</Label>
-
-              <Input
-                value={form.nationalId}
-                onChange={(event) =>
-                  updateForm("nationalId", event.target.value)
-                }
-                className="mt-1"
-                inputMode="numeric"
-                maxLength={10}
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs">شماره تلفن همراه</Label>
-
-              <Input
-                value={form.mobile}
-                onChange={(event) => updateForm("mobile", event.target.value)}
-                className="mt-1"
-                inputMode="tel"
-                maxLength={11}
-                placeholder="0912..."
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs">سال تحصیلی</Label>
-
-              <select
-                value={form.academicYearId}
-                onChange={(event) =>
-                  updateForm("academicYearId", event.target.value)
-                }
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="">انتخاب سال تحصیلی</option>
-
-                {academicYears.map((year) => (
-                  <option key={year.id} value={year.id}>
-                    {year.title}
-                    {year.isCurrent ? " — جاری" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label className="text-xs">پایه</Label>
-
-              <select
-                value={form.grade}
-                onChange={(event) => updateForm("grade", event.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                {grades.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label className="text-xs">کلاس</Label>
-
-              <Input
-                value={form.className}
-                onChange={(event) =>
-                  updateForm("className", event.target.value)
-                }
-                className="mt-1"
-                placeholder="مثلاً الف"
-              />
-            </div>
-
-            <div>
-              <Label className="text-xs">تاریخ تولد</Label>
-
-              <div className="mt-1">
-                <JalaliDatePicker
-                  value={form.birthday}
-                  onChange={(value) => updateForm("birthday", value)}
-                  placeholder="تاریخ تولد"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary"
-                  disabled={saving}
-                />
+                  <p className="text-xs text-muted-foreground">
+                    مشخصات فردی و اطلاعات شناسنامه‌ای
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <Label className="text-xs">نام ولی / سرپرست</Label>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-xs">نام</Label>
 
-              <Input
-                value={form.guardianName}
-                onChange={(event) =>
-                  updateForm("guardianName", event.target.value)
-                }
-                className="mt-1"
-              />
-            </div>
+                  <Input
+                    value={form.firstName}
+                    onChange={(event) =>
+                      updateForm("firstName", event.target.value)
+                    }
+                    className="mt-1"
+                    placeholder="نام دانش‌آموز"
+                    disabled={saving}
+                  />
+                </div>
 
-            <div>
-              <Label className="text-xs">شماره ولی / سرپرست</Label>
+                <div>
+                  <Label className="text-xs">نام خانوادگی</Label>
 
-              <Input
-                value={form.guardianPhone}
-                onChange={(event) =>
-                  updateForm("guardianPhone", event.target.value)
-                }
-                className="mt-1"
-                inputMode="tel"
-                maxLength={11}
-              />
-            </div>
+                  <Input
+                    value={form.lastName}
+                    onChange={(event) =>
+                      updateForm("lastName", event.target.value)
+                    }
+                    className="mt-1"
+                    placeholder="نام خانوادگی"
+                    disabled={saving}
+                  />
+                </div>
 
-            <div className="col-span-2">
-              <Label className="text-xs">ایمیل</Label>
+                <div>
+                  <Label className="text-xs">کد ملی</Label>
 
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(event) => updateForm("email", event.target.value)}
-                className="mt-1"
-              />
-            </div>
+                  <Input
+                    value={form.nationalId}
+                    onChange={(event) =>
+                      updateForm("nationalId", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="۱۰ رقم"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">سری شناسنامه</Label>
+
+                  <Input
+                    value={form.birthCertificateSerial}
+                    onChange={(event) =>
+                      updateForm("birthCertificateSerial", event.target.value)
+                    }
+                    className="mt-1"
+                    placeholder="سری شناسنامه"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">شماره تلفن همراه</Label>
+
+                  <Input
+                    value={form.mobile}
+                    onChange={(event) =>
+                      updateForm("mobile", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="tel"
+                    maxLength={11}
+                    placeholder="0912..."
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">تاریخ تولد</Label>
+
+                  <div className="mt-1">
+                    <JalaliDatePicker
+                      value={form.birthday}
+                      onChange={(value) => updateForm("birthday", value)}
+                      placeholder="تاریخ تولد"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Father information */}
+            <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="mb-4">
+                <h3 className="font-semibold">اطلاعات پدر</h3>
+
+                <p className="text-xs text-muted-foreground">
+                  مشخصات، شغل، تحصیلات و شماره تماس پدر
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-xs">نام پدر</Label>
+
+                  <Input
+                    value={form.fatherFirstName}
+                    onChange={(event) =>
+                      updateForm("fatherFirstName", event.target.value)
+                    }
+                    className="mt-1"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">نام خانوادگی پدر</Label>
+
+                  <Input
+                    value={form.fatherLastName}
+                    onChange={(event) =>
+                      updateForm("fatherLastName", event.target.value)
+                    }
+                    className="mt-1"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">کد ملی پدر</Label>
+
+                  <Input
+                    value={form.fatherNationalId}
+                    onChange={(event) =>
+                      updateForm("fatherNationalId", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="۱۰ رقم"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">شغل پدر</Label>
+
+                  <Input
+                    value={form.fatherJob}
+                    onChange={(event) =>
+                      updateForm("fatherJob", event.target.value)
+                    }
+                    className="mt-1"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">تحصیلات پدر</Label>
+
+                  <Input
+                    value={form.fatherEducation}
+                    onChange={(event) =>
+                      updateForm("fatherEducation", event.target.value)
+                    }
+                    className="mt-1"
+                    placeholder="مثلاً دیپلم، کارشناسی..."
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">شماره تلفن همراه پدر</Label>
+
+                  <Input
+                    value={form.fatherMobile}
+                    onChange={(event) =>
+                      updateForm("fatherMobile", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="tel"
+                    maxLength={11}
+                    placeholder="0912..."
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Mother information */}
+            <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="mb-4">
+                <h3 className="font-semibold">اطلاعات مادر</h3>
+
+                <p className="text-xs text-muted-foreground">
+                  مشخصات، شغل، تحصیلات و شماره تماس مادر
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-xs">نام مادر</Label>
+
+                  <Input
+                    value={form.motherFirstName}
+                    onChange={(event) =>
+                      updateForm("motherFirstName", event.target.value)
+                    }
+                    className="mt-1"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">نام خانوادگی مادر</Label>
+
+                  <Input
+                    value={form.motherLastName}
+                    onChange={(event) =>
+                      updateForm("motherLastName", event.target.value)
+                    }
+                    className="mt-1"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">کد ملی مادر</Label>
+
+                  <Input
+                    value={form.motherNationalId}
+                    onChange={(event) =>
+                      updateForm("motherNationalId", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="۱۰ رقم"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">شغل مادر</Label>
+
+                  <Input
+                    value={form.motherJob}
+                    onChange={(event) =>
+                      updateForm("motherJob", event.target.value)
+                    }
+                    className="mt-1"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">تحصیلات مادر</Label>
+
+                  <Input
+                    value={form.motherEducation}
+                    onChange={(event) =>
+                      updateForm("motherEducation", event.target.value)
+                    }
+                    className="mt-1"
+                    placeholder="مثلاً دیپلم، کارشناسی..."
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">شماره تلفن همراه مادر</Label>
+
+                  <Input
+                    value={form.motherMobile}
+                    onChange={(event) =>
+                      updateForm("motherMobile", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="tel"
+                    maxLength={11}
+                    placeholder="0912..."
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Contact information */}
+            <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-muted-foreground" />
+
+                <div>
+                  <h3 className="font-semibold">اطلاعات تماس و آدرس</h3>
+
+                  <p className="text-xs text-muted-foreground">
+                    اطلاعات محل سکونت و راه‌های ارتباطی
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs">آدرس</Label>
+
+                  <textarea
+                    value={form.address}
+                    onChange={(event) =>
+                      updateForm("address", event.target.value)
+                    }
+                    rows={3}
+                    className="mt-1 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary"
+                    placeholder="آدرس کامل محل سکونت"
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">تلفن ثابت</Label>
+
+                  <Input
+                    value={form.landline}
+                    onChange={(event) =>
+                      updateForm("landline", event.target.value)
+                    }
+                    className="mt-1"
+                    inputMode="tel"
+                    placeholder="021..."
+                    disabled={saving}
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs">توضیحات</Label>
+
+                  <textarea
+                    value={form.description}
+                    onChange={(event) =>
+                      updateForm("description", event.target.value)
+                    }
+                    rows={4}
+                    className="mt-1 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary"
+                    placeholder="توضیحات تکمیلی..."
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Academic information */}
+            <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="mb-4 flex items-center gap-2">
+                <School className="h-5 w-5 text-muted-foreground" />
+
+                <div>
+                  <h3 className="font-semibold">اطلاعات تحصیلی</h3>
+
+                  <p className="text-xs text-muted-foreground">
+                    سال تحصیلی، پایه و کلاس
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <Label className="text-xs">سال تحصیلی</Label>
+
+                  <select
+                    value={form.academicYearId}
+                    onChange={(event) =>
+                      updateForm("academicYearId", event.target.value)
+                    }
+                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    disabled={saving}
+                  >
+                    <option value="">انتخاب سال تحصیلی</option>
+
+                    {academicYears.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.title}
+                        {year.isCurrent ? " — جاری" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-xs">پایه</Label>
+
+                  <select
+                    value={form.grade}
+                    onChange={(event) =>
+                      updateForm("grade", event.target.value)
+                    }
+                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    disabled={saving}
+                  >
+                    {grades.map((grade) => (
+                      <option key={grade.value} value={grade.value}>
+                        {grade.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label className="text-xs">کلاس</Label>
+
+                  <Input
+                    value={form.className}
+                    onChange={(event) =>
+                      updateForm("className", event.target.value)
+                    }
+                    className="mt-1"
+                    placeholder="مثلاً الف"
+                    disabled={saving}
+                  />
+                </div>
+              </div>
+            </section>
           </div>
 
           <DialogFooter>
@@ -958,13 +1344,7 @@ export default function AdminStudents() {
 
             <Button
               type="button"
-              onClick={() => {
-                console.log("SAVE BUTTON CLICKED");
-                console.log("FORM:", form);
-                console.log("EDIT ID:", editId);
-
-                handleSubmit();
-              }}
+              onClick={handleSubmit}
               disabled={
                 saving || !form.firstName.trim() || !form.lastName.trim()
               }

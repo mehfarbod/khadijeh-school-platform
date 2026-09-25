@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-
 import { requireRole } from "@/lib/auth/authorization";
-
+import { jalaliToGregorian } from "@/lib/date/jalali";
 import {
-  isValidJalaliDate,
-  jalaliToGregorian,
-  normalizeDigits,
-} from "@/lib/date/jalali";
+  studentProfileSchema,
+  studentEnrollmentSchema,
+} from "@/lib/validation/student";
 
 type RouteContext = {
   params: Promise<{
@@ -18,188 +15,19 @@ type RouteContext = {
   }>;
 };
 
-const iranianMobileSchema = z
-  .string()
-  .trim()
-  .regex(/^09\d{9}$/, "شماره تلفن همراه نامعتبر است.");
-const iranianNationalIdSchema = z
-  .string()
-  .trim()
-  .transform(normalizeDigits)
-  .pipe(z.string().regex(/^\d{10}$/, "کد ملی باید ۱۰ رقم باشد."));
-const updateStudentSchema = z.object({
-  // Student information
-  firstName: z
-    .string()
-    .trim()
-    .min(1, "نام نمی‌تواند خالی باشد.")
-    .max(100, "نام بیش از حد طولانی است.")
-    .optional(),
+const updateStudentSchema = studentProfileSchema
+  .partial()
+  .merge(studentEnrollmentSchema.partial())
+  .extend({
+    photo: z
+      .string()
+      .trim()
+      .max(2000, "آدرس تصویر بیش از حد طولانی است.")
+      .nullable()
+      .optional(),
 
-  lastName: z
-    .string()
-    .trim()
-    .min(1, "نام خانوادگی نمی‌تواند خالی باشد.")
-    .max(100, "نام خانوادگی بیش از حد طولانی است.")
-    .optional(),
-
-  nationalId: iranianNationalIdSchema.nullable().optional(),
-
-  birthCertificateSerial: z
-    .string()
-    .trim()
-    .max(100, "شماره سری شناسنامه بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  mobile: iranianMobileSchema.nullable().optional(),
-
-  photo: z
-    .string()
-    .trim()
-    .max(2000, "آدرس تصویر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  birthday: z
-    .string()
-    .trim()
-    .transform(normalizeDigits)
-    .nullable()
-    .optional()
-    .refine(
-      (value) =>
-        !value ||
-        (/^\d{4}\/\d{2}\/\d{2}$/.test(value) && isValidJalaliDate(value)),
-      "تاریخ تولد نامعتبر است.",
-    ),
-
-  // Father information
-  fatherFirstName: z
-    .string()
-    .trim()
-    .max(100, "نام پدر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  fatherLastName: z
-    .string()
-    .trim()
-    .max(100, "نام خانوادگی پدر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  fatherNationalId: iranianNationalIdSchema.nullable().optional(),
-
-  fatherJob: z
-    .string()
-    .trim()
-    .max(150, "شغل پدر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  fatherEducation: z
-    .string()
-    .trim()
-    .max(150, "تحصیلات پدر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  fatherMobile: iranianMobileSchema.nullable().optional(),
-
-  // Mother information
-  motherFirstName: z
-    .string()
-    .trim()
-    .max(100, "نام مادر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  motherLastName: z
-    .string()
-    .trim()
-    .max(100, "نام خانوادگی مادر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  motherNationalId: iranianNationalIdSchema.nullable().optional(),
-
-  motherJob: z
-    .string()
-    .trim()
-    .max(150, "شغل مادر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  motherEducation: z
-    .string()
-    .trim()
-    .max(150, "تحصیلات مادر بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  motherMobile: iranianMobileSchema.nullable().optional(),
-
-  // Contact information
-  address: z
-    .string()
-    .trim()
-    .max(1000, "آدرس بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  landline: z
-    .string()
-    .trim()
-    .max(30, "شماره تلفن ثابت بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  description: z
-    .string()
-    .trim()
-    .max(2000, "توضیحات بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  // Legacy guardian fields
-  guardianName: z
-    .string()
-    .trim()
-    .max(150, "نام ولی بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  guardianPhone: iranianMobileSchema.nullable().optional(),
-
-  // Optional future field
-  email: z
-    .string()
-    .trim()
-    .email("ایمیل نامعتبر است.")
-    .max(255, "ایمیل بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  // Enrollment information
-  academicYearId: z.string().trim().min(1, "سال تحصیلی الزامی است.").optional(),
-
-  grade: z
-    .string()
-    .trim()
-    .min(1, "پایه تحصیلی نمی‌تواند خالی باشد.")
-    .max(50, "پایه تحصیلی نامعتبر است.")
-    .optional(),
-
-  className: z
-    .string()
-    .trim()
-    .max(50, "نام کلاس بیش از حد طولانی است.")
-    .nullable()
-    .optional(),
-
-  isActive: z.boolean().optional(),
-});
+    isActive: z.boolean().optional(),
+  });
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
@@ -252,7 +80,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    if (data.academicYearId) {
+    /*
+     * Validate academic year when it is being changed.
+     */
+    if (data.academicYearId !== undefined) {
       const academicYear = await prisma.academicYear.findUnique({
         where: {
           id: data.academicYearId,
@@ -271,9 +102,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       }
     }
 
-    /**
-     * Convert Jalali birthday to Gregorian
-     * only when birthday is actually supplied.
+    /*
+     * Convert Jalali birthday to Gregorian DateTime.
+     *
+     * undefined = do not change
+     * empty/null = remove birthday
+     * valid value = update birthday
      */
     const birthday =
       data.birthday !== undefined
@@ -283,13 +117,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         : undefined;
 
     const student = await prisma.$transaction(async (tx) => {
-      const updatedStudent = await tx.student.update({
+      /*
+       * Update student profile.
+       */
+      await tx.student.update({
         where: {
           id,
         },
 
         data: {
-          // Student information
+          // Student
           ...(data.firstName !== undefined && {
             firstName: data.firstName,
           }),
@@ -318,7 +155,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             birthday,
           }),
 
-          // Father information
+          // Father
           ...(data.fatherFirstName !== undefined && {
             fatherFirstName: data.fatherFirstName || null,
           }),
@@ -343,7 +180,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             fatherMobile: data.fatherMobile || null,
           }),
 
-          // Mother information
+          // Mother
           ...(data.motherFirstName !== undefined && {
             motherFirstName: data.motherFirstName || null,
           }),
@@ -368,7 +205,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             motherMobile: data.motherMobile || null,
           }),
 
-          // Contact information
+          // Contact
           ...(data.address !== undefined && {
             address: data.address || null,
           }),
@@ -381,86 +218,73 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             description: data.description || null,
           }),
 
-          // Legacy guardian fields
-          ...(data.guardianName !== undefined && {
-            guardianName: data.guardianName || null,
-          }),
-
-          ...(data.guardianPhone !== undefined && {
-            guardianPhone: data.guardianPhone || null,
-          }),
-
-          ...(data.email !== undefined && {
-            email: data.email || null,
-          }),
-
+          // Status
           ...(data.isActive !== undefined && {
             isActive: data.isActive,
           }),
         },
       });
 
+      /*
+       * Enrollment
+       *
+       * If any enrollment field changes:
+       * - use the requested academic year when provided
+       * - otherwise use the student's latest enrollment
+       */
       const enrollmentChanged =
         data.academicYearId !== undefined ||
         data.grade !== undefined ||
         data.className !== undefined;
 
       if (enrollmentChanged) {
-        const enrollment = data.academicYearId
-          ? await tx.studentEnrollment.upsert({
-              where: {
-                studentId_academicYearId: {
-                  studentId: id,
-                  academicYearId: data.academicYearId,
-                },
-              },
+        const academicYearId =
+          data.academicYearId ?? existingStudent.enrollments[0]?.academicYearId;
 
-              update: {
-                ...(data.grade !== undefined && {
-                  grade: data.grade,
-                }),
-
-                ...(data.className !== undefined && {
-                  className: data.className || null,
-                }),
-              },
-
-              create: {
-                studentId: id,
-
-                academicYearId: data.academicYearId,
-
-                grade:
-                  data.grade ??
-                  existingStudent.enrollments[0]?.grade ??
-                  "نامشخص",
-
-                className: data.className || null,
-              },
-            })
-          : existingStudent.enrollments[0]
-            ? await tx.studentEnrollment.update({
-                where: {
-                  id: existingStudent.enrollments[0].id,
-                },
-
-                data: {
-                  ...(data.grade !== undefined && {
-                    grade: data.grade,
-                  }),
-
-                  ...(data.className !== undefined && {
-                    className: data.className || null,
-                  }),
-                },
-              })
-            : null;
-
-        if (!enrollment) {
+        if (!academicYearId) {
           throw new Error("STUDENT_ENROLLMENT_NOT_FOUND");
         }
+
+        const existingEnrollment = existingStudent.enrollments.find(
+          (enrollment) => enrollment.academicYearId === academicYearId,
+        );
+
+        await tx.studentEnrollment.upsert({
+          where: {
+            studentId_academicYearId: {
+              studentId: id,
+              academicYearId,
+            },
+          },
+
+          update: {
+            ...(data.grade !== undefined && {
+              grade: data.grade,
+            }),
+
+            ...(data.className !== undefined && {
+              className: data.className || null,
+            }),
+          },
+
+          create: {
+            studentId: id,
+            academicYearId,
+
+            grade:
+              data.grade ??
+              existingEnrollment?.grade ??
+              existingStudent.enrollments[0]?.grade ??
+              "10",
+
+            className: data.className ?? existingEnrollment?.className ?? null,
+          },
+        });
       }
 
+      /*
+       * Return the complete updated student.
+       */
       return tx.student.findUnique({
         where: {
           id,
@@ -588,6 +412,11 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
       );
     }
 
+    /*
+     * Soft delete:
+     * We keep the student and all historical data,
+     * but remove them from the active student list.
+     */
     await prisma.student.update({
       where: {
         id,

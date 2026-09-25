@@ -1,26 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-
 import { requireRole } from "@/lib/auth/authorization";
-
+import { jalaliToGregorian } from "@/lib/date/jalali";
 import {
-  isValidJalaliDate,
-  jalaliToGregorian,
-  normalizeDigits,
-} from "@/lib/date/jalali";
-
-const iranianMobileSchema = z
-  .string()
-  .trim()
-  .regex(/^09\d{9}$/, "شماره تلفن همراه نامعتبر است.");
-const iranianNationalIdSchema = z
-  .string()
-  .trim()
-  .transform(normalizeDigits)
-  .pipe(z.string().regex(/^\d{10}$/, "کد ملی باید ۱۰ رقم باشد."));
+  gradeSchema,
+  iranianMobileSchema,
+  iranianNationalIdSchema,
+  optionalJalaliBirthdaySchema,
+  optionalMobileSchema,
+  optionalNationalIdSchema,
+} from "@/lib/validation/student";
 
 const studentSchema = z.object({
   // Student information
@@ -36,159 +27,125 @@ const studentSchema = z.object({
     .min(1, "نام خانوادگی الزامی است.")
     .max(100, "نام خانوادگی بیش از حد طولانی است."),
 
-  nationalId: iranianNationalIdSchema.optional().nullable(),
+  nationalId: optionalNationalIdSchema,
 
   birthCertificateSerial: z
     .string()
     .trim()
     .max(100, "شماره سری شناسنامه بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
-  mobile: iranianMobileSchema.optional().nullable(),
+  mobile: optionalMobileSchema,
 
   photo: z
     .string()
     .trim()
     .max(2000, "آدرس تصویر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
-
-  birthday: z
-    .string()
-    .trim()
-    .transform(normalizeDigits)
-    .optional()
     .nullable()
-    .refine(
-      (value) =>
-        !value ||
-        (/^\d{4}\/\d{2}\/\d{2}$/.test(value) && isValidJalaliDate(value)),
-      "تاریخ تولد نامعتبر است.",
-    ),
+    .optional(),
+
+  birthday: optionalJalaliBirthdaySchema,
 
   // Father information
   fatherFirstName: z
     .string()
     .trim()
     .max(100, "نام پدر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   fatherLastName: z
     .string()
     .trim()
     .max(100, "نام خانوادگی پدر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
-  fatherNationalId: iranianNationalIdSchema.optional().nullable(),
+  fatherNationalId: optionalNationalIdSchema,
 
   fatherJob: z
     .string()
     .trim()
     .max(150, "شغل پدر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   fatherEducation: z
     .string()
     .trim()
     .max(150, "تحصیلات پدر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
-  fatherMobile: iranianMobileSchema.optional().nullable(),
+  fatherMobile: optionalMobileSchema,
 
   // Mother information
   motherFirstName: z
     .string()
     .trim()
     .max(100, "نام مادر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   motherLastName: z
     .string()
     .trim()
     .max(100, "نام خانوادگی مادر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
-  motherNationalId: iranianNationalIdSchema.optional().nullable(),
+  motherNationalId: optionalNationalIdSchema,
 
   motherJob: z
     .string()
     .trim()
     .max(150, "شغل مادر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   motherEducation: z
     .string()
     .trim()
     .max(150, "تحصیلات مادر بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
-  motherMobile: iranianMobileSchema.optional().nullable(),
+  motherMobile: optionalMobileSchema,
 
   // Contact information
   address: z
     .string()
     .trim()
     .max(1000, "آدرس بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   landline: z
     .string()
     .trim()
     .max(30, "شماره تلفن ثابت بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   description: z
     .string()
     .trim()
     .max(2000, "توضیحات بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
-
-  // Legacy guardian fields
-  guardianName: z
-    .string()
-    .trim()
-    .max(150, "نام ولی بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
-
-  guardianPhone: iranianMobileSchema.optional().nullable(),
-
-  // Optional future field
-  email: z
-    .string()
-    .trim()
-    .email("ایمیل نامعتبر است.")
-    .max(255, "ایمیل بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   // Enrollment information
   academicYearId: z.string().trim().min(1, "سال تحصیلی الزامی است."),
 
-  grade: z
-    .string()
-    .trim()
-    .min(1, "پایه تحصیلی الزامی است.")
-    .max(50, "پایه تحصیلی نامعتبر است."),
+  grade: gradeSchema,
 
   className: z
     .string()
     .trim()
     .max(50, "نام کلاس بیش از حد طولانی است.")
-    .optional()
-    .nullable(),
+    .nullable()
+    .optional(),
 
   isActive: z.boolean().optional(),
 });
@@ -304,10 +261,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    /**
-     * Convert Jalali birthday to Gregorian
-     * DateTime before sending it to Prisma.
-     */
     const birthday = data.birthday
       ? new Date(jalaliToGregorian(data.birthday))
       : null;
@@ -316,68 +269,42 @@ export async function POST(request: NextRequest) {
       data: {
         // Student information
         firstName: data.firstName,
-
         lastName: data.lastName,
-
         nationalId: data.nationalId || null,
-
         birthCertificateSerial: data.birthCertificateSerial || null,
-
         mobile: data.mobile || null,
-
         photo: data.photo || null,
-
         birthday,
 
         // Father information
         fatherFirstName: data.fatherFirstName || null,
-
         fatherLastName: data.fatherLastName || null,
-
         fatherNationalId: data.fatherNationalId || null,
-
         fatherJob: data.fatherJob || null,
-
         fatherEducation: data.fatherEducation || null,
-
         fatherMobile: data.fatherMobile || null,
 
         // Mother information
         motherFirstName: data.motherFirstName || null,
-
         motherLastName: data.motherLastName || null,
-
         motherNationalId: data.motherNationalId || null,
-
         motherJob: data.motherJob || null,
-
         motherEducation: data.motherEducation || null,
-
         motherMobile: data.motherMobile || null,
 
         // Contact information
         address: data.address || null,
-
         landline: data.landline || null,
-
         description: data.description || null,
 
-        // Legacy guardian fields
-        guardianName: data.guardianName || null,
-
-        guardianPhone: data.guardianPhone || null,
-
-        email: data.email || null,
-
+        // Management
         isActive: data.isActive ?? true,
 
         // Enrollment
         enrollments: {
           create: {
             academicYearId: data.academicYearId,
-
             grade: data.grade,
-
             className: data.className || null,
           },
         },

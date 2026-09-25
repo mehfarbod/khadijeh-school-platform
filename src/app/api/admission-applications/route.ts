@@ -3,98 +3,122 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth/authorization";
+import { jalaliToGregorian } from "@/lib/date/jalali";
 import {
-  isValidJalaliDate,
-  jalaliToGregorian,
-  normalizeDigits,
-} from "@/lib/date/jalali";
-
-const iranianNationalIdSchema = z
-  .string()
-  .trim()
-  .regex(/^\d{10}$/, "کد ملی باید ۱۰ رقم باشد.")
-  .refine((value) => {
-    if (/^(\d)\1{9}$/.test(value)) return false;
-
-    const digits = value.split("").map(Number);
-
-    const sum = digits
-      .slice(0, 9)
-      .reduce((total, digit, index) => total + digit * (10 - index), 0);
-
-    const remainder = sum % 11;
-    const checkDigit = digits[9];
-
-    return checkDigit === (remainder < 2 ? remainder : 11 - remainder);
-  }, "کد ملی معتبر نیست.");
-
-const optionalNationalIdSchema = z
-  .string()
-  .trim()
-  .refine(
-    (value) => value === "" || iranianNationalIdSchema.safeParse(value).success,
-    "کد ملی معتبر نیست.",
-  )
-  .optional()
-  .nullable();
-
-const mobileSchema = z
-  .string()
-  .trim()
-  .regex(/^09\d{9}$/, "شماره تلفن همراه معتبر نیست.");
+  iranianNationalIdSchema,
+  iranianMobileSchema,
+  optionalNationalIdSchema,
+  gradeSchema,
+  jalaliBirthdaySchema,
+} from "@/lib/validation/student";
 
 const admissionApplicationSchema = z.object({
-  studentFirstName: z.string().trim().min(1).max(100),
-
-  studentLastName: z.string().trim().min(1).max(100),
-
-  birthDate: z
+  studentFirstName: z
     .string()
     .trim()
-    .transform(normalizeDigits)
-    .refine(
-      (value) => /^\d{4}\/\d{2}\/\d{2}$/.test(value),
-      "تاریخ تولد باید به صورت ۱۴۰۰/۰۱/۰۱ باشد.",
-    )
-    .refine(isValidJalaliDate, "تاریخ تولد معتبر نیست."),
+    .min(1, "نام دانش‌آموز الزامی است.")
+    .max(100, "نام دانش‌آموز بیش از حد طولانی است."),
+
+  studentLastName: z
+    .string()
+    .trim()
+    .min(1, "نام خانوادگی دانش‌آموز الزامی است.")
+    .max(100, "نام خانوادگی دانش‌آموز بیش از حد طولانی است."),
+
+  birthDate: jalaliBirthdaySchema,
 
   nationalId: iranianNationalIdSchema,
 
-  birthCertificateSerial: z.string().trim().max(50).optional().nullable(),
+  birthCertificateSerial: z
+    .string()
+    .trim()
+    .max(100, "شماره سری شناسنامه بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
-  requestedGrade: z.string().trim().min(1).max(50),
+  requestedGrade: gradeSchema,
 
-  studentMobile: mobileSchema,
+  studentMobile: iranianMobileSchema,
 
-  fatherFirstName: z.string().trim().min(1).max(100),
+  fatherFirstName: z
+    .string()
+    .trim()
+    .min(1, "نام پدر الزامی است.")
+    .max(100, "نام پدر بیش از حد طولانی است."),
 
-  fatherLastName: z.string().trim().min(1).max(100),
+  fatherLastName: z
+    .string()
+    .trim()
+    .min(1, "نام خانوادگی پدر الزامی است.")
+    .max(100, "نام خانوادگی پدر بیش از حد طولانی است."),
 
   fatherNationalId: optionalNationalIdSchema,
 
-  fatherJob: z.string().trim().max(150).optional().nullable(),
+  fatherJob: z
+    .string()
+    .trim()
+    .max(150, "شغل پدر بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
-  fatherEducation: z.string().trim().max(100).optional().nullable(),
+  fatherEducation: z
+    .string()
+    .trim()
+    .max(150, "تحصیلات پدر بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
-  fatherMobile: mobileSchema,
+  fatherMobile: iranianMobileSchema,
 
-  motherFirstName: z.string().trim().min(1).max(100),
+  motherFirstName: z
+    .string()
+    .trim()
+    .min(1, "نام مادر الزامی است.")
+    .max(100, "نام مادر بیش از حد طولانی است."),
 
-  motherLastName: z.string().trim().min(1).max(100),
+  motherLastName: z
+    .string()
+    .trim()
+    .min(1, "نام خانوادگی مادر بیش از حد طولانی است.")
+    .max(100, "نام خانوادگی مادر بیش از حد طولانی است."),
 
   motherNationalId: optionalNationalIdSchema,
 
-  motherJob: z.string().trim().max(150).optional().nullable(),
+  motherJob: z
+    .string()
+    .trim()
+    .max(150, "شغل مادر بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
-  motherEducation: z.string().trim().max(100).optional().nullable(),
+  motherEducation: z
+    .string()
+    .trim()
+    .max(150, "تحصیلات مادر بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
-  motherMobile: mobileSchema,
+  motherMobile: iranianMobileSchema,
 
-  address: z.string().trim().min(1).max(1000),
+  address: z
+    .string()
+    .trim()
+    .min(1, "آدرس الزامی است.")
+    .max(1000, "آدرس بیش از حد طولانی است."),
 
-  landline: z.string().trim().max(30).optional().nullable(),
+  landline: z
+    .string()
+    .trim()
+    .max(30, "شماره تلفن ثابت بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 
-  description: z.string().trim().max(2000).optional().nullable(),
+  description: z
+    .string()
+    .trim()
+    .max(2000, "توضیحات بیش از حد طولانی است.")
+    .optional()
+    .nullable(),
 });
 
 export async function POST(request: NextRequest) {
@@ -116,8 +140,8 @@ export async function POST(request: NextRequest) {
     const data = result.data;
 
     /*
-     * birthDate is Jalali at the API boundary.
-     * Convert it to Gregorian DateTime before Prisma.
+     * Registration API receives Jalali date.
+     * Convert it to Gregorian DateTime before storing in PostgreSQL.
      */
     const birthDate = new Date(jalaliToGregorian(data.birthDate));
 
