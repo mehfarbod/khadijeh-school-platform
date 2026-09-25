@@ -5,11 +5,15 @@ import { hasPermission, requirePermission } from "@/lib/auth/authorization";
 const normalizeDigits = (value: string) =>
   value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await requirePermission("registrations.view");
 
+    const { searchParams } = new URL(request.url);
+    const courseId = searchParams.get("courseId");
+
     const registrations = await prisma.courseRegistration.findMany({
+      where: courseId ? { courseId } : undefined,
       include: {
         course: {
           select: {
