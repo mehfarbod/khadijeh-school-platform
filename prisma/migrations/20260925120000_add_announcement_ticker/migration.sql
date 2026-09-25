@@ -1,0 +1,1 @@
+ALTER TABLE "Announcement" ADD COLUMN "isTicker" BOOLEAN NOT NULL DEFAULT false;
