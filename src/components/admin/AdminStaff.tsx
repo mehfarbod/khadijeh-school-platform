@@ -76,7 +76,7 @@ const emptyForm: StaffForm = {
   firstName: "",
   lastName: "",
   position: "",
-  category: "کادر آموزشی",
+  category: "",
   subject: "",
   phone: "",
   email: "",
@@ -84,6 +84,20 @@ const emptyForm: StaffForm = {
   userId: "",
   isActive: true,
 };
+
+const POSITIONS = [
+  "مدیر",
+  "معاون",
+  "دبیر",
+  "معلم",
+  "آموزگار",
+  "مدرس",
+  "مشاور",
+  "مسئول آموزش",
+  "مسئول اجرایی",
+  "خدمتگزار",
+  "سایر",
+];
 
 const CATEGORIES = [
   "مدیریت",
@@ -233,8 +247,13 @@ export default function AdminStaff() {
   };
 
   const handleSubmit = async () => {
-    if (!form.firstName.trim() || !form.lastName.trim() || !form.position.trim()) {
-      toast.error("نام، نام خانوادگی و سمت الزامی است.");
+    if (
+      !form.firstName.trim() ||
+      !form.lastName.trim() ||
+      !form.position.trim() ||
+      !form.category.trim()
+    ) {
+      toast.error("نام، نام خانوادگی، سمت و دسته‌بندی الزامی است.");
       return;
     }
 
@@ -589,12 +608,24 @@ export default function AdminStaff() {
 
                 <div>
                   <Label>سمت</Label>
-                  <Input
+                  <select
                     value={form.position}
-                    onChange={(event) => updateForm("position", event.target.value)}
-                    className="mt-1.5"
-                    placeholder="مثلاً دبیر ریاضی"
-                  />
+                    onChange={(event) => {
+                      const position = event.target.value;
+                      updateForm("position", position);
+                      if (!isTeacherPosition(position)) {
+                        updateForm("subject", "");
+                      }
+                    }}
+                    className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">انتخاب سمت</option>
+                    {POSITIONS.map((position) => (
+                      <option key={position} value={position}>
+                        {position}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -604,6 +635,7 @@ export default function AdminStaff() {
                     onChange={(event) => updateForm("category", event.target.value)}
                     className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                   >
+                    <option value="">انتخاب دسته‌بندی</option>
                     {CATEGORIES.map((category) => (
                       <option key={category} value={category}>
                         {category}
