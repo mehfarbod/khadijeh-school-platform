@@ -116,7 +116,9 @@ export default function AdminNews() {
       setSaving(true);
       const payload = {
         ...form,
-        slug: makeSlug(form.title) || `news-${Date.now()}`,
+        ...(editId
+          ? {}
+          : { slug: makeSlug(form.title) || `news-${Date.now()}` }),
         coverImage: form.coverImage?.trim() || null,
         author: form.author?.trim() || null,
         tags: form.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
