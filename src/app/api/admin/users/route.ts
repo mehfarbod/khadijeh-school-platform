@@ -145,6 +145,7 @@ export async function POST(request: Request) {
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const role = typeof body.role === "string" ? body.role : "STAFF";
+    const staffId = body.staffId === undefined || body.staffId === null || body.staffId === "" ? null : String(body.staffId);
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "ایمیل معتبر وارد کنید." }, { status: 400 });
@@ -163,8 +164,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "کاربری با این ایمیل از قبل وجود دارد." }, { status: 409 });
     }
 
+    if (staffId) {
+      const staff = await prisma.staff.findUnique({
+        where: { id: staffId },
+        select: { id: true, userId: true },
+      });
+      if (!staff) {
+        return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
+      }
+      if (staff.userId) {
+        return NextResponse.json({ error: "این عضو کادر به کاربر دیگری متصل است." }, { status: 409 });
+      }
+    }
+
     const user = await prisma.user.create({
-      data: { name: name || null, email, role },
+      data: {
+        name: name || null,
+        email,
+        role: role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF",
+        staff: staffId ? { connect: { id: staffId } } : undefined,
+      },
       select: { id: true, name: true, email: true, role: true, isActive: true },
     });
 
