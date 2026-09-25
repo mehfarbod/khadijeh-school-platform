@@ -288,7 +288,7 @@ export default function AdminAnnouncements() {
                     key={i}
                     className="border-b border-border/30"
                   >
-                    {Array.from({ length: 5 }).map(
+                    {Array.from({ length: 6 }).map(
                       (_, j) => (
                         <td
                           key={j}
@@ -303,7 +303,7 @@ export default function AdminAnnouncements() {
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-4 py-12 text-center text-sm text-muted-foreground"
                   >
                     موردی یافت نشد.
