@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -109,7 +109,7 @@ export async function PATCH(
   context: RouteContext
 ) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("events.manage");
 
     const { id } = await context.params;
     const body = await request.json();
