@@ -262,7 +262,7 @@ export default function AdminNews() {
                 <textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={9} className={inputClass} />
               </Field>
               <Field label="تصویر (URL)">
-                <input value={form.coverImage} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} dir="ltr" className={inputClass} />
+                <input value={form.coverImage ?? ""} onChange={(e) => setForm({ ...form, coverImage: e.target.value })} dir="ltr" className={inputClass} />
               </Field>
               <Field label="نویسنده">
                 <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className={inputClass} />
