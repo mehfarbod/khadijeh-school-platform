@@ -123,7 +123,7 @@ export async function PATCH(
         });
 
         await Promise.all(
-          permissionItems.map(async (item) => {
+          permissionItems.map(async (item: { key: string; allowed: boolean | null }) => {
             const permission = permissions.find((candidate) => candidate.key === item.key);
             if (!permission) return;
 
