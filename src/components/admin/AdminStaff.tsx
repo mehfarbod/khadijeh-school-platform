@@ -85,24 +85,15 @@ const emptyForm: StaffForm = {
   isActive: true,
 };
 
-const POSITIONS = [
-  "مدیر",
-  "معاون",
-  "معلم",
-  "مشاور",
-  "مسئول آموزش",
-  "مسئول اجرایی",
-  "خدمتگزار",
-  "سایر",
-];
+const POSITIONS_BY_CATEGORY: Record<string, string[]> = {
+  "مدیریت": ["مدیر", "معاون"],
+  "کادر آموزشی": ["معلم"],
+  "مشاوره": ["مشاور"],
+  "کادر اجرایی": ["مسئول آموزش", "مسئول اجرایی"],
+  "خدمات": ["خدمتگزار"],
+};
 
-const CATEGORIES = [
-  "مدیریت",
-  "کادر آموزشی",
-  "مشاوره",
-  "کادر اجرایی",
-  "خدمات",
-];
+const CATEGORIES = Object.keys(POSITIONS_BY_CATEGORY);
 
 const isTeacherPosition = (position: string) => position.trim() === "معلم";
 
@@ -169,8 +160,26 @@ export default function AdminStaff() {
 
   const teacher = isTeacherPosition(form.position);
 
+  const positionOptions = useMemo(() => {
+    const options = form.category ? [...(POSITIONS_BY_CATEGORY[form.category] ?? [])] : [];
+    if (form.position && !options.includes(form.position)) {
+      options.push(form.position);
+    }
+    return options;
+  }, [form.category, form.position]);
+
   const updateForm = <K extends keyof StaffForm>(key: K, value: StaffForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleCategoryChange = (category: string) => {
+    const allowedPositions = POSITIONS_BY_CATEGORY[category] ?? [];
+    setForm((current) => ({
+      ...current,
+      category,
+      position: allowedPositions.includes(current.position) ? current.position : "",
+      subject: allowedPositions.includes(current.position) && isTeacherPosition(current.position) ? current.subject : "",
+    }));
   };
 
   const openCreate = () => {
@@ -321,8 +330,20 @@ export default function AdminStaff() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div><Label>نام</Label><Input value={form.firstName} onChange={(event) => updateForm("firstName", event.target.value)} className="mt-1.5" placeholder="مثلاً مریم" /></div>
                 <div><Label>نام خانوادگی</Label><Input value={form.lastName} onChange={(event) => updateForm("lastName", event.target.value)} className="mt-1.5" placeholder="مثلاً احمدی" /></div>
-                <div><Label>سمت</Label><select value={form.position} onChange={(event) => { const position = event.target.value; updateForm("position", position); if (!isTeacherPosition(position)) updateForm("subject", ""); }} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"><option value="">انتخاب سمت</option>{POSITIONS.map((position) => <option key={position} value={position}>{position}</option>)}</select></div>
-                <div><Label>دسته‌بندی</Label><select value={form.category} onChange={(event) => updateForm("category", event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"><option value="">انتخاب دسته‌بندی</option>{CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}</select></div>
+                <div>
+                  <Label>دسته‌بندی</Label>
+                  <select value={form.category} onChange={(event) => handleCategoryChange(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
+                    <option value="">انتخاب دسته‌بندی</option>
+                    {CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label>سمت</Label>
+                  <select value={form.position} onChange={(event) => { const position = event.target.value; updateForm("position", position); if (!isTeacherPosition(position)) updateForm("subject", ""); }} disabled={!form.category} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60">
+                    <option value="">{form.category ? "انتخاب سمت" : "ابتدا دسته‌بندی را انتخاب کنید"}</option>
+                    {positionOptions.map((position) => <option key={position} value={position}>{position}</option>)}
+                  </select>
+                </div>
                 {teacher && <div className="sm:col-span-2"><Label>درس</Label><Input value={form.subject} onChange={(event) => updateForm("subject", event.target.value)} className="mt-1.5" placeholder="مثلاً ریاضی" /><p className="mt-1 text-xs text-muted-foreground">این فیلد فقط برای سمت «معلم» نمایش داده می‌شود.</p></div>}
               </div>
             </section>
