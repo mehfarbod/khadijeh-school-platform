@@ -1,7 +1,7 @@
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
-import { DragEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,10 +115,6 @@ export default function AdminStaff() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
-  const [draggingPhoto, setDraggingPhoto] = useState(false);
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const loadStaff = async () => {
     try {
@@ -209,34 +205,6 @@ export default function AdminStaff() {
     setDialogOpen(true);
   };
 
-  const handlePhotoChange = (file: File | null) => {
-    if (!file) return;
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("فرمت تصویر باید JPG، PNG یا WebP باشد.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("حجم تصویر نباید بیشتر از ۵ مگابایت باشد.");
-      return;
-    }
-    setSelectedPhoto(file);
-    setPhotoPreview(URL.createObjectURL(file));
-  };
-
-  const handlePhotoDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDraggingPhoto(false);
-    handlePhotoChange(event.dataTransfer.files?.[0] ?? null);
-  };
-
-  const removePhoto = () => {
-    setSelectedPhoto(null);
-    setPhotoPreview("");
-    updateForm("photo", "");
-    if (photoInputRef.current) photoInputRef.current.value = "";
-  };
-
   const handleSubmit = async () => {
     if (!form.firstName.trim() || !form.lastName.trim() || !form.position.trim() || !form.category.trim()) {
       toast.error("نام، نام خانوادگی، سمت و دسته‌بندی الزامی است.");
@@ -245,22 +213,6 @@ export default function AdminStaff() {
 
     setSaving(true);
     try {
-      let photoUrl = form.photo.trim() || null;
-
-      if (selectedPhoto) {
-        const uploadData = new FormData();
-        uploadData.append("file", selectedPhoto);
-        const uploadResponse = await fetch("/api/admin/uploads/staff-photo", {
-          method: "POST",
-          body: uploadData,
-        });
-        const uploadResult = await uploadResponse.json();
-        if (!uploadResponse.ok) {
-          throw new Error(uploadResult.error || "خطا در آپلود تصویر");
-        }
-        photoUrl = uploadResult.url;
-      }
-
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -269,7 +221,7 @@ export default function AdminStaff() {
         subject: teacher && form.subject.trim() ? form.subject.trim() : null,
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
-        photo: photoUrl,
+        photo: form.photo.trim() || null,
         userId: form.userId || null,
         isActive: form.isActive,
       };
@@ -401,26 +353,7 @@ export default function AdminStaff() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div><Label>شماره تلفن</Label><Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} className="mt-1.5" placeholder="09xxxxxxxxx" dir="ltr" /></div>
                 <div><Label>ایمیل</Label><Input value={form.email} onChange={(event) => updateForm("email", event.target.value)} className="mt-1.5" placeholder="example@school.ir" dir="ltr" type="email" /></div>
-                <div className="sm:col-span-2">
-                  <Label>عکس پرسنلی</Label>
-                  <div
-                    onDragOver={(event) => { event.preventDefault(); setDraggingPhoto(true); }}
-                    onDragLeave={() => setDraggingPhoto(false)}
-                    onDrop={handlePhotoDrop}
-                    onClick={() => photoInputRef.current?.click()}
-                    className={`mt-1.5 cursor-pointer rounded-xl border-2 border-dashed p-4 transition ${draggingPhoto ? "border-[#194342] bg-[#F1F5E8]" : "border-border hover:border-[#194342]/40 hover:bg-muted/20"}`}
-                  >
-                    <input
-                      ref={photoInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                      onChange={(event) => handlePhotoChange(event.target.files?.[0] ?? null)}
-                    />
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#F1F5E8] text-[#194342]">
-                        {photoPreview ? <img src={photoPreview} alt="پیش‌نمایش عکس" className="h-full w-full object-cover" /> : <Upload className="h-6 w-6" />}
-                      </div>
+                <div className="sm:col-span-2"><Label>آدرس عکس</Label><Input value={form.photo} onChange={(event) => updateForm("photo", event.target.value)} className="mt-1.5" placeholder="https://..." dir="ltr" /><p className="mt-1 text-xs text-muted-foreground">آدرس تصویر را وارد کنید.</p></div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium">عکس را اینجا بکشید یا برای انتخاب کلیک کنید</p>
                         <p className="mt-1 text-xs text-muted-foreground">JPG، PNG یا WebP — حداکثر ۵ مگابایت</p>
