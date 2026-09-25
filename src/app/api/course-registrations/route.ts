@@ -191,3 +191,42 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "عملیات ثبت‌نام انجام نشد." }, { status: 500 });
   }
 }
+
+
+export async function DELETE(request: Request) {
+  try {
+    await requirePermission("registrations.manage");
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "شناسه ثبت‌نام الزامی است." }, { status: 400 });
+    }
+
+    const registration = await prisma.courseRegistration.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!registration) {
+      return NextResponse.json({ error: "ثبت‌نام پیدا نشد." }, { status: 404 });
+    }
+
+    await prisma.courseRegistration.delete({ where: { id } });
+
+    return NextResponse.json({ message: "ثبت‌نام با موفقیت حذف شد." });
+  } catch (error) {
+    console.error("DELETE /api/course-registrations error:", error);
+
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    }
+
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return NextResponse.json({ error: "شما مجوز حذف ثبت‌نام‌ها را ندارید." }, { status: 403 });
+    }
+
+    return NextResponse.json({ error: "حذف ثبت‌نام انجام نشد." }, { status: 500 });
+  }
+}
