@@ -11,6 +11,8 @@ enum UserRole {
   SUPER_ADMIN
   SCHOOL_ADMIN
   CONTENT_MANAGER
+  TEACHER
+  STAFF
 }
 
 enum CourseRegistrationStatus {
@@ -32,6 +34,8 @@ model User {
   updatedAt    DateTime @updatedAt
 
   createdCourses Course[] @relation("CourseCreatedBy")
+  staff          Staff?
+  permissions    UserPermission[]
 }
 
 model Student {
@@ -94,12 +98,51 @@ model Staff {
   photo     String?
   phone     String?
   email     String?
+  userId    String?  @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   @@index([category])
   @@index([isActive])
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  name        String
+  group       String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  roles       RolePermission[]
+  users       UserPermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  role         UserRole
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([role, permissionId])
+  @@index([role])
+  @@index([permissionId])
+}
+
+model UserPermission {
+  id           String     @id @default(cuid())
+  userId       String
+  permissionId String
+  allowed      Boolean    @default(true)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@index([permissionId])
 }
 
 model Course {
