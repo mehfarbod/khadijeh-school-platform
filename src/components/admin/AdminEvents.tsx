@@ -52,6 +52,16 @@ interface EventForm {
   isActive: boolean;
 }
 
+function makeSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\\s\u200c]+/g, "-")
+    .replace(/[^\u0600-\u06ff\u0750-\u077f\w-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 const emptyForm: EventForm = {
   title: "",
   slug: "",
@@ -126,7 +136,7 @@ export default function AdminEvents() {
     try {
       const data = {
         title: form.title,
-        slug: form.slug,
+        slug: form.slug.trim() || makeSlug(form.title) || `event-${Date.now()}`,
         description: form.description,
         date: form.date,
         time: form.time || null,
