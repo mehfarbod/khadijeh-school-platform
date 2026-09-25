@@ -80,8 +80,11 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    const news = await prisma.news.findUnique({
-      where: { id },
+    const news = await prisma.news.findFirst({
+      where: {
+        OR: [{ id }, { slug: id }],
+        isActive: true,
+      },
     });
 
     if (!news) {
@@ -125,6 +128,11 @@ export async function PATCH(
     }
 
     const data = result.data;
+
+    const existing = await prisma.news.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "خبر پیدا نشد" }, { status: 404 });
+    }
 
     const news = await prisma.news.update({
       where: { id },
