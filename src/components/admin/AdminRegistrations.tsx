@@ -2,7 +2,7 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
 
 type Registration = {
   id: string;
@@ -90,6 +90,35 @@ export default function AdminRegistrations() {
       await load();
     } catch (error) {
       setError(error instanceof Error ? error.message : "عملیات انجام نشد.");
+    }
+  };
+
+  const removeRegistration = async (item: Registration) => {
+    const confirmed = window.confirm(
+      `ثبت‌نام «${item.studentFirstName} ${item.studentLastName}» در دوره «${item.course.title}» حذف شود؟`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setError("");
+
+      const response = await fetch(
+        `/api/course-registrations?id=${encodeURIComponent(item.id)}`,
+        { method: "DELETE" },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "حذف ثبت‌نام انجام نشد.");
+      }
+
+      await load();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "حذف ثبت‌نام انجام نشد.",
+      );
     }
   };
 
@@ -183,8 +212,8 @@ export default function AdminRegistrations() {
                     </td>
 
                     <td className="px-4 py-3">
-                      {item.status === "PENDING" && (
-                        <div className="flex gap-1">
+                      <div className="flex gap-1">
+                        {item.status === "PENDING" && (
                           <button
                             type="button"
                             title="تأیید"
@@ -202,8 +231,16 @@ export default function AdminRegistrations() {
                           >
                             <X className="h-4 w-4" />
                           </button>
-                        </div>
-                      )}
+                        )}
+                        <button
+                          type="button"
+                          title="حذف ثبت‌نام"
+                          onClick={() => removeRegistration(item)}
+                          className="rounded-md p-2 text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
