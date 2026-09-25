@@ -48,6 +48,8 @@ interface EventForm {
   time: string;
   location: string;
   eventType: string;
+  coverImage: string | null;
+  isActive: boolean;
 }
 
 const emptyForm: EventForm = {
@@ -58,6 +60,8 @@ const emptyForm: EventForm = {
   time: "",
   location: "",
   eventType: "رویداد",
+  coverImage: "",
+  isActive: true,
 };
 
 export default function AdminEvents() {
@@ -111,6 +115,8 @@ export default function AdminEvents() {
       time: event.time ?? "",
       location: event.location ?? "",
       eventType: event.eventType,
+      coverImage: event.coverImage ?? "",
+      isActive: event.isActive,
     });
 
     setDialogOpen(true);
@@ -126,7 +132,8 @@ export default function AdminEvents() {
         time: form.time || null,
         location: form.location || null,
         eventType: form.eventType,
-        isActive: true,
+        coverImage: form.coverImage || null,
+        isActive: form.isActive,
       };
 
       const response = await fetch(
@@ -229,6 +236,9 @@ export default function AdminEvents() {
                   مکان
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                  وضعیت
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
                   عملیات
                 </th>
               </tr>
@@ -277,6 +287,8 @@ export default function AdminEvents() {
                     <td className="px-4 py-3 text-muted-foreground">
                       {event.location || "—"}
                     </td>
+
+                    <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-xs ${event.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"}`}>{event.isActive ? "نمایش" : "مخفی"}</span></td>
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
@@ -376,6 +388,31 @@ export default function AdminEvents() {
                 }
                 className="mt-1"
               />
+            </div>
+
+            <div className="col-span-2">
+              <Label className="text-xs">تصویر رویداد (URL)</Label>
+              <Input
+                value={form.coverImage}
+                onChange={(e) =>
+                  setForm({ ...form, coverImage: e.target.value })
+                }
+                className="mt-1"
+                dir="ltr"
+                placeholder="https://..."
+              />
+            </div>
+
+            <div className="col-span-2 flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) =>
+                  setForm({ ...form, isActive: e.target.checked })
+                }
+                className="h-4 w-4"
+              />
+              <Label className="text-xs">نمایش رویداد در سایت</Label>
             </div>
 
             <div className="col-span-2">
