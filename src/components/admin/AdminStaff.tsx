@@ -354,15 +354,6 @@ export default function AdminStaff() {
                 <div><Label>شماره تلفن</Label><Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} className="mt-1.5" placeholder="09xxxxxxxxx" dir="ltr" /></div>
                 <div><Label>ایمیل</Label><Input value={form.email} onChange={(event) => updateForm("email", event.target.value)} className="mt-1.5" placeholder="example@school.ir" dir="ltr" type="email" /></div>
                 <div className="sm:col-span-2"><Label>آدرس عکس</Label><Input value={form.photo} onChange={(event) => updateForm("photo", event.target.value)} className="mt-1.5" placeholder="https://..." dir="ltr" /><p className="mt-1 text-xs text-muted-foreground">آدرس تصویر را وارد کنید.</p></div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">عکس را اینجا بکشید یا برای انتخاب کلیک کنید</p>
-                        <p className="mt-1 text-xs text-muted-foreground">JPG، PNG یا WebP — حداکثر ۵ مگابایت</p>
-                        {selectedPhoto && <p className="mt-1 truncate text-xs text-[#194342]">{selectedPhoto.name}</p>}
-                      </div>
-                    </div>
-                  </div>
-                  {photoPreview && <Button type="button" variant="ghost" size="sm" className="mt-1 text-destructive" onClick={(event) => { event.stopPropagation(); removePhoto(); }}>حذف عکس</Button>}
-                </div>
               </div>
             </section>
 
