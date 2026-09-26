@@ -1,6 +1,5 @@
 "use client";
 
-import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -268,7 +267,7 @@ export default function AdminUsers() {
   );
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -583,6 +582,6 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </>
   );
 }
