@@ -24,6 +24,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 import { formatGregorianDateAsJalali, gregorianToJalaliDate, jalaliToGregorianDate } from "@/lib/jalali";
 
 interface EventItem {
@@ -361,13 +364,20 @@ export default function AdminEvents() {
             <div>
               <Label className="text-xs">تاریخ</Label>
 
-              <Input
-                value={form.date}
-                placeholder="۱۴۰۵/۰۷/۲۰"
-                onChange={(e) =>
-                  setForm({ ...form, date: e.target.value })
+              <DatePicker
+                value={form.date || undefined}
+                calendar={persian}
+                locale={persian_fa}
+                format="YYYY/MM/DD"
+                calendarPosition="bottom-right"
+                onChange={(value) =>
+                  setForm({
+                    ...form,
+                    date: value ? value.format("YYYY/MM/DD") : "",
+                  })
                 }
-                className="mt-1"
+                inputClass="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="تاریخ را انتخاب کنید"
               />
             </div>
 
