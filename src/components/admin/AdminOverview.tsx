@@ -1,6 +1,5 @@
 "use client";
 
-import AdminLayout from "@/components/admin/AdminLayout";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -139,7 +138,6 @@ export default function AdminOverview() {
   ];
 
   return (
-    <AdminLayout>
       <div className="mx-auto max-w-[1500px]">
         <section className="mb-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -306,7 +304,6 @@ export default function AdminOverview() {
           />
         </section>
       </div>
-    </AdminLayout>
   );
 }
 
