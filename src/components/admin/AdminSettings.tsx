@@ -62,9 +62,6 @@ const initial: Settings = {
   siteTitle: null,
   siteDescription: null,
   footerText: null,
-  instagramUrl: null,
-  telegramUrl: null,
-  whatsappUrl: null,
   mapUrl: null,
   namAddressUrl: null,
   eitaaUrl: null,
@@ -179,9 +176,6 @@ export default function AdminSettings() {
         <section className="rounded-xl border bg-card p-5">
           <h2 className="font-semibold">شبکه‌های اجتماعی</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            <Field label="Instagram" value={form.instagramUrl ?? ""} onChange={(v) => update("instagramUrl", v)} />
-            <Field label="Telegram" value={form.telegramUrl ?? ""} onChange={(v) => update("telegramUrl", v)} />
-            <Field label="WhatsApp" value={form.whatsappUrl ?? ""} onChange={(v) => update("whatsappUrl", v)} />
             <Field label="ایتا" value={form.eitaaUrl ?? ""} onChange={(v) => update("eitaaUrl", v)} />
             <Field label="بله" value={form.baleUrl ?? ""} onChange={(v) => update("baleUrl", v)} />
             <Field label="اسکای‌روم" value={form.skyroomUrl ?? ""} onChange={(v) => update("skyroomUrl", v)} />
