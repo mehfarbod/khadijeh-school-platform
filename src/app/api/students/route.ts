@@ -159,6 +159,7 @@ export async function GET(request: NextRequest) {
     const className = searchParams.get("className");
 
     const activeOnly = searchParams.get("activeOnly") !== "false";
+    const inactiveOnly = searchParams.get("inactiveOnly") === "true";
 
     const hasEnrollmentFilter = !!academicYearId || !!grade || !!className;
 
@@ -170,7 +171,7 @@ export async function GET(request: NextRequest) {
 
     const students = await prisma.student.findMany({
       where: {
-        ...(activeOnly ? { isActive: true } : {}),
+        ...(inactiveOnly ? { isActive: false } : activeOnly ? { isActive: true } : {}),
 
         ...(hasEnrollmentFilter
           ? {
