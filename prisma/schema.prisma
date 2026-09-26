@@ -276,17 +276,20 @@ model Event {
 }
 
 model ContactMessage {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  subject   String?
-  message   String
-  isRead    Boolean  @default(false)
+  id         String   @id @default(cuid())
+  name       String
+  phone      String
+  email      String?
+  department String?
+  subject    String?
+  message    String
+  isRead     Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([isRead])
   @@index([createdAt])
+  @@index([department])
 }
 
 model News {
