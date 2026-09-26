@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Clock3, Mail, MapPin, Phone, Send } from "lucide-react";
 
@@ -60,15 +60,45 @@ function ContactMainContent() {
   );
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError("");
 
-    setIsSubmitted(true);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
 
-    setTimeout(() => {
-      setIsSubmitted(false);
-    }, 3000);
+    try {
+      const response = await fetch("/api/contact-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("fullName"),
+          phone: formData.get("phone"),
+          department: formData.get("department"),
+          subject: formData.get("subject"),
+          message: formData.get("message"),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || "ثبت پیام انجام نشد.");
+      }
+
+      setIsSubmitted(true);
+      form.reset();
+      setSelectedDepartment("");
+      setTimeout(() => setIsSubmitted(false), 3000);
+    } catch (error) {
+      console.error(error);
+      setSubmitError(error instanceof Error ? error.message : "ثبت پیام انجام نشد.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -149,7 +179,7 @@ function ContactMainContent() {
                 </h3>
 
                 <p className="mt-2 text-[12px] leading-6 text-[#667085]">
-                  در حال حاضر این فرم به‌صورت آزمایشی عمل می‌کند.
+                  پیام شما برای بررسی در پنل مدیریت ثبت شد.
                 </p>
               </div>
             ) : (
@@ -271,13 +301,18 @@ function ContactMainContent() {
                   />
                 </div>
 
+                {submitError && (
+                  <p className="text-center text-xs text-red-600">{submitError}</p>
+                )}
+
                 {/* Submit */}
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[11px] bg-[#194342] px-5 text-[12.5px] font-medium text-white transition-colors hover:bg-[#153938]"
                 >
                   <Send className="h-4 w-4" />
-                  ارسال پیام
+                  {isSubmitting ? "در حال ارسال..." : "ارسال پیام"}
                 </button>
               </form>
             )}
