@@ -312,7 +312,7 @@ model News {
 
 model EducationalProgram {
   id          String   @id @default(cuid())
-  type        String
+  type        String   @unique
   title       String
   description String
   content     String?
@@ -322,7 +322,6 @@ model EducationalProgram {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([type])
   @@index([isActive])
   @@index([createdAt])
 }
