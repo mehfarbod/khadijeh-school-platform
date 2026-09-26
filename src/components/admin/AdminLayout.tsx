@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import {
   LayoutDashboard,
@@ -189,6 +189,8 @@ export default function AdminLayout({
   const [unreadMessages, setUnreadMessages] = useState(0);
 
   const pathname = usePathname() ?? "/admin";
+  const searchParams = useSearchParams();
+  const showInactiveStudents = searchParams.get("status") === "inactive";
   const { user, signOut } = useAuth();
 
   useEffect(() => {
@@ -221,10 +223,21 @@ export default function AdminLayout({
     };
   }, [pathname]);
 
-  const isActive = (href: string) =>
-    href === "/admin"
-      ? pathname === "/admin"
-      : pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => {
+    if (href === "/admin") {
+      return pathname === "/admin";
+    }
+
+    if (href === "/admin/students") {
+      return pathname === href && !showInactiveStudents;
+    }
+
+    if (href === "/admin/students?status=inactive") {
+      return pathname === "/admin/students" && showInactiveStudents;
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   const closeSidebar = () => setSidebarOpen(false);
 
