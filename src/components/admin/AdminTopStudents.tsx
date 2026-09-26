@@ -83,6 +83,9 @@ export default function AdminTopStudents() {
   }, []);
 
   const handleSubmit = async () => {
+    if (!form.firstName.trim() || !form.lastName.trim()) { toast.error("نام و نام خانوادگی الزامی است."); return; }
+    if (!form.achievement.trim()) { toast.error("عنوان افتخار الزامی است."); return; }
+    if (!form.academicYear.trim()) { toast.error("سال تحصیلی الزامی است."); return; }
     try {
       const payload = {
         firstName: form.firstName,
