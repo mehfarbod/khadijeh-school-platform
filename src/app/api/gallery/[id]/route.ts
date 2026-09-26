@@ -1,0 +1,5 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth/authorization";
+export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}>}){try{await requireRole(["SUPER_ADMIN","SCHOOL_ADMIN","CONTENT_MANAGER"]);const id=(await params).id;const body=await req.json();const item=await prisma.galleryItem.update({where:{id},data:{...body}});return NextResponse.json(item)}catch(e){return NextResponse.json({error:"خطا در ویرایش تصویر"},{status:e instanceof Error&&e.message==="FORBIDDEN"?403:500})}}
+export async function DELETE(req:NextRequest,{params}:{params:Promise<{id:string}>}){try{await requireRole(["SUPER_ADMIN","SCHOOL_ADMIN","CONTENT_MANAGER"]);const id=(await params).id;await prisma.galleryItem.delete({where:{id}});return NextResponse.json({message:"تصویر حذف شد."})}catch(e){return NextResponse.json({error:"خطا در حذف تصویر"},{status:e instanceof Error&&e.message==="FORBIDDEN"?403:500})}}
