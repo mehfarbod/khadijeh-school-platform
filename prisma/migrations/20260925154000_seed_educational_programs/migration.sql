@@ -1,3 +1,6 @@
+ALTER TABLE "EducationalProgram"
+ADD CONSTRAINT "EducationalProgram_type_key" UNIQUE ("type");
+
 INSERT INTO "EducationalProgram" ("id","type","title","description","content","isActive","createdAt","updatedAt") VALUES
 ('edu_program_weekly','weekly','برنامه هفتگی','برنامه کلاس‌ها و فعالیت‌های آموزشی دانش‌آموزان را مشاهده کنید.',NULL,true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
 ('edu_program_exams','exams','برنامه امتحانات','زمان‌بندی امتحانات و آزمون‌های مدرسه را در یکجا ببینید.',NULL,true,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
