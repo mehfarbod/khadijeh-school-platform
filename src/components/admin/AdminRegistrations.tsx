@@ -2,7 +2,7 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
-import { Check, Trash2, X } from "lucide-react";
+import { Check, Search, Trash2, X } from "lucide-react";
 
 type Registration = {
   id: string;
@@ -36,6 +36,9 @@ const classes: Record<Registration["status"], string> = {
 export default function AdminRegistrations() {
   const [items, setItems] = useState<Registration[] | null>(null);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Registration["status"] | "ALL">("ALL");
+  const [selected, setSelected] = useState<Registration | null>(null);
 
   const load = async () => {
     try {
@@ -122,6 +125,12 @@ export default function AdminRegistrations() {
     }
   };
 
+  const filteredItems = (items ?? []).filter((item) => {
+    const query = search.trim().toLowerCase();
+    const matchesSearch = !query || [item.studentFirstName, item.studentLastName, item.course.title, item.grade].join(" ").toLowerCase().includes(query);
+    return matchesSearch && (statusFilter === "ALL" || item.status === statusFilter);
+  });
+
   return (
     <AdminLayout>
       <div className="mb-6">
@@ -131,6 +140,17 @@ export default function AdminRegistrations() {
         <p className="mt-1 text-sm text-muted-foreground">
           درخواست‌های ثبت‌نام دوره‌های سایت اصلی را بررسی و مدیریت کنید.
         </p>
+      </div>
+
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی دانش‌آموز یا دوره..." className="h-10 w-full rounded-lg border border-border bg-background pr-9 pl-3 text-sm outline-none focus:border-primary" />
+        </div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as Registration["status"] | "ALL")} className="h-10 rounded-lg border border-border bg-background px-3 text-sm">
+          <option value="ALL">همه وضعیت‌ها</option>
+          {Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
       </div>
 
       {error && (
@@ -170,23 +190,23 @@ export default function AdminRegistrations() {
                     در حال دریافت...
                   </td>
                 </tr>
-              ) : items.length === 0 ? (
+              ) : filteredItems.length === 0 ? (
                 <tr>
                   <td
                     colSpan={7}
                     className="p-12 text-center text-muted-foreground"
                   >
-                    هنوز ثبت‌نام دوره‌ای وجود ندارد.
+                    موردی مطابق فیلترها پیدا نشد.
                   </td>
                 </tr>
               ) : (
-                items.map((item) => (
+                filteredItems.map((item) => (
                   <tr
                     key={item.id}
                     className="border-b border-border/30 last:border-0"
                   >
                     <td className="px-4 py-3 font-medium">
-                      {item.studentFirstName} {item.studentLastName}
+                      <button type="button" onClick={() => setSelected(item)} className="text-right font-medium text-primary hover:underline">{item.studentFirstName} {item.studentLastName}</button>
                     </td>
 
                     <td className="px-4 py-3">{item.course.title}</td>
@@ -251,6 +271,21 @@ export default function AdminRegistrations() {
           </table>
         </div>
       </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setSelected(null); }}>
+          <div className="w-full max-w-lg rounded-2xl bg-background p-5 shadow-2xl" dir="rtl">
+            <div className="mb-5 flex items-start justify-between gap-4"><div><h2 className="text-lg font-bold">جزئیات ثبت‌نام</h2><p className="mt-1 text-xs text-muted-foreground">{selected.course.title}</p></div><button type="button" onClick={() => setSelected(null)}><X className="h-5 w-5" /></button></div>
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+              <div><span className="text-muted-foreground">دانش‌آموز: </span>{selected.studentFirstName} {selected.studentLastName}</div>
+              <div><span className="text-muted-foreground">پایه: </span>{selected.grade}</div>
+              <div><span className="text-muted-foreground">وضعیت: </span>{labels[selected.status]}</div>
+              <div><span className="text-muted-foreground">تاریخ ثبت: </span>{new Intl.DateTimeFormat("fa-IR").format(new Date(selected.createdAt))}</div>
+            </div>
+            <div className="mt-5 rounded-xl bg-muted/40 p-4"><p className="mb-2 text-xs font-medium text-muted-foreground">توضیحات</p><p className="whitespace-pre-wrap text-sm leading-7">{selected.notes || "توضیحی ثبت نشده است."}</p></div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
