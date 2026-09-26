@@ -1,5 +1,6 @@
 "use client";
 
+import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Eye,
@@ -159,6 +160,7 @@ export default function AdminNews() {
   };
 
   return (
+    <AdminLayout>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">اخبار</h1>
@@ -287,6 +289,7 @@ export default function AdminNews() {
           </div>
         </div>
       )}
+    </AdminLayout>
   );
 }
 
