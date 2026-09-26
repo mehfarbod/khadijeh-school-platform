@@ -2,6 +2,8 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 
+import AdminLayout from "@/components/admin/AdminLayout";
+
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 type Tab = "weekly" | "exams" | "calendar" | "parents-meetings" | "family-counseling";
@@ -119,7 +121,8 @@ export default function AdminProgramsPage() {
   }
 
   return (
-    <div dir="rtl" className="space-y-6">
+    <AdminLayout>
+      <div dir="rtl" className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-[#194342]">مدیریت برنامه‌های آموزشی</h1>
         <p className="mt-1 text-xs text-[#667085]">هر بخش ساختار مستقل خودش را دارد؛ اطلاعات ساختاریافته و تصویر رسمی می‌توانند جداگانه استفاده شوند.</p>
@@ -166,7 +169,8 @@ export default function AdminProgramsPage() {
       {tab === "calendar" && <SimpleManager title="تقویم آموزشی" items={events} fields={[["title","عنوان"],["date","تاریخ"],["eventType","نوع رویداد"],["description","توضیحات"]]} createUrl="/api/programs/calendar" onRefresh={loadList} />}
       {tab === "parents-meetings" && <SimpleManager title="جلسات انجمن اولیا و مربیان" items={meetings} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/parents-meetings" onRefresh={loadList} />}
       {tab === "family-counseling" && <SimpleManager title="جلسات مشاوره خانواده" items={sessions} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["counselor","مشاور"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/family-counseling" onRefresh={loadList} />}
-    </div>
+      </div>
+    </AdminLayout>
   );
 
   function SimpleManager({ title, items, fields, createUrl, onRefresh }: { title:string; items:Array<{id:string;title:string;isActive:boolean}>; fields:Array<[string,string]>; createUrl:string; onRefresh:()=>Promise<void> }) {
