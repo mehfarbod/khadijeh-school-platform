@@ -62,6 +62,7 @@ export default function AdminNews() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<NewsForm>(emptyForm);
+  const [deleteItem, setDeleteItem] = useState<NewsItem | null>(null);
 
   const loadNews = async () => {
     try {
@@ -148,8 +149,6 @@ export default function AdminNews() {
   };
 
   const remove = async (item: NewsItem) => {
-    if (!window.confirm(`خبر «${item.title}» حذف شود؟`)) return;
-
     const response = await fetch(`/api/news/${item.id}`, { method: "DELETE" });
     if (!response.ok) {
       const data = await response.json().catch(() => null);
@@ -225,7 +224,7 @@ export default function AdminNews() {
                       <button type="button" onClick={() => openEdit(item)} className="rounded-md p-2 hover:bg-muted" title="ویرایش">
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button type="button" onClick={() => remove(item)} className="rounded-md p-2 text-destructive hover:bg-destructive/10" title="حذف">
+                      <button type="button" onClick={() => setDeleteItem(item)} className="rounded-md p-2 text-destructive hover:bg-destructive/10" title="حذف">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -289,6 +288,7 @@ export default function AdminNews() {
           </div>
         </div>
       )}
+      <ConfirmDialog open={!!deleteItem} onOpenChange={(open) => { if (!open) setDeleteItem(null); }} title="حذف خبر" description={deleteItem ? `خبر «${deleteItem.title}» حذف شود؟` : ""} confirmLabel="حذف" onConfirm={async () => { if (!deleteItem) return; await remove(deleteItem); setDeleteItem(null); }} />
     </AdminLayout>
   );
 }
