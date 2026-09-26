@@ -1,0 +1,1 @@
+import AdminAbout from "@/components/admin/AdminAbout"; export default function AboutAdminPage(){return <AdminAbout/>}
