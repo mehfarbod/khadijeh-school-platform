@@ -146,3 +146,24 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "ویرایش ویدیو با خطا مواجه شد." }, { status: 500 });
   }
 }
+export async function DELETE(request: NextRequest) {
+  try {
+    await requirePermission("videos.edit_all");
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "شناسه ویدیو الزامی است." }, { status: 400 });
+
+    const video = await prisma.educationalVideo.findUnique({ where: { id }, select: { id: true, videoUrl: true } });
+    if (!video) return NextResponse.json({ error: "ویدیو پیدا نشد." }, { status: 404 });
+
+    await prisma.educationalVideo.delete({ where: { id } });
+    if (video.videoUrl.startsWith("/uploads/videos/")) {
+      await unlink(path.join(process.cwd(), "public", video.videoUrl)).catch(() => {});
+    }
+    return NextResponse.json({ message: "ویدیو حذف شد." });
+  } catch (error) {
+    console.error("DELETE /api/videos error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز حذف ویدیو را ندارید." }, { status: 403 });
+    return NextResponse.json({ error: "حذف ویدیو با خطا مواجه شد." }, { status: 500 });
+  }
+}
