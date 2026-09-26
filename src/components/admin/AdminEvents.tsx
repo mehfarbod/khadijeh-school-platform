@@ -137,6 +137,8 @@ export default function AdminEvents() {
   };
 
   const handleSubmit = async () => {
+    if (!form.title.trim()) { toast.error("عنوان رویداد الزامی است."); return; }
+    if (!form.description.trim()) { toast.error("توضیحات رویداد الزامی است."); return; }
     try {
       const gregorianDate = jalaliToGregorianDate(form.date.trim());
 
