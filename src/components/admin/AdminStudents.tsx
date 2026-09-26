@@ -194,6 +194,7 @@ export default function AdminStudents() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const [form, setForm] = useState<StudentForm>(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -816,7 +817,9 @@ export default function AdminStudents() {
                       className="border-b border-border/30 hover:bg-muted/20"
                     >
                       <td className="px-4 py-3 font-medium">
-                        {student.firstName} {student.lastName}
+                        <button type="button" onClick={() => setSelectedStudent(student)} className="text-right hover:text-primary hover:underline">
+                          {student.firstName} {student.lastName}
+                        </button>
                       </td>
 
                       <td className="px-4 py-3 text-muted-foreground">
@@ -877,7 +880,26 @@ export default function AdminStudents() {
         </div>
       </div>
 
-      {/* Create / Edit Dialog */}
+
+      <Dialog open={!!selectedStudent} onOpenChange={(open) => { if (!open) setSelectedStudent(null); }}>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto" dir="rtl">
+          <DialogHeader><DialogTitle>جزئیات دانش‌آموز</DialogTitle></DialogHeader>
+          {selectedStudent && (() => { const enrollment = getCurrentEnrollment(selectedStudent); return <div className="grid gap-5 py-2 text-sm sm:grid-cols-2">
+            <div><p className="text-xs text-muted-foreground">نام و نام خانوادگی</p><p className="mt-1 font-medium">{selectedStudent.firstName} {selectedStudent.lastName}</p></div>
+            <div><p className="text-xs text-muted-foreground">کد ملی</p><p className="mt-1">{selectedStudent.nationalId || "—"}</p></div>
+            <div><p className="text-xs text-muted-foreground">شماره تلفن همراه</p><p className="mt-1">{selectedStudent.mobile || "—"}</p></div>
+            <div><p className="text-xs text-muted-foreground">تاریخ تولد</p><p className="mt-1">{selectedStudent.birthday || "—"}</p></div>
+            <div><p className="text-xs text-muted-foreground">پایه / کلاس</p><p className="mt-1">{enrollment ? `${gradeLabels[enrollment.grade] ?? enrollment.grade} / ${enrollment.className || "بدون کلاس"}` : "—"}</p></div>
+            <div><p className="text-xs text-muted-foreground">سال تحصیلی</p><p className="mt-1">{enrollment?.academicYear.title || "—"}</p></div>
+            <div className="sm:col-span-2"><p className="text-xs text-muted-foreground">پدر</p><p className="mt-1">{[selectedStudent.fatherFirstName, selectedStudent.fatherLastName].filter(Boolean).join(" ") || "—"} · {selectedStudent.fatherMobile || "بدون شماره"}</p></div>
+            <div className="sm:col-span-2"><p className="text-xs text-muted-foreground">مادر</p><p className="mt-1">{[selectedStudent.motherFirstName, selectedStudent.motherLastName].filter(Boolean).join(" ") || "—"} · {selectedStudent.motherMobile || "بدون شماره"}</p></div>
+            <div className="sm:col-span-2"><p className="text-xs text-muted-foreground">آدرس</p><p className="mt-1 leading-7">{selectedStudent.address || "—"}</p></div>
+            <div className="sm:col-span-2"><p className="text-xs text-muted-foreground">توضیحات</p><p className="mt-1 whitespace-pre-wrap leading-7">{selectedStudent.description || "—"}</p></div>
+          </div>; })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create / Edit Dialog */
       <Dialog
         open={dialogOpen}
         onOpenChange={(open) => {
