@@ -29,9 +29,6 @@ type Settings = {
   siteTitle: string | null;
   siteDescription: string | null;
   footerText: string | null;
-  instagramUrl: string | null;
-  telegramUrl: string | null;
-  whatsappUrl: string | null;
   mapUrl: string | null;
   namAddressUrl: string | null;
   eitaaUrl: string | null;
