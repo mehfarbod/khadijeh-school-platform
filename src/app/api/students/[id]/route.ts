@@ -27,6 +27,7 @@ const updateStudentSchema = studentProfileSchema
       .optional(),
 
     isActive: z.boolean().optional(),
+    isBirthdayVisible: z.boolean().optional(),
   });
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
@@ -221,6 +222,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           // Status
           ...(data.isActive !== undefined && {
             isActive: data.isActive,
+          }),
+
+          ...(data.isBirthdayVisible !== undefined && {
+            isBirthdayVisible: data.isBirthdayVisible,
           }),
         },
       });
