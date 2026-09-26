@@ -1,6 +1,5 @@
 "use client";
 
-import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Clock3, Loader2, X } from "lucide-react";
 
@@ -261,7 +260,6 @@ export default function AdminAdmissionApplications() {
   };
 
   return (
-    <AdminLayout>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-foreground">پیش‌ثبت‌نام مدرسه</h1>
 
@@ -682,7 +680,6 @@ export default function AdminAdmissionApplications() {
           </div>
         </div>
       )}
-    </AdminLayout>
   );
 }
 
