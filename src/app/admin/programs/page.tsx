@@ -146,7 +146,7 @@ export default function AdminProgramsPage() {
           <Field label="تصویر برنامه (اختیاری)"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e => handleUpload(e,setWeeklyImage)} className={input+" file:ml-3 file:rounded-md file:border-0 file:bg-[#F3F1EC] file:px-3 file:py-1.5"} />{weeklyImage && <p className="mt-2 text-[11px] text-[#667085]">تصویر انتخاب شده است.</p>}</Field>
         </div>
         <label className="mt-4 flex items-center gap-2 text-xs"><input type="checkbox" checked={weeklyActive} onChange={e=>setWeeklyActive(e.target.checked)} /> انتشار در سایت</label>
-        <button disabled={busy} className="mt-5 ${button}">{busy ? "در حال ذخیره..." : "ذخیره برنامه هفتگی"}</button>
+        <button disabled={busy} className={`mt-5 ${button}`}>{busy ? "در حال ذخیره..." : "ذخیره برنامه هفتگی"}</button>
       </form>}
 
       {tab === "exams" && <form onSubmit={saveExams} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
