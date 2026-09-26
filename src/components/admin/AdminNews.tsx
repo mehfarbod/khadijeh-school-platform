@@ -111,7 +111,9 @@ export default function AdminNews() {
   };
 
   const save = async () => {
-    if (!form.title.trim() || !form.excerpt.trim() || !form.content.trim()) return;
+    if (!form.title.trim()) { toast.error("عنوان خبر الزامی است."); return; }
+    if (!form.excerpt.trim()) { toast.error("خلاصه خبر الزامی است."); return; }
+    if (!form.content.trim()) { toast.error("متن خبر الزامی است."); return; }
 
     try {
       setSaving(true);
@@ -142,7 +144,7 @@ export default function AdminNews() {
       setForm(emptyForm);
       await loadNews();
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "ذخیره خبر انجام نشد.");
+      toast.error(error instanceof Error ? error.message : "ذخیره خبر انجام نشد.");
     } finally {
       setSaving(false);
     }
@@ -152,7 +154,7 @@ export default function AdminNews() {
     const response = await fetch(`/api/news/${item.id}`, { method: "DELETE" });
     if (!response.ok) {
       const data = await response.json().catch(() => null);
-      window.alert(data?.error || "حذف خبر انجام نشد.");
+      toast.error(data?.error || "حذف خبر انجام نشد.");
       return;
     }
     await loadNews();
