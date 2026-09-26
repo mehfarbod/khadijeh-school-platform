@@ -623,3 +623,34 @@ model AdmissionApplication {
   @@index([status])
   @@index([createdAt])
 }
+
+
+model SchoolSettings {
+  id                    String   @id @default("school-settings")
+  schoolName            String
+  officialName          String?
+  slogan                String?
+  phone                 String?
+  mobile                String?
+  email                 String?
+  address               String?
+  postalCode            String?
+  workingHours          String?
+  logoUrl               String?
+  faviconUrl            String?
+  siteTitle             String?
+  siteDescription       String?
+  footerText            String?
+  instagramUrl          String?
+  telegramUrl           String?
+  whatsappUrl           String?
+  mapUrl                String?
+  schoolStatusEnabled   Boolean  @default(false)
+  schoolStatus          String?
+  showNews              Boolean  @default(true)
+  showEvents            Boolean  @default(true)
+  showBirthdays         Boolean  @default(true)
+  showTopStudents       Boolean  @default(true)
+  showDailyAbsences     Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
+}
