@@ -8,6 +8,7 @@ type DailyAbsence = {
   firstName: string;
   lastName: string;
   grade: string;
+  dateKey: string;
 };
 
 export default function DailyAbsences() {
@@ -84,8 +85,9 @@ export default function DailyAbsences() {
                   <h3 className="text-sm font-bold text-[#1F2933]">
                     {student.firstName} {student.lastName}
                   </h3>
-                  <p className="mt-1 text-xs text-[#667085]">
-                    {student.grade}
+                  <p className="mt-1 text-xs text-[#667085]">{student.grade}</p>
+                  <p className="mt-1 text-[11px] text-[#98A2B3]">
+                    {new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(new Date(student.dateKey + "T12:00:00"))}
                   </p>
                 </div>
               </div>
