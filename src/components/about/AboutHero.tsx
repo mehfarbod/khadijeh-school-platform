@@ -1,4 +1,6 @@
-export default function AboutHero() {
+type AboutData={heroBadge:string;heroTitle:string;heroDescription:string};
+export default function AboutHero({data}:{data:AboutData|null}) {
+  const d=data ?? {heroBadge:"شاهد حضرت خدیجه (س)",heroTitle:"درباره‌ی مدرسه",heroDescription:"آشنایی با مدرسه، رویکرد آموزشی و ارزش‌هایی که مسیر رشد دانش‌آموزان را شکل می‌دهند."};
   return (
     <section
       className="relative flex min-h-[240px] items-center justify-center overflow-hidden bg-[#194342]"
