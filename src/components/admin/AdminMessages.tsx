@@ -9,7 +9,9 @@ import { toast } from "sonner";
 interface ContactMessage {
   id: string;
   name: string;
-  email: string;
+  phone: string;
+  email: string | null;
+  department: string | null;
   subject: string | null;
   message: string;
   isRead: boolean;
@@ -103,7 +105,10 @@ export default function AdminMessages() {
                 نام
               </th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                ایمیل
+                شماره تماس
+              </th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                مقصد
               </th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">
                 موضوع
@@ -124,7 +129,7 @@ export default function AdminMessages() {
                   key={i}
                   className="border-b border-border/30"
                 >
-                  {[1, 2, 3, 4, 5].map((j) => (
+                  {[1, 2, 3, 4, 5, 6].map((j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-4 bg-muted rounded animate-pulse" />
                     </td>
@@ -134,7 +139,7 @@ export default function AdminMessages() {
             ) : messages.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="px-4 py-12 text-center text-sm text-muted-foreground"
                 >
                   پیامی ثبت نشده.
@@ -153,7 +158,11 @@ export default function AdminMessages() {
                   </td>
 
                   <td className="px-4 py-3 text-muted-foreground">
-                    {message.email}
+                    {message.phone || message.email || "—"}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    {message.department === "management" ? "مدیریت" : message.department === "deputy" ? "معاونت" : message.department === "education" ? "کادر آموزشی" : "—"}
                   </td>
 
                   <td className="px-4 py-3">
