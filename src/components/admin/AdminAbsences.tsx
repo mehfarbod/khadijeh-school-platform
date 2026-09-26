@@ -15,6 +15,7 @@ type Absence = {
   firstName: string;
   lastName: string;
   grade: string;
+  dateKey: string;
 };
 
 type Form = Omit<Absence, "id">;
@@ -115,12 +116,13 @@ export default function AdminAbsences() {
               <tr className="border-b border-border/60 bg-muted/30">
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">نام</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">پایه</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">تاریخ</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">عملیات</th>
               </tr>
             </thead>
             <tbody>
               {!items ? (
-                <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">در حال دریافت...</td></tr>
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">در حال دریافت...</td></tr>
               ) : items.length === 0 ? (
                 <tr><td colSpan={3} className="px-4 py-12 text-center text-sm text-muted-foreground">برای امروز غیبتی ثبت نشده.</td></tr>
               ) : (
@@ -128,6 +130,7 @@ export default function AdminAbsences() {
                   <tr key={item.id} className="border-b border-border/30">
                     <td className="px-4 py-3 font-medium">{item.firstName} {item.lastName}</td>
                     <td className="px-4 py-3">{item.grade}</td>
+                    <td className="px-4 py-3">{new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(new Date(item.dateKey + "T12:00:00"))}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(item)}>
