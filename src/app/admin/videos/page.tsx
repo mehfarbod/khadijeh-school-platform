@@ -2,6 +2,8 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 
+import AdminLayout from "@/components/admin/AdminLayout";
+
 import { FormEvent, useEffect, useState } from "react";
 
 type Video = {
@@ -97,7 +99,8 @@ export default function AdminVideosPage() {
   }
 
   return (
-    <div dir="rtl" className="space-y-6">
+    <AdminLayout>
+      <div dir="rtl" className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-[#194342]">ویدیوهای آموزشی</h1>
         <p className="mt-1 text-xs text-[#667085]">افزودن و مدیریت ویدیوهای آموزشی درسی</p>
@@ -168,6 +171,7 @@ export default function AdminVideosPage() {
           </div>
         )}
       </section>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
