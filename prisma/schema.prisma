@@ -34,6 +34,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   createdCourses Course[] @relation("CourseCreatedBy")
+  createdEducationalVideos EducationalVideo[]
   staff          Staff?
   permissions    UserPermission[]
 }
@@ -306,6 +307,28 @@ model News {
   @@index([isActive])
   @@index([isFeatured])
   @@index([category])
+  @@index([createdAt])
+}
+
+model EducationalVideo {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  subject     String
+  grade       String
+  duration    String
+  instructor  String
+  videoUrl    String
+  isActive    Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([subject])
+  @@index([grade])
+  @@index([isActive])
   @@index([createdAt])
 }
 
