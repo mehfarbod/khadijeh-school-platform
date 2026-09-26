@@ -27,6 +27,7 @@ import {
   FileText,
   Settings,
   UserCog,
+  UserRoundX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -129,6 +130,11 @@ const sidebarGroups: SidebarGroup[] = [
         label: "تولدها",
         href: "/admin/birthdays",
         icon: Cake,
+      },
+      {
+        label: "دانش‌آموزان غایب",
+        href: "/admin/absences",
+        icon: UserRoundX,
       },
       {
         label: "گالری تصاویر",
