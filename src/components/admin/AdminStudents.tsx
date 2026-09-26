@@ -235,7 +235,11 @@ export default function AdminStudents() {
     try {
       const params = new URLSearchParams();
 
-      params.set("activeOnly", showInactive ? "false" : "true");
+      if (showInactive) {
+        params.set("inactiveOnly", "true");
+      } else {
+        params.set("activeOnly", "true");
+      }
 
       if (selectedYearId) {
         params.set("academicYearId", selectedYearId);
