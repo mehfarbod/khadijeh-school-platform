@@ -1,5 +1,6 @@
 "use client";
 
+import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Check, Edit3, Plus, Power, Trash2, X } from "lucide-react";
 import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
@@ -156,7 +157,7 @@ export default function AdminCourses() {
   const activeCount = useMemo(() => courses?.filter((c) => c.isActive).length ?? 0, [courses]);
 
   return (
-    <>
+    <AdminLayout>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground">دوره‌ها</h1>
@@ -283,6 +284,6 @@ export default function AdminCourses() {
           <div className="mt-6 flex justify-end gap-2"><button onClick={()=>setOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm">انصراف</button><button disabled={saving} onClick={save} className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">{saving ? "در حال ذخیره..." : "ذخیره دوره"}</button></div>
         </div>
       </div>}
-    </>
+    </AdminLayout>
   );
 }
