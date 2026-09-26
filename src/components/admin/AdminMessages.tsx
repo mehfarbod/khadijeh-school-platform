@@ -83,6 +83,7 @@ export default function AdminMessages() {
   };
 
   return (
+    <>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-foreground">
           پیام‌های تماس
@@ -199,5 +200,6 @@ export default function AdminMessages() {
           </tbody>
         </table>
       </div>
+    </>
   );
 }
