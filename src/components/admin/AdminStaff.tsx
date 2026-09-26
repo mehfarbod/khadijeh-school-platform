@@ -210,6 +210,10 @@ export default function AdminStaff() {
       toast.error("نام، نام خانوادگی، سمت و دسته‌بندی الزامی است.");
       return;
     }
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      toast.error("فرمت ایمیل معتبر نیست.");
+      return;
+    }
 
     setSaving(true);
     try {
