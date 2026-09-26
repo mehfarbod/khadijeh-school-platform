@@ -1,6 +1,5 @@
 "use client";
 
-import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,7 +117,6 @@ export default function AdminBirthdays() {
   }
 
   return (
-    <AdminLayout>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">تولدها</h1>
@@ -293,6 +291,5 @@ export default function AdminBirthdays() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
   );
 }
