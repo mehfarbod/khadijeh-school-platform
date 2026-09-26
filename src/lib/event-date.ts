@@ -1,20 +1,13 @@
-import { toJalaali } from "jalaali-js";
-
-export function getTodayJalaliDateString() {
+export function getTodayDateString() {
   const now = new Date();
-  const { jy, jm, jd } = toJalaali(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    now.getDate(),
-  );
 
-  const month = String(jm).padStart(2, "0");
-  const day = String(jd).padStart(2, "0");
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
 
-  return `${jy}/${month}/${day}`;
+  return `${year}-${month}-${day}`;
 }
 
 export function isUpcomingEventDate(date: string) {
-  const normalized = date.replaceAll("-", "/").trim();
-  return normalized >= getTodayJalaliDateString();
+  return date >= getTodayDateString();
 }
