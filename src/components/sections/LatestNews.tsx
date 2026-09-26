@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 interface NewsItem {
   id: string;
+  slug: string;
   title: string;
   excerpt: string;
   category: string;
@@ -132,7 +133,7 @@ export default function LatestNews() {
             return (
               <Link
                 key={item.id}
-                href={`/news/${item.id}`}
+                href={`/news/${item.slug}`}
                 className="group block rounded-[18px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#194342]/40"
               >
                 <article className="h-full overflow-hidden rounded-[18px] border border-[#DBE7C1] bg-white transition-shadow duration-200 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
