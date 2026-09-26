@@ -6,6 +6,7 @@ import UpcomingEvents from "@/components/sections/UpcomingEvents";
 import AnnouncementsPreview from "@/components/sections/AnnouncementsPreview";
 import TopStudents from "@/components/sections/TopStudents";
 import Birthdays from "@/components/sections/Birthdays";
+import DailyAbsences from "@/components/sections/DailyAbsences";
 import CoursesCTA from "@/components/sections/CoursesCTA";
 import ContactCTA from "@/components/sections/ContactCTA";
 import AnnouncementTicker from "@/components/sections/AnnouncementTicker";
@@ -21,6 +22,7 @@ export default function HomePage() {
       <UpcomingEvents />
        <TopStudents />
       <Birthdays />
+      <DailyAbsences />
       <LatestNews />
       <ContactSection />
       <AnnouncementsPreview />
