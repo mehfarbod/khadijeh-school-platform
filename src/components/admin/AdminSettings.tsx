@@ -155,9 +155,13 @@ export default function AdminSettings() {
               <Label>آدرس</Label>
               <Textarea className="mt-1.5" value={form.address ?? ""} onChange={(e) => update("address", e.target.value)} />
             </div>
-            <div className="md:col-span-2">
+            <div>
               <Label>لینک نقشه</Label>
-              <Input className="mt-1.5" value={form.mapUrl ?? ""} onChange={(e) => update("mapUrl", e.target.value)} />
+              <Input className="mt-1.5" value={form.mapUrl ?? ""} onChange={(e) => update("mapUrl", e.target.value)} placeholder="لینک Embed نقشه" />
+            </div>
+            <div>
+              <Label>لینک مسیریابی با نشان</Label>
+              <Input className="mt-1.5" value={form.namAddressUrl ?? ""} onChange={(e) => update("namAddressUrl", e.target.value)} placeholder="لینک مسیریابی نشان" />
             </div>
           </div>
         </section>
