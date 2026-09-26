@@ -17,15 +17,8 @@ const absenceSchema = z.object({
   grade: z.string().trim().min(1, "پایه الزامی است.").max(50),
 });
 
-async function cleanupOldAbsences() {
-  await prisma.dailyAbsence.deleteMany({
-    where: { dateKey: { not: todayKey() } },
-  });
-}
-
 export async function GET(request: NextRequest) {
   try {
-    await cleanupOldAbsences();
     const activeOnly = new URL(request.url).searchParams.get("activeOnly") !== "false";
     const absences = await prisma.dailyAbsence.findMany({
       where: activeOnly ? { dateKey: todayKey() } : undefined,
@@ -41,7 +34,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
-    await cleanupOldAbsences();
     const result = absenceSchema.safeParse(await request.json());
 
     if (!result.success) {
