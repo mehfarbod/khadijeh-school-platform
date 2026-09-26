@@ -157,13 +157,6 @@ export default function AdminOverview() {
               </p>
             </div>
 
-            <Link
-              href="/"
-              className="inline-flex h-10 w-fit items-center gap-2 rounded-[10px] border border-[#E7E2DA] bg-white px-4 text-xs font-medium text-[#667085] transition-colors hover:border-[#D5DECB] hover:bg-[#F1F5E8] hover:text-[#194342]"
-            >
-              مشاهده سایت
-              <ArrowLeft className="h-3.5 w-3.5" />
-            </Link>
           </div>
         </section>
 
