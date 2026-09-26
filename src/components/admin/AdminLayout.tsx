@@ -356,6 +356,14 @@ export default function AdminLayout({
 
           <div className="mr-auto flex items-center gap-2">
             <Link
+              href="/admin"
+              className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-[#667085] transition-colors hover:bg-white hover:text-[#194342]"
+            >
+              بازگشت به مدیریت
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Link>
+
+            <Link
               href="/"
               className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-[#667085] transition-colors hover:bg-white hover:text-[#194342]"
             >
