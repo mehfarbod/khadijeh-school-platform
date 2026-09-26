@@ -322,8 +322,140 @@ model EducationalProgram {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  weeklySchedule            WeeklySchedule?
+  examSchedule              ExamSchedule?
+  calendarEvents            EducationalCalendarEvent[]
+  parentMeetings            ParentMeeting[]
+  familyCounselingSessions  FamilyCounselingSession?
+
   @@index([isActive])
   @@index([createdAt])
+}
+
+model WeeklySchedule {
+  id          String   @id @default(cuid())
+  programId   String   @unique
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program EducationalProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  entries WeeklyScheduleEntry[]
+}
+
+model WeeklyScheduleEntry {
+  id          String   @id @default(cuid())
+  scheduleId  String
+  className   String
+  day         String
+  startTime   String
+  endTime     String?
+  subject     String
+  teacher     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schedule WeeklySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId])
+  @@index([className])
+  @@index([day])
+  @@unique([scheduleId, className, day, startTime])
+}
+
+model ExamSchedule {
+  id          String   @id @default(cuid())
+  programId   String   @unique
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program EducationalProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  entries ExamScheduleEntry[]
+}
+
+model ExamScheduleEntry {
+  id          String   @id @default(cuid())
+  scheduleId  String
+  subject     String
+  date        String
+  time        String?
+  grade       String
+  className   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  schedule ExamSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@index([scheduleId])
+  @@index([grade])
+  @@index([date])
+}
+
+model EducationalCalendarEvent {
+  id          String   @id @default(cuid())
+  programId   String
+  title       String
+  date        String
+  eventType   String
+  description String
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program EducationalProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+  @@index([date])
+  @@index([eventType])
+  @@index([isActive])
+}
+
+model ParentMeeting {
+  id          String   @id @default(cuid())
+  programId   String
+  title       String
+  date        String
+  time        String?
+  topic       String
+  audience    String?
+  description String
+  location    String?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program EducationalProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+  @@index([date])
+  @@index([isActive])
+}
+
+model FamilyCounselingSession {
+  id          String   @id @default(cuid())
+  programId   String   @unique
+  title       String
+  date        String
+  time        String?
+  counselor   String
+  topic       String
+  audience    String?
+  description String
+  location    String?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program EducationalProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([date])
+  @@index([isActive])
 }
 
 model EducationalVideo {
