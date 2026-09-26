@@ -57,7 +57,7 @@ function makeSlug(value: string) {
   return value
     .trim()
     .toLowerCase()
-    .replace(/[\\s\u200c]+/g, "-")
+    .replace(/[\s\u200c]+/g, "-")
     .replace(/[^\u0600-\u06ff\u0750-\u077f\w-]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
