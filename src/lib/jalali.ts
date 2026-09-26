@@ -9,7 +9,8 @@ function pad(value: number) {
 }
 
 export function isValidJalaliDate(value: string) {
-  const match = value.match(/^(\\d{4})[/-](\\d{1,2})[/-](\\d{1,2})$/);
+  const normalized = normalizeDigits(value).replaceAll("-", "/");
+  const match = normalized.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
   if (!match) return false;
 
   const jy = Number(match[1]);
@@ -53,5 +54,5 @@ export function formatGregorianDateAsJalali(value: string) {
 }
 
 export function toPersianDigits(value: string) {
-  return value.replace(/\\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+  return value.replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 }
