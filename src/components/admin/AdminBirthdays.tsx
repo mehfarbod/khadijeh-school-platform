@@ -117,6 +117,7 @@ export default function AdminBirthdays() {
   }
 
   return (
+    <>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">تولدها</h1>
@@ -291,5 +292,6 @@ export default function AdminBirthdays() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
   );
 }
