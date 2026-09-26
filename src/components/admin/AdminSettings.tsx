@@ -174,7 +174,6 @@ export default function AdminSettings() {
             <Label>لینک مسیریابی نشان</Label>
             <Input className="mt-1.5" value={form.namAddressUrl ?? ""} onChange={(e) => update("namAddressUrl", e.target.value)} />
           </div>
-          </div>
         </section>
 
         <section className="rounded-xl border bg-card p-5">
