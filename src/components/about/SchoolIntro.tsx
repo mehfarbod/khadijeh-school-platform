@@ -6,7 +6,7 @@ import {
   Users,
 } from "lucide-react";
 
-const values = [
+const defaultValues = [
   {
     icon: BookOpen,
     title: "آموزش مبتنی بر کاوش",
@@ -33,7 +33,7 @@ const values = [
   },
 ];
 
-const stats = [
+const defaultStats = [
   {
     value: "۳۵۰+",
     label: "دانش‌آموز",
@@ -52,7 +52,13 @@ const stats = [
   },
 ];
 
-export default function SchoolIntro() {
+type AboutData = { introEyebrow:string; introTitle:string; introContent:string; stats: {value:string;label:string}[]; values:{title:string;description:string;icon:string}[]; communityTitle:string; communityDescription:string };
+const iconMap = { BookOpen, Heart, Lightbulb, Shield };
+
+export default function SchoolIntro({ data }:{data:AboutData|null}) {
+  const d = data ?? { introEyebrow:"معرفی مدرسه", introTitle:"تربیت نسلی متعهد، خلاق و مستقل", introContent:"", stats:defaultStats, values:defaultValues, communityTitle:"جامعه‌ای برای رشد و یادگیری", communityDescription:"دانش‌آموزان، دبیران و خانواده‌ها در مسیر رشد دانش‌آموزان همراه هستند." };
+  const values = d.values.length ? d.values : defaultValues;
+  const stats = d.stats.length ? d.stats : defaultStats;
   return (
     <section className="bg-[#FAF8F3] py-14 sm:py-16 lg:py-20">
       <div className="mx-auto w-full max-w-[1200px] px-5 sm:px-6">
@@ -68,22 +74,7 @@ export default function SchoolIntro() {
             </h2>
 
             <div className="mt-5 max-w-[650px] space-y-4 text-[13.5px] leading-[2.1] text-[#667085] sm:text-[14px]">
-              <p>
-                دبیرستان دخترانه شاهد حضرت خدیجه (س) با هدف فراهم کردن
-                محیطی امن، پویا و الهام‌بخش برای رشد همه‌جانبه دانش‌آموزان
-                فعالیت می‌کند.
-              </p>
-
-              <p>
-                ما باور داریم هر دانش‌آموز ظرفیت‌ها و استعدادهای منحصربه‌فردی
-                دارد و آموزش زمانی اثربخش است که در کنار دانش علمی، به رشد
-                شخصیت، خلاقیت و مهارت‌های فردی نیز توجه شود.
-              </p>
-
-              <p>
-                تلاش مجموعه بر این است که مدرسه فضایی برای یادگیری، تجربه،
-                مشارکت و شکوفایی استعدادهای دانش‌آموزان باشد.
-              </p>
+              {d.introContent.split(/\n+/).filter(Boolean).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
           </div>
 
@@ -143,7 +134,7 @@ export default function SchoolIntro() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((value) => {
-              const Icon = value.icon;
+              const Icon = iconMap[value.icon as keyof typeof iconMap] ?? BookOpen;
 
               return (
                 <article
