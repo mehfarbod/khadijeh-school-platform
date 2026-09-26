@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Trash2 } from "lucide-react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { toast } from "sonner";
 
 interface Birthday {
@@ -41,6 +42,7 @@ export default function AdminBirthdays() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState<Form>(emptyForm);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   async function loadBirthdays() {
     try {
@@ -67,7 +69,8 @@ export default function AdminBirthdays() {
   }, []);
 
   async function createBirthday() {
-    if (!form.firstName || !form.birthday) return;
+    if (!form.firstName.trim()) { toast.error("نام دانش‌آموز الزامی است."); return; }
+    if (!/^\d{1,2}[-/]\d{1,2}$/.test(form.birthday.trim())) { toast.error("تاریخ تولد را مانند ۰۹/۱۸ وارد کنید."); return; }
 
     try {
       const response = await fetch("/api/birthdays", {
@@ -205,7 +208,7 @@ export default function AdminBirthdays() {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-destructive"
-                      onClick={() => removeBirthday(birthday.id)}
+                      onClick={() => setDeleteId(birthday.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -293,6 +296,7 @@ export default function AdminBirthdays() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }} title="حذف تولد" description="این مورد از فهرست تولدهای دانش‌آموزان حذف می‌شود. ادامه می‌دهید؟" confirmLabel="حذف" onConfirm={async () => { if (!deleteId) return; await removeBirthday(deleteId); setDeleteId(null); }} />
     </AdminLayout>
   );
 }
