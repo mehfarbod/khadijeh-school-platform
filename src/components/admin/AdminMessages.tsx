@@ -1,5 +1,6 @@
 "use client";
 
+import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Mail, MailOpen } from "lucide-react";
@@ -83,7 +84,7 @@ export default function AdminMessages() {
   };
 
   return (
-    <>
+    <AdminLayout>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-foreground">
           پیام‌های تماس
@@ -200,6 +201,6 @@ export default function AdminMessages() {
           </tbody>
         </table>
       </div>
-    </>
+    </AdminLayout>
   );
 }
