@@ -313,6 +313,40 @@ model News {
   @@index([createdAt])
 }
 
+model GalleryItem {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  categoryLabel String
+  date        String
+  imageUrl    String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model AboutPage {
+  id               String   @id @default("school-about")
+  heroBadge        String
+  heroTitle        String
+  heroDescription  String
+  introEyebrow     String
+  introTitle       String
+  introContent     String
+  stats            Json
+  values           Json
+  communityTitle   String
+  communityDescription String
+  updatedAt        DateTime @updatedAt
+
+  @@map("AboutPage")
+}
+
 model EducationalProgram {
   id          String   @id @default(cuid())
   type        String   @unique
