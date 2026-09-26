@@ -36,6 +36,17 @@ export function formatDateShort(dateStr: string): string {
   return `${toPersianNumber(day)} ${persianMonths[month - 1]}`;
 }
 
+export function formatJalaliDateShort(dateStr: string): string {
+  const normalized = dateStr.replaceAll("-", "/");
+  const [year, month, day] = normalized.split("/").map(Number);
+
+  if (!year || !month || !day || !persianMonths[month - 1]) {
+    return dateStr;
+  }
+
+  return `${toPersianNumber(day)} ${persianMonths[month - 1]}`;
+}
+
 // School grade labels
 export const GRADE_LABELS: Record<string, string> = {
   "دهم": "پایه دهم",
