@@ -3,6 +3,7 @@
 import AdminLayout from "@/components/admin/AdminLayout";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pencil, Play, Trash2, X } from "lucide-react";
 
 type Video = {
   id: string;
@@ -42,6 +43,8 @@ export default function AdminVideosPage() {
     isActive: true,
   });
   const [file, setFile] = useState<File | null>(null);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<Video | null>(null);
 
   async function loadVideos() {
     const response = await fetch("/api/videos?activeOnly=false", { cache: "no-store" });
@@ -85,6 +88,40 @@ export default function AdminVideosPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function saveEdit() {
+    if (!editingVideo) return;
+    const title = editingVideo.title.trim();
+    const duration = editingVideo.duration.trim();
+    const instructor = editingVideo.instructor.trim();
+    if (title.length < 2) { setMessage("عنوان ویدیو معتبر نیست."); return; }
+    if (!duration) { setMessage("مدت ویدیو الزامی است."); return; }
+    if (instructor.length < 2) { setMessage("نام مدرس معتبر نیست."); return; }
+    setSubmitting(true); setMessage("");
+    try {
+      const response = await fetch(`/api/videos?id=${editingVideo.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, subject: editingVideo.subject, grade: editingVideo.grade, duration, instructor, isActive: editingVideo.isActive }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "ویرایش ویدیو ناموفق بود.");
+      setEditingVideo(null); setMessage("اطلاعات ویدیو ذخیره شد."); await loadVideos();
+    } catch (error) { setMessage(error instanceof Error ? error.message : "ویرایش ویدیو ناموفق بود."); }
+    finally { setSubmitting(false); }
+  }
+
+  async function deleteVideo(video: Video) {
+    if (!window.confirm(`ویدیو «${video.title}» حذف شود؟`)) return;
+    setSubmitting(true); setMessage("");
+    try {
+      const response = await fetch(`/api/videos?id=${video.id}`, { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "حذف ویدیو ناموفق بود.");
+      if (previewVideo?.id === video.id) setPreviewVideo(null);
+      setMessage("ویدیو حذف شد."); await loadVideos();
+    } catch (error) { setMessage(error instanceof Error ? error.message : "حذف ویدیو ناموفق بود."); }
+    finally { setSubmitting(false); }
   }
 
   async function toggleActive(video: Video) {
@@ -160,15 +197,35 @@ export default function AdminVideosPage() {
                   <p className="truncate text-sm font-semibold text-[#1F2933]">{video.title}</p>
                   <p className="mt-1 text-[11px] text-[#667085]">{video.instructor} • {video.duration} • {video.grade}</p>
                 </div>
-                <button type="button" onClick={() => toggleActive(video)} className="rounded-lg border border-[#E7E2DA] px-3 py-2 text-[11px] text-[#475467]">
-                  {video.isActive ? "غیرفعال کردن" : "فعال کردن"}
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => setPreviewVideo(video)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E2DA] px-3 py-2 text-[11px] text-[#475467]"><Play className="h-3.5 w-3.5" />مشاهده</button>
+                  <button type="button" onClick={() => setEditingVideo({ ...video })} className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E2DA] px-3 py-2 text-[11px] text-[#475467]"><Pencil className="h-3.5 w-3.5" />ویرایش</button>
+                  <button type="button" onClick={() => toggleActive(video)} className="rounded-lg border border-[#E7E2DA] px-3 py-2 text-[11px] text-[#475467]">{video.isActive ? "غیرفعال کردن" : "فعال کردن"}</button>
+                  <button type="button" onClick={() => void deleteVideo(video)} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-[11px] text-red-600"><Trash2 className="h-3.5 w-3.5" />حذف</button>
+                </div>
               </div>
             ))}
             {!videos.length && <p className="py-8 text-center text-xs text-[#98A2B3]">هنوز ویدیویی ثبت نشده است.</p>}
           </div>
         )}
       </section>
+
+      {editingVideo && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget && !submitting) setEditingVideo(null); }}>
+        <div className="w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6" dir="rtl">
+          <div className="mb-5 flex items-center justify-between"><h2 className="text-base font-bold text-[#194342]">ویرایش ویدیو</h2><button type="button" onClick={() => setEditingVideo(null)} disabled={submitting}><X className="h-5 w-5" /></button></div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-xs font-medium text-[#475467] sm:col-span-2">عنوان<input value={editingVideo.title} onChange={e => setEditingVideo({ ...editingVideo, title: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
+            <label className="text-xs font-medium text-[#475467]">درس<select value={editingVideo.subject} onChange={e => setEditingVideo({ ...editingVideo, subject: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] bg-white px-3 py-2.5 text-sm">{subjects.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
+            <label className="text-xs font-medium text-[#475467]">پایه<select value={editingVideo.grade} onChange={e => setEditingVideo({ ...editingVideo, grade: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] bg-white px-3 py-2.5 text-sm">{grades.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
+            <label className="text-xs font-medium text-[#475467]">مدت<input value={editingVideo.duration} onChange={e => setEditingVideo({ ...editingVideo, duration: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
+            <label className="text-xs font-medium text-[#475467]">مدرس<input value={editingVideo.instructor} onChange={e => setEditingVideo({ ...editingVideo, instructor: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
+          </div>
+          <div className="mt-5 flex justify-end gap-2"><button type="button" onClick={() => setEditingVideo(null)} disabled={submitting} className="rounded-lg border border-[#E7E2DA] px-4 py-2 text-xs">انصراف</button><button type="button" onClick={() => void saveEdit()} disabled={submitting} className="rounded-lg bg-[#194342] px-4 py-2 text-xs font-semibold text-white">{submitting ? "در حال ذخیره..." : "ذخیره تغییرات"}</button></div>
+        </div>
+      </div>}
+      {previewVideo && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setPreviewVideo(null); }}>
+        <div className="w-full max-w-4xl rounded-2xl bg-black p-3 shadow-2xl"><div className="mb-2 flex items-center justify-between px-1 text-white"><p className="truncate text-sm">{previewVideo.title}</p><button type="button" onClick={() => setPreviewVideo(null)}><X className="h-5 w-5" /></button></div><video src={previewVideo.videoUrl} controls className="max-h-[75vh] w-full rounded-xl bg-black" /></div>
+      </div>}
       </div>
     </AdminLayout>
   );
