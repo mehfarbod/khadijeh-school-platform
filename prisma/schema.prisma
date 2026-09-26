@@ -645,9 +645,6 @@ model SchoolSettings {
   siteTitle             String?
   siteDescription       String?
   footerText            String?
-  instagramUrl          String?
-  telegramUrl           String?
-  whatsappUrl           String?
   mapUrl                String?
   schoolStatusEnabled   Boolean  @default(false)
   schoolStatus          String?
