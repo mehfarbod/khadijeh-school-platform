@@ -1,6 +1,5 @@
 "use client";
 
-import AdminLayout from "@/components/admin/AdminLayout";
 import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
 import { gregorianToJalali } from "@/lib/date/jalali";
 import { useEffect, useMemo, useState } from "react";
@@ -580,7 +579,7 @@ export default function AdminStudents() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground">دانش‌آموزان</h1>
@@ -1390,6 +1389,6 @@ export default function AdminStudents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 }
