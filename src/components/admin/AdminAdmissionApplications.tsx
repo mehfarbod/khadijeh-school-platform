@@ -1,6 +1,7 @@
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Clock3, Loader2, X } from "lucide-react";
 
@@ -113,6 +114,7 @@ export default function AdminAdmissionApplications() {
 
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [confirmApprove, setConfirmApprove] = useState(false);
 
   const loadApplications = async () => {
     try {
@@ -147,11 +149,7 @@ export default function AdminAdmissionApplications() {
   const handleApprove = async () => {
     if (!selectedApplication) return;
 
-    const confirmed = window.confirm(
-      `آیا از تأیید پیش‌ثبت‌نام ${selectedApplication.studentFirstName} ${selectedApplication.studentLastName} مطمئن هستید؟`,
-    );
-
-    if (!confirmed) return;
+    setConfirmApprove(false);
 
     try {
       setActionLoading(true);
@@ -665,7 +663,7 @@ export default function AdminAdmissionApplications() {
                     <button
                       type="button"
                       disabled={actionLoading}
-                      onClick={handleApprove}
+                      onClick={() => setConfirmApprove(true)}
                       className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {actionLoading ? (
@@ -682,6 +680,7 @@ export default function AdminAdmissionApplications() {
           </div>
         </div>
       )}
+      <ConfirmDialog open={confirmApprove} onOpenChange={setConfirmApprove} title="تأیید پیش‌ثبت‌نام" description={selectedApplication ? `آیا از تأیید پیش‌ثبت‌نام ${selectedApplication.studentFirstName} ${selectedApplication.studentLastName} مطمئن هستید؟` : ""} confirmLabel="تأیید درخواست" destructive={false} onConfirm={handleApprove} />
     </AdminLayout>
   );
 }
