@@ -178,12 +178,20 @@ export default function AdminSettings() {
 
         <section className="rounded-xl border bg-card p-5">
           <h2 className="font-semibold">متن‌های سایت</h2>
-          <p className="mt-1 text-xs text-muted-foreground">متن‌های اصلی Hero و بخش سمت راست Footer از اینجا کنترل می‌شوند.</p>
+          <p className="mt-1 text-xs text-muted-foreground">متن‌های اصلی Hero از اینجا کنترل می‌شوند.</p>
           <div className="mt-5 space-y-4">
             <Field label="عنوان Hero" value={form.heroTitle} onChange={(v) => update("heroTitle", v)} required />
             <div><Label>توضیح Hero</Label><Textarea className="mt-1.5" value={form.heroDescription} onChange={(e) => update("heroDescription", e.target.value)} /></div>
-            <Field label="عنوان بخش سمت راست Footer" value={form.footerTitle} onChange={(v) => update("footerTitle", v)} required />
-            <div><Label>متن بخش سمت راست Footer</Label><Textarea className="mt-1.5" value={form.footerDescription} onChange={(e) => update("footerDescription", e.target.value)} /></div>
+
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-card p-5">
+          <h2 className="font-semibold">بخش معرفی فوتر</h2>
+          <p className="mt-1 text-xs text-muted-foreground">عنوان و توضیح بخش سمت چپ فوتر و لینک شبکه‌های اجتماعی آن.</p>
+          <div className="mt-5 space-y-4">
+            <Field label="عنوان بخش معرفی فوتر" value={form.footerTitle} onChange={(v) => update("footerTitle", v)} required />
+            <div><Label>توضیح بخش معرفی فوتر</Label><Textarea className="mt-1.5" value={form.footerDescription} onChange={(e) => update("footerDescription", e.target.value)} /></div>
           </div>
         </section>
 
