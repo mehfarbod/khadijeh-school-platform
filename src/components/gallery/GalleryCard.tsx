@@ -10,12 +10,13 @@ export type GalleryCategory =
   | "trips";
 
 export type GalleryItem = {
-  id: number;
+  id: string;
   title: string;
   category: GalleryCategory;
   categoryLabel: string;
   date: string;
-  bgColor: string;
+  imageUrl: string;
+  description?: string | null;
 };
 
 interface GalleryCardProps {
@@ -41,36 +42,10 @@ export default function GalleryCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Placeholder */}
-      <div
-        className="relative flex h-[220px] items-center justify-center overflow-hidden"
-        style={{
-          backgroundColor: item.bgColor,
-        }}
-      >
-        <div className="flex flex-col items-center gap-2 text-[#194342]/40">
-          <Images className="h-9 w-9" strokeWidth={1.5} />
-
-          <span className="text-[11px] font-medium">
-            تصویر گالری
-          </span>
-        </div>
-
-        {/* Category */}
-        <span className="absolute right-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[10.5px] font-medium text-[#194342]">
-          {item.categoryLabel}
-        </span>
-
-        {/* Hover Overlay */}
-        <div
-          className={`absolute inset-0 flex items-center justify-center bg-[#194342]/65 transition-opacity duration-200 ${
-            isHovered ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-[#194342]">
-            <Images className="h-5 w-5" />
-          </div>
-        </div>
+      {/* Image */}
+      <div className="relative h-[220px] overflow-hidden">
+        <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover transition-transform duration-300" style={{ transform: isHovered ? "scale(1.03)" : "scale(1)" }} />
+        <span className="absolute right-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[10.5px] font-medium text-[#194342]">{item.categoryLabel}</span>
       </div>
 
       {/* Content */}
