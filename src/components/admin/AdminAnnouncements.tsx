@@ -127,6 +127,8 @@ export default function AdminAnnouncements() {
   };
 
   const handleSubmit = async () => {
+    if (!form.title.trim()) { toast.error("عنوان اطلاعیه الزامی است."); return; }
+    if (!form.content.trim()) { toast.error("متن اطلاعیه الزامی است."); return; }
     const normalizedExpiry = form.expiresAt.trim();
     const gregorianExpiry = normalizedExpiry
       ? jalaliToGregorianDate(normalizedExpiry)
