@@ -122,6 +122,7 @@ export default function AdminRegistrations() {
   };
 
   return (
+    <>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-foreground">
           ثبت‌نام دوره‌ها
@@ -249,5 +250,6 @@ export default function AdminRegistrations() {
           </table>
         </div>
       </div>
+    </>
   );
 }
