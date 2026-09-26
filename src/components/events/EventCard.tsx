@@ -7,7 +7,7 @@ import {
   MapPin,
 } from "lucide-react";
 
-import { formatJalaliDateShort, toPersianNumber } from "@/lib/persian";
+import { formatDateShort, toPersianNumber } from "@/lib/persian";
 
 export interface EventItem {
   id: string;
@@ -27,7 +27,7 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  const formattedDate = formatJalaliDateShort(event.date);
+  const formattedDate = formatDateShort(event.date);
 
   const day = event.date.replaceAll("-", "/").split("/")[2]
     ? toPersianNumber(
