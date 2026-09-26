@@ -161,7 +161,7 @@ export default function AdminProgramsPage() {
         <button type="button" onClick={()=>setExamEntries(a=>[...a,emptyExam()])} className="mt-3 rounded-lg border border-[#E7E2DA] px-4 py-2.5 text-xs font-semibold">+ افزودن امتحان</button>
         <div className="mt-5"><Field label="تصویر برنامه امتحانات (اختیاری)"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>handleUpload(e,setExamImage)} className={input+" file:ml-3 file:rounded-md file:border-0 file:bg-[#F3F1EC] file:px-3 file:py-1.5"}/></Field></div>
         <label className="mt-4 flex items-center gap-2 text-xs"><input type="checkbox" checked={examActive} onChange={e=>setExamActive(e.target.checked)}/> انتشار در سایت</label>
-        <button disabled={busy} className="mt-5 ${button}">{busy ? "در حال ذخیره..." : "ذخیره برنامه امتحانات"}</button>
+        <button disabled={busy} className={`mt-5 ${button}`}>{busy ? "در حال ذخیره..." : "ذخیره برنامه امتحانات"}</button>
       </form>}
 
       {tab === "calendar" && <SimpleManager title="تقویم آموزشی" items={events} fields={[["title","عنوان"],["date","تاریخ"],["eventType","نوع رویداد"],["description","توضیحات"]]} createUrl="/api/programs/calendar" onRefresh={loadList} />}
