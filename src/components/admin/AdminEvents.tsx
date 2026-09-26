@@ -434,7 +434,7 @@ export default function AdminEvents() {
             </div>
 
             <div className="col-span-2">
-              <Label className="text-xs">توضیحات</Label>
+              <Label className="text-xs">توضیحات *</Label>
 
               <Input
                 value={form.description}
@@ -459,7 +459,7 @@ export default function AdminEvents() {
 
             <Button
               onClick={handleSubmit}
-              disabled={!form.title || !form.date}
+              disabled={!form.title.trim() || !form.date.trim() || !form.description.trim()}
             >
               {editId ? "ذخیره" : "افزودن"}
             </Button>
