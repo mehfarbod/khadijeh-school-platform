@@ -161,7 +161,10 @@ export async function GET(request: NextRequest) {
     const activeOnly = searchParams.get("activeOnly") !== "false";
     const inactiveOnly = searchParams.get("inactiveOnly") === "true";
 
-    const hasEnrollmentFilter = !!academicYearId || !!grade || !!className;
+    // The inactive-student archive is a global archive.
+    // Do not restrict it to the currently selected academic year/class.
+    const hasEnrollmentFilter =
+      !inactiveOnly && (!!academicYearId || !!grade || !!className);
 
     const enrollmentWhere = {
       ...(academicYearId ? { academicYearId } : {}),
