@@ -64,13 +64,20 @@ function AuthInner() {
     setIsLoading(true);
     setError(null);
 
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    if (!email) {
+      setError("ایمیل الزامی است.");
+      setIsLoading(false);
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("فرمت ایمیل معتبر نیست.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const formData = new FormData(e.currentTarget);
-
-      const email = String(formData.get("email") ?? "")
-        .trim()
-        .toLowerCase();
-
       const response = await fetch("/api/auth/request-otp", {
         method: "POST",
         headers: {
@@ -107,11 +114,15 @@ function AuthInner() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const formData = new FormData(e.currentTarget);
+    const email = step === "signIn" ? "" : step.email;
+    const code = otp.trim();
+    if (!/^\d{6}$/.test(code)) {
+      setError("کد تأیید باید ۶ رقم باشد.");
+      setIsLoading(false);
+      return;
+    }
 
-      const email = String(formData.get("email") ?? "");
-      const code = String(formData.get("code") ?? "");
+    try {
 
       const result = await signIn("credentials", {
         email,
@@ -159,7 +170,7 @@ function AuthInner() {
                 </CardDescription>
               </CardHeader>
 
-              <form onSubmit={handleEmailSubmit}>
+              <form onSubmit={handleEmailSubmit} noValidate>
                 <CardContent>
                   <div className="relative flex items-center gap-2">
                     <div className="relative flex-1">
@@ -209,7 +220,7 @@ function AuthInner() {
                 </CardDescription>
               </CardHeader>
 
-              <form onSubmit={handleOtpSubmit}>
+              <form onSubmit={handleOtpSubmit} noValidate>
                 <CardContent className="pb-4">
                   <input
                     type="hidden"
