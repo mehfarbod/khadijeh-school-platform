@@ -12,6 +12,10 @@ import { Save } from "lucide-react";
 
 type Settings = {
   schoolName: string;
+  heroTitle: string;
+  heroDescription: string;
+  footerTitle: string;
+  footerDescription: string;
   officialName: string | null;
   slogan: string | null;
   phone: string | null;
@@ -29,6 +33,10 @@ type Settings = {
   telegramUrl: string | null;
   whatsappUrl: string | null;
   mapUrl: string | null;
+  namAddressUrl: string | null;
+  eitaaUrl: string | null;
+  baleUrl: string | null;
+  skyroomUrl: string | null;
   schoolStatusEnabled: boolean;
   schoolStatus: string | null;
   showNews: boolean;
@@ -40,6 +48,10 @@ type Settings = {
 
 const initial: Settings = {
   schoolName: "دبیرستان شاهد حضرت خدیجه (س)",
+  heroTitle: "دبیرستان دخترانه شاهد حضرت خدیجه (س)",
+  heroDescription: "محیطی امن، پویا و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان؛ جایی برای یادگیری، تجربه و ساختن آینده‌ای روشن.",
+  footerTitle: "شاهد حضرت خدیجه (س)",
+  footerDescription: "دبیرستان دخترانه شاهد حضرت خدیجه (س) با هدف پرورش استعدادهای علمی و مهارتی دانش‌آموزان.",
   officialName: null,
   slogan: null,
   phone: null,
@@ -57,6 +69,10 @@ const initial: Settings = {
   telegramUrl: null,
   whatsappUrl: null,
   mapUrl: null,
+  namAddressUrl: null,
+  eitaaUrl: null,
+  baleUrl: null,
+  skyroomUrl: null,
   schoolStatusEnabled: false,
   schoolStatus: null,
   showNews: true,
@@ -153,19 +169,13 @@ export default function AdminSettings() {
         </section>
 
         <section className="rounded-xl border bg-card p-5">
-          <h2 className="font-semibold">ظاهر و اطلاعات سایت</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <Field label="عنوان سایت" value={form.siteTitle ?? ""} onChange={(v) => update("siteTitle", v)} />
-            <Field label="آدرس لوگو" value={form.logoUrl ?? ""} onChange={(v) => update("logoUrl", v)} />
-            <Field label="آدرس favicon" value={form.faviconUrl ?? ""} onChange={(v) => update("faviconUrl", v)} />
-            <div className="md:col-span-2">
-              <Label>توضیح سایت</Label>
-              <Textarea className="mt-1.5" value={form.siteDescription ?? ""} onChange={(e) => update("siteDescription", e.target.value)} />
-            </div>
-            <div className="md:col-span-2">
-              <Label>متن Footer</Label>
-              <Textarea className="mt-1.5" value={form.footerText ?? ""} onChange={(e) => update("footerText", e.target.value)} />
-            </div>
+          <h2 className="font-semibold">متن‌های سایت</h2>
+          <p className="mt-1 text-xs text-muted-foreground">متن‌های اصلی Hero و بخش سمت راست Footer از اینجا کنترل می‌شوند.</p>
+          <div className="mt-5 space-y-4">
+            <Field label="عنوان Hero" value={form.heroTitle} onChange={(v) => update("heroTitle", v)} required />
+            <div><Label>توضیح Hero</Label><Textarea className="mt-1.5" value={form.heroDescription} onChange={(e) => update("heroDescription", e.target.value)} /></div>
+            <Field label="عنوان بخش سمت راست Footer" value={form.footerTitle} onChange={(v) => update("footerTitle", v)} required />
+            <div><Label>متن بخش سمت راست Footer</Label><Textarea className="mt-1.5" value={form.footerDescription} onChange={(e) => update("footerDescription", e.target.value)} /></div>
           </div>
         </section>
 
@@ -175,6 +185,9 @@ export default function AdminSettings() {
             <Field label="Instagram" value={form.instagramUrl ?? ""} onChange={(v) => update("instagramUrl", v)} />
             <Field label="Telegram" value={form.telegramUrl ?? ""} onChange={(v) => update("telegramUrl", v)} />
             <Field label="WhatsApp" value={form.whatsappUrl ?? ""} onChange={(v) => update("whatsappUrl", v)} />
+            <Field label="ایتا" value={form.eitaaUrl ?? ""} onChange={(v) => update("eitaaUrl", v)} />
+            <Field label="بله" value={form.baleUrl ?? ""} onChange={(v) => update("baleUrl", v)} />
+            <Field label="اسکای‌روم" value={form.skyroomUrl ?? ""} onChange={(v) => update("skyroomUrl", v)} />
           </div>
         </section>
 
