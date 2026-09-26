@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CalendarDays } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 import Header from "@/components/layout/Header";
 import CoursesFooter from "@/components/courses/CoursesFooter";
 
@@ -13,21 +14,8 @@ type News = {
   author: string | null;
   category: string;
   tags: string[];
-  createdAt: string;
+  createdAt: Date;
 };
-
-async function getNews(slug: string): Promise<News | null> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-  const response = await fetch(
-    `${baseUrl}/api/news/${encodeURIComponent(slug)}`,
-    { cache: "no-store" },
-  );
-
-  if (!response.ok) return null;
-  return response.json();
-}
 
 export default async function NewsDetailPage({
   params,
@@ -35,7 +23,9 @@ export default async function NewsDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const news = await getNews(slug);
+  const news = await prisma.news.findFirst({
+    where: { slug, isActive: true },
+  });
 
   if (!news) notFound();
 
