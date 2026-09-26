@@ -212,6 +212,7 @@ export default function AdminEvents() {
   };
 
   return (
+    <>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">رویدادها</h1>
@@ -504,5 +505,6 @@ export default function AdminEvents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </>
   );
 }
