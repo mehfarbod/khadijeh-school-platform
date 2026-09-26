@@ -1,0 +1,1 @@
+import AdminGallery from "@/components/admin/AdminGallery"; export default function GalleryAdminPage(){return <AdminGallery/>}
