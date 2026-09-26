@@ -456,6 +456,18 @@ export default function AdminStudents() {
       return;
     }
 
+    const nationalId = form.nationalId.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))).replace(/\s/g, "");
+    if (nationalId && !/^\d{10}$/.test(nationalId)) {
+      toast.error("کد ملی باید ۱۰ رقم باشد.");
+      return;
+    }
+
+    const mobile = form.mobile.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))).replace(/[\s-]/g, "");
+    if (mobile && !/^09\d{9}$/.test(mobile)) {
+      toast.error("شماره تلفن همراه معتبر نیست.");
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -463,9 +475,9 @@ export default function AdminStudents() {
         // Student
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
-        nationalId: form.nationalId.trim() || null,
+        nationalId: nationalId || null,
         birthCertificateSerial: form.birthCertificateSerial.trim() || null,
-        mobile: form.mobile.trim() || null,
+        mobile: mobile || null,
         birthday: form.birthday.trim() || null,
 
         // Father
