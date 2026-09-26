@@ -208,7 +208,7 @@ export default function AdminLayout({
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-[#FAF8F5] text-[#1A2332]"
+      className="min-h-screen bg-[#FAF8F5] text-[#1A2332] lg:flex"
     >
       {sidebarOpen && (
         <button
