@@ -1,5 +1,6 @@
 "use client";
 
+import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
 import { Check, Trash2, X } from "lucide-react";
 
@@ -122,7 +123,7 @@ export default function AdminRegistrations() {
   };
 
   return (
-    <>
+    <AdminLayout>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-foreground">
           ثبت‌نام دوره‌ها
@@ -250,6 +251,6 @@ export default function AdminRegistrations() {
           </table>
         </div>
       </div>
-    </>
+    </AdminLayout>
   );
 }
