@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin, Clock, ArrowLeft } from "lucide-react";
 
-import { formatDateShort, toPersianNumber } from "@/lib/persian";
+import { formatJalaliDateShort, toPersianNumber } from "@/lib/persian";
 import { isUpcomingEventDate } from "@/lib/event-date";
 
 interface EventItem {
@@ -117,12 +117,12 @@ export default function UpcomingEvents() {
                 <div className="flex items-start gap-4">
                   <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/5 text-center">
                     <span className="text-[10px] font-medium leading-none text-primary/70">
-                      {formatDateShort(event.date).split(" ")[1]}
+                      {formatJalaliDateShort(event.date).split(" ")[1]}
                     </span>
 
                     <span className="mt-0.5 text-lg font-bold leading-none text-primary">
                       {toPersianNumber(
-                        parseInt(event.date.split("-")[2], 10).toString(),
+                        parseInt(event.date.replaceAll("-", "/").split("/")[2], 10).toString(),
                       )}
                     </span>
                   </div>
