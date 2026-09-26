@@ -1,0 +1,8 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth/authorization";
+
+const schema=z.object({title:z.string().trim().min(1,"عنوان تصویر الزامی است.").max(200),category:z.string().trim().min(1,"دسته‌بندی الزامی است."),categoryLabel:z.string().trim().min(1,"عنوان دسته‌بندی الزامی است."),date:z.string().trim().min(1,"تاریخ الزامی است."),imageUrl:z.string().trim().min(1,"تصویر الزامی است."),description:z.string().trim().max(2000).optional().nullable(),isActive:z.boolean().optional()});
+export async function GET(req:NextRequest){try{const sp=new URL(req.url).searchParams;const items=await prisma.galleryItem.findMany({where:{...(sp.get("activeOnly")==="false"?{}:{isActive:true}),...(sp.get("category")?{category:sp.get("category")!}:{})},orderBy:{createdAt:"desc"}});return NextResponse.json(items)}catch{return NextResponse.json({error:"خطا در دریافت گالری"},{status:500})}}
+export async function POST(req:NextRequest){try{await requireRole(["SUPER_ADMIN","SCHOOL_ADMIN","CONTENT_MANAGER"]);const r=schema.safeParse(await req.json());if(!r.success)return NextResponse.json({error:"اطلاعات تصویر معتبر نیست.",details:r.error.flatten().fieldErrors},{status:400});const x=r.data;return NextResponse.json(await prisma.galleryItem.create({data:{...x,description:x.description||null,isActive:x.isActive??true}}),{status:201})}catch(e){const status=e instanceof Error&&e.message==="UNAUTHORIZED"?401:e instanceof Error&&e.message==="FORBIDDEN"?403:500;return NextResponse.json({error:status===403?"مجوز مدیریت گالری را ندارید.":"خطا در ایجاد تصویر"},{status})}}
