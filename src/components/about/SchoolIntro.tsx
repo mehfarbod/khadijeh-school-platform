@@ -8,25 +8,25 @@ import {
 
 const defaultValues = [
   {
-    icon: BookOpen,
+    icon: "BookOpen",
     title: "آموزش مبتنی بر کاوش",
     description:
       "یادگیری را فراتر از حفظ مطالب می‌دانیم و دانش‌آموزان را به پرسش، کشف و تفکر تشویق می‌کنیم.",
   },
   {
-    icon: Heart,
+    icon: "Heart",
     title: "پرورش شخصیت و اخلاق",
     description:
       "رشد علمی در کنار شکل‌گیری شخصیت، مسئولیت‌پذیری و ارزش‌های اخلاقی دنبال می‌شود.",
   },
   {
-    icon: Lightbulb,
+    icon: "Lightbulb",
     title: "خلاقیت و نوآوری",
     description:
       "دانش‌آموزان فرصت دارند ایده‌های خود را بیان کنند، تجربه کنند و راه‌حل‌های تازه پیدا کنند.",
   },
   {
-    icon: Shield,
+    icon: "Shield",
     title: "محیط امن و حمایتی",
     description:
       "ایجاد محیطی آرام و حمایتگر برای یادگیری، ارتباط و رشد فردی از اصول مهم مدرسه است.",
@@ -66,11 +66,11 @@ export default function SchoolIntro({ data }:{data:AboutData|null}) {
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
           <div>
             <p className="mb-3 text-xs font-semibold tracking-wide text-[#B86F5B]">
-              معرفی مدرسه
+              {d.introEyebrow}
             </p>
 
             <h2 className="max-w-[620px] text-2xl font-bold leading-[1.7] text-[#194342] sm:text-3xl">
-              تربیت نسلی متعهد، خلاق و مستقل
+              {d.introTitle}
             </h2>
 
             <div className="mt-5 max-w-[650px] space-y-4 text-[13.5px] leading-[2.1] text-[#667085] sm:text-[14px]">
@@ -104,11 +104,11 @@ export default function SchoolIntro({ data }:{data:AboutData|null}) {
 
               <div>
                 <p className="text-[12.5px] font-semibold text-[#194342]">
-                  جامعه‌ای برای رشد و یادگیری
+                  {d.communityTitle}
                 </p>
 
                 <p className="mt-1 text-[11px] leading-5 text-[#667085]">
-                  دانش‌آموزان، دبیران و خانواده‌ها در مسیر رشد دانش‌آموزان همراه هستند.
+                  {d.communityDescription}
                 </p>
               </div>
             </div>
