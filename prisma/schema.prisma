@@ -47,6 +47,7 @@ model Student {
   birthCertificateSerial String?
   mobile                 String?
   birthday               DateTime?
+  isBirthdayVisible      Boolean   @default(true)
   photo                  String?
 
   // Father information
@@ -646,6 +647,10 @@ model SchoolSettings {
   siteDescription       String?
   footerText            String?
   mapUrl                String?
+  namAddressUrl         String?
+  eitaaUrl              String?
+  baleUrl               String?
+  skyroomUrl            String?
   schoolStatusEnabled   Boolean  @default(false)
   schoolStatus          String?
   showNews              Boolean  @default(true)
