@@ -1,0 +1,1 @@
+ALTER TABLE "Student" ADD COLUMN "isBirthdayVisible" BOOLEAN NOT NULL DEFAULT true;
