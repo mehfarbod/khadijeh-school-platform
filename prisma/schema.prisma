@@ -628,6 +628,10 @@ model AdmissionApplication {
 model SchoolSettings {
   id                    String   @id @default("school-settings")
   schoolName            String
+  heroTitle             String
+  heroDescription       String
+  footerTitle           String
+  footerDescription     String
   officialName          String?
   slogan                String?
   phone                 String?
