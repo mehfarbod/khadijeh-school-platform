@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Announcement = {
@@ -49,12 +50,14 @@ export default function AnnouncementTicker() {
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="ticker-track flex w-max items-center gap-16 pr-8">
             {[...announcements, ...announcements].map((announcement, index) => (
-              <span
+              <Link
                 key={`${announcement.id}-${index}`}
-                className="whitespace-nowrap text-xs text-white/80"
+                href="/announcements"
+                className="whitespace-nowrap text-xs text-white/80 transition-colors hover:text-white"
+                aria-label={`مشاهده اطلاعیه: ${announcement.title}`}
               >
                 ⬥ {announcement.title}
-              </span>
+              </Link>
             ))}
           </div>
         </div>
