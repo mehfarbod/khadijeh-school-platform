@@ -5,9 +5,9 @@ import { requireRole } from "@/lib/auth/authorization";
 
 const createContactMessageSchema = z.object({
   name: z.string().trim().min(1, "نام الزامی است.").max(150),
-  phone: z.string().trim().min(1, "شماره تماس الزامی است.").max(30),
+  phone: z.string().trim().min(1, "شماره تماس الزامی است.").regex(/^09\d{9}$/, "شماره تلفن همراه معتبر نیست."),
   department: z.enum(["management", "deputy", "education"]),
-  subject: z.string().trim().max(300).optional().or(z.literal("")),
+  subject: z.string().trim().min(1, "موضوع پیام الزامی است.").max(300),
   message: z.string().trim().min(1, "متن پیام الزامی است.").max(10000),
 });
 
