@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Mail, MapPin, Phone } from "lucide-react";
+import { BookOpen, Mail, MapPin, Phone, Send, MessageCircle, Video } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -51,6 +51,14 @@ export default function Footer() {
             <h2 className="text-[15px] font-bold text-[#194342]">{settings.footerTitle}</h2>
           </div>
           <p className="mt-4 max-w-[330px] text-[12.5px] leading-[1.9] text-[#667085]">{settings.footerDescription}</p>
+          {socials.length > 0 && (
+            <div className="mt-5 flex items-center gap-3">
+              {socials.map(([label, url]) => {
+                const Icon = label === "ایتا" ? Send : label === "بله" ? MessageCircle : Video;
+                return <a key={label} href={url} target="_blank" rel="noreferrer" aria-label={label} title={label} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#DBE7C1] text-[#194342] transition hover:bg-[#C9DDA8] hover:text-[#B86F5B]"><Icon className="h-4 w-4" /></a>;
+              })}
+            </div>
+          )}
         </div>
 
         <div>
