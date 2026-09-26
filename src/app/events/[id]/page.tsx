@@ -3,7 +3,7 @@ import { ArrowRight, CalendarDays, Clock3, MapPin } from "lucide-react";
 
 import Header from "@/components/layout/Header";
 import CoursesFooter from "@/components/courses/CoursesFooter";
-import { formatGregorianDateAsJalali } from "@/lib/jalali";
+import { toPersianDigits } from "@/lib/jalali";
 import { prisma } from "@/lib/prisma";
 
 interface EventDetailPageProps {
@@ -59,7 +59,7 @@ export default async function EventDetailPage({
     );
   }
 
-  const formattedDate = formatGregorianDateAsJalali(event.date);
+  const formattedDate = toPersianDigits(event.date.replaceAll("-", "/"));
 
   return (
     <>
