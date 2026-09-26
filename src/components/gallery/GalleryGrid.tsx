@@ -1,90 +1,14 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import GalleryCard, {
   type GalleryCategory,
   type GalleryItem,
 } from "./GalleryCard";
 import type { GalleryFilter } from "./GalleryFilters";
 
-const galleryItems: GalleryItem[] = [
-  {
-    id: 1,
-    title: "فعالیت‌های علمی دانش‌آموزان",
-    category: "school-activities",
-    categoryLabel: "فعالیت‌های مدرسه",
-    date: "۱۵ شهریور ۱۴۰۵",
-    bgColor: "#DBE7C1",
-  },
-  {
-    id: 2,
-    title: "جشن آغاز سال تحصیلی",
-    category: "events",
-    categoryLabel: "مراسم و مناسبت‌ها",
-    date: "۱۰ شهریور ۱۴۰۵",
-    bgColor: "#BFD7EA",
-  },
-  {
-    id: 3,
-    title: "کارگاه مهارت‌های زندگی",
-    category: "school-activities",
-    categoryLabel: "فعالیت‌های مدرسه",
-    date: "۸ شهریور ۱۴۰۵",
-    bgColor: "#EEF2F7",
-  },
-  {
-    id: 4,
-    title: "اردوی فرهنگی دانش‌آموزان",
-    category: "trips",
-    categoryLabel: "اردوها و بازدیدها",
-    date: "۲ شهریور ۱۴۰۵",
-    bgColor: "#DBE7C1",
-  },
-  {
-    id: 5,
-    title: "مراسم بزرگداشت معلمان",
-    category: "events",
-    categoryLabel: "مراسم و مناسبت‌ها",
-    date: "۲۸ مرداد ۱۴۰۵",
-    bgColor: "#BFD7EA",
-  },
-  {
-    id: 6,
-    title: "نمایشگاه دستاوردهای دانش‌آموزی",
-    category: "school-activities",
-    categoryLabel: "فعالیت‌های مدرسه",
-    date: "۲۵ مرداد ۱۴۰۵",
-    bgColor: "#EEF2F7",
-  },
-  {
-    id: 7,
-    title: "بازدید علمی از مرکز پژوهشی",
-    category: "trips",
-    categoryLabel: "اردوها و بازدیدها",
-    date: "۲۰ مرداد ۱۴۰۵",
-    bgColor: "#BFD7EA",
-  },
-  {
-    id: 8,
-    title: "مراسم فرهنگی مدرسه",
-    category: "events",
-    categoryLabel: "مراسم و مناسبت‌ها",
-    date: "۱۸ مرداد ۱۴۰۵",
-    bgColor: "#DBE7C1",
-  },
-];
-
-export function getGalleryItems(
-  activeFilter: GalleryFilter
-) {
-  if (activeFilter === "all") {
-    return galleryItems;
-  }
-
-  return galleryItems.filter(
-    (item) => item.category === activeFilter
-  );
-}
+const galleryItems: GalleryItem[] = [];
 
 interface GalleryGridProps {
   activeFilter: GalleryFilter;
@@ -93,8 +17,10 @@ interface GalleryGridProps {
 export default function GalleryGrid({
   activeFilter,
 }: GalleryGridProps) {
-  const filteredItems =
-    getGalleryItems(activeFilter);
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetch("/api/gallery").then(r => r.json()).then(data => setItems(Array.isArray(data) ? data : [])).finally(() => setLoading(false)); }, []);
+  const filteredItems = activeFilter === "all" ? items : items.filter(item => item.category === activeFilter);
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-5 py-10 sm:px-6 sm:py-12">
@@ -104,7 +30,9 @@ export default function GalleryGrid({
         </p>
       </div>
 
-      {filteredItems.length > 0 ? (
+      {loading ? (
+        <div className="flex min-h-[220px] items-center justify-center text-sm text-[#667085]">در حال دریافت تصاویر...</div>
+      ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filteredItems.map((item) => (
             <GalleryCard
