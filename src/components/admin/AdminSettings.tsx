@@ -155,10 +155,25 @@ export default function AdminSettings() {
               <Label>آدرس</Label>
               <Textarea className="mt-1.5" value={form.address ?? ""} onChange={(e) => update("address", e.target.value)} />
             </div>
-            <div className="md:col-span-2">
-              <Label>لینک نقشه</Label>
-              <Input className="mt-1.5" value={form.mapUrl ?? ""} onChange={(e) => update("mapUrl", e.target.value)} />
-            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-card p-5">
+          <h2 className="font-semibold">نقشه</h2>
+          <p className="mt-1 text-xs text-muted-foreground">لینک موقعیت مدرسه روی نقشه.</p>
+          <div className="mt-5">
+            <Label>لینک نقشه</Label>
+            <Input className="mt-1.5" value={form.mapUrl ?? ""} onChange={(e) => update("mapUrl", e.target.value)} />
+          </div>
+        </section>
+
+        <section className="rounded-xl border bg-card p-5">
+          <h2 className="font-semibold">مسیریابی</h2>
+          <p className="mt-1 text-xs text-muted-foreground">لینک مسیریابی مدرسه در نشان.</p>
+          <div className="mt-5">
+            <Label>لینک مسیریابی نشان</Label>
+            <Input className="mt-1.5" value={form.namAddressUrl ?? ""} onChange={(e) => update("namAddressUrl", e.target.value)} />
+          </div>
           </div>
         </section>
 
