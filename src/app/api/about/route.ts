@@ -1,0 +1,8 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth/authorization";
+const item=z.object({value:z.string().trim().min(1),label:z.string().trim().min(1)}); const value=z.object({title:z.string().trim().min(1),description:z.string().trim().min(1),icon:z.string().trim().min(1)});
+const schema=z.object({heroBadge:z.string().trim().min(1),heroTitle:z.string().trim().min(1),heroDescription:z.string().trim().min(1),introEyebrow:z.string().trim().min(1),introTitle:z.string().trim().min(1),introContent:z.string().trim().min(1),stats:z.array(item).max(8),values:z.array(value).max(8),communityTitle:z.string().trim().min(1),communityDescription:z.string().trim().min(1)});
+export async function GET(){try{return NextResponse.json(await prisma.aboutPage.findUnique({where:{id:"school-about"}}))}catch{return NextResponse.json({error:"خطا در دریافت اطلاعات درباره مدرسه"},{status:500})}}
+export async function PUT(req:NextRequest){try{await requireRole(["SUPER_ADMIN","SCHOOL_ADMIN","CONTENT_MANAGER"]);const r=schema.safeParse(await req.json());if(!r.success)return NextResponse.json({error:"اطلاعات درباره مدرسه معتبر نیست.",details:r.error.flatten().fieldErrors},{status:400});return NextResponse.json(await prisma.aboutPage.upsert({where:{id:"school-about"},create:{id:"school-about",...r.data},update:r.data}))}catch(e){const status=e instanceof Error&&e.message==="UNAUTHORIZED"?401:e instanceof Error&&e.message==="FORBIDDEN"?403:500;return NextResponse.json({error:status===403?"مجوز ویرایش درباره مدرسه را ندارید.":"خطا در ذخیره اطلاعات"},{status})}}
