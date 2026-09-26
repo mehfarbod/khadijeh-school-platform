@@ -2,8 +2,6 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 
-import AdminLayout from "@/components/admin/AdminLayout";
-
 import { FormEvent, useEffect, useState } from "react";
 
 type Video = {
