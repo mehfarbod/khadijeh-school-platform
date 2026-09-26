@@ -1,6 +1,5 @@
 "use client";
 
-import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -276,7 +275,7 @@ export default function AdminStaff() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -366,6 +365,6 @@ export default function AdminStaff() {
       </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}><AlertDialogContent dir="rtl"><AlertDialogHeader><AlertDialogTitle>حذف عضو کادر</AlertDialogTitle><AlertDialogDescription>با حذف این عضو، اطلاعات او از کادر مدرسه حذف می‌شود. این عملیات قابل بازگشت نیست.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>انصراف</AlertDialogCancel><AlertDialogAction onClick={handleDelete} className="bg-destructive text-white">حذف</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-    </AdminLayout>
+    </>
   );
 }
