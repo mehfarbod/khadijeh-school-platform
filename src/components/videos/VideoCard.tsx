@@ -16,7 +16,9 @@ export type VideoGrade =
   | "grade-12";
 
 export type Video = {
-  id: number;
+  id: string;
+  slug: string;
+  videoUrl: string;
   title: string;
   subject: VideoSubject;
   grade: VideoGrade;
@@ -91,7 +93,7 @@ export default function VideoCard({ video }: { video: Video }) {
 
         {/* Action */}
         <Link
-          href={`/videos/${video.id}`}
+          href={`/videos/${video.slug}`}
           className="group mt-4 flex items-center gap-1.5 text-[12.5px] font-semibold text-[#194342] transition-colors hover:text-[#B86F5B]"
         >
           <span>مشاهده ویدیو</span>
