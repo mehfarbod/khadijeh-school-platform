@@ -62,25 +62,45 @@ function ContactMainContent() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setSubmitError("");
+    setErrors({});
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-
+    const nextErrors: Record<string, string> = {};
+    const name = String(formData.get("fullName") ?? "").trim();
+    const phone = String(formData.get("phone") ?? "").replace(/[۰-۹]/g, d => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[\s-]/g, "");
+    const department = String(formData.get("department") ?? "");
+    const subject = String(formData.get("subject") ?? "");
+    const message = String(formData.get("message") ?? "").trim();
+    if (!department) nextErrors.department = "لطفاً مقصد پیام را انتخاب کنید.";
+    if (!name) nextErrors.fullName = "نام و نام خانوادگی الزامی است.";
+    else if (name.length < 3) nextErrors.fullName = "نام و نام خانوادگی معتبر نیست.";
+    if (!phone) nextErrors.phone = "شماره تماس الزامی است.";
+    else if (!/^09\d{9}$/.test(phone)) nextErrors.phone = "شماره تلفن همراه معتبر نیست.";
+    if (!subject) nextErrors.subject = "موضوع پیام را انتخاب کنید.";
+    if (!message) nextErrors.message = "متن پیام الزامی است.";
+    else if (message.length < 5) nextErrors.message = "متن پیام باید حداقل ۵ کاراکتر باشد.";
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      setIsSubmitting(false);
+      return;
+    }
     try {
       const response = await fetch("/api/contact-messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.get("fullName"),
-          phone: formData.get("phone"),
-          department: formData.get("department"),
-          subject: formData.get("subject"),
-          message: formData.get("message"),
+          name,
+          phone,
+          department,
+          subject,
+          message,
         }),
       });
 
@@ -183,7 +203,7 @@ function ContactMainContent() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
                 {/* Department */}
                 <div>
                   <label
@@ -213,6 +233,7 @@ function ContactMainContent() {
 
                     <option value="education">کادر آموزشی</option>
                   </select>
+                  {errors.department && <p className="mt-1.5 text-[11.5px] text-red-500">{errors.department}</p>}
                 </div>
 
                 {/* Name + Phone */}
@@ -233,6 +254,7 @@ function ContactMainContent() {
                       placeholder="نام و نام خانوادگی"
                       className="h-11 w-full rounded-[11px] border border-[#DCE5D4] bg-[#FAF8F3] px-3.5 text-[12px] text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#194342]"
                     />
+                    {errors.fullName && <p className="mt-1.5 text-[11.5px] text-red-500">{errors.fullName}</p>}
                   </div>
 
                   <div>
@@ -251,6 +273,7 @@ function ContactMainContent() {
                       placeholder="شماره تماس"
                       className="h-11 w-full rounded-[11px] border border-[#DCE5D4] bg-[#FAF8F3] px-3.5 text-[12px] text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#194342]"
                     />
+                    {errors.phone && <p className="mt-1.5 text-[11.5px] text-red-500">{errors.phone}</p>}
                   </div>
                 </div>
 
@@ -280,6 +303,7 @@ function ContactMainContent() {
                       </option>
                     ))}
                   </select>
+                  {errors.subject && <p className="mt-1.5 text-[11.5px] text-red-500">{errors.subject}</p>}
                 </div>
 
                 {/* Message */}
@@ -299,6 +323,7 @@ function ContactMainContent() {
                     placeholder="پیام خود را بنویسید..."
                     className="w-full resize-none rounded-[11px] border border-[#DCE5D4] bg-[#FAF8F3] px-3.5 py-3 text-[12px] leading-6 text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#194342]"
                   />
+                  {errors.message && <p className="mt-1.5 text-[11.5px] text-red-500">{errors.message}</p>}
                 </div>
 
                 {submitError && (
