@@ -3,12 +3,9 @@
 
 import { useEffect, useState } from "react";
 import GalleryCard, {
-  type GalleryCategory,
   type GalleryItem,
 } from "./GalleryCard";
 import type { GalleryFilter } from "./GalleryFilters";
-
-const galleryItems: GalleryItem[] = [];
 
 interface GalleryGridProps {
   activeFilter: GalleryFilter;
