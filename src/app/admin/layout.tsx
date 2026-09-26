@@ -1,14 +1,9 @@
 import RequireAuth from "@/components/RequireAuth";
-import AdminLayout from "@/components/admin/AdminLayout";
 
-export default function AdminRootLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <RequireAuth>
-      <AdminLayout>{children}</AdminLayout>
-    </RequireAuth>
-  );
+  return <RequireAuth>{children}</RequireAuth>;
 }
