@@ -216,6 +216,7 @@ export default function AdminAnnouncements() {
   };
 
   return (
+    <>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-foreground">
@@ -547,5 +548,6 @@ export default function AdminAnnouncements() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </>
   );
 }
