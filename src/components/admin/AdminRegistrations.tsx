@@ -3,6 +3,7 @@
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useState } from "react";
 import { Check, Search, Trash2, X } from "lucide-react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 type Registration = {
   id: string;
@@ -39,6 +40,7 @@ export default function AdminRegistrations() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Registration["status"] | "ALL">("ALL");
   const [selected, setSelected] = useState<Registration | null>(null);
+  const [deleteItem, setDeleteItem] = useState<Registration | null>(null);
 
   const load = async () => {
     try {
@@ -97,12 +99,6 @@ export default function AdminRegistrations() {
   };
 
   const removeRegistration = async (item: Registration) => {
-    const confirmed = window.confirm(
-      `ثبت‌نام «${item.studentFirstName} ${item.studentLastName}» در دوره «${item.course.title}» حذف شود؟`,
-    );
-
-    if (!confirmed) return;
-
     try {
       setError("");
 
@@ -257,7 +253,7 @@ export default function AdminRegistrations() {
                         <button
                           type="button"
                           title="حذف ثبت‌نام"
-                          onClick={() => removeRegistration(item)}
+                          onClick={() => setDeleteItem(item)}
                           className="rounded-md p-2 text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -286,6 +282,7 @@ export default function AdminRegistrations() {
           </div>
         </div>
       )}
+      <ConfirmDialog open={!!deleteItem} onOpenChange={(open) => { if (!open) setDeleteItem(null); }} title="حذف ثبت‌نام" description={deleteItem ? `ثبت‌نام «${deleteItem.studentFirstName} ${deleteItem.studentLastName}» در دوره «${deleteItem.course.title}» حذف شود؟` : ""} confirmLabel="حذف" onConfirm={async () => { if (!deleteItem) return; await removeRegistration(deleteItem); setDeleteItem(null); }} />
     </AdminLayout>
   );
 }
