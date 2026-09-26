@@ -62,6 +62,11 @@ const sidebarGroups: SidebarGroup[] = [
         icon: Users,
       },
       {
+        label: "دانش‌آموزان غیرفعال",
+        href: "/admin/students?status=inactive",
+        icon: UserRoundX,
+      },
+      {
         label: "کادر مدرسه",
         href: "/admin/staff",
         icon: GraduationCap,
