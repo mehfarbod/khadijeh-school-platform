@@ -4,6 +4,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
 import { gregorianToJalali } from "@/lib/date/jalali";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -182,6 +183,9 @@ const emptyForm: StudentForm = {
 };
 
 export default function AdminStudents() {
+  const searchParams = useSearchParams();
+  const showInactive = searchParams.get("status") === "inactive";
+
   const [students, setStudents] = useState<Student[] | null>(null);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
 
@@ -231,7 +235,7 @@ export default function AdminStudents() {
     try {
       const params = new URLSearchParams();
 
-      params.set("activeOnly", "true");
+      params.set("activeOnly", showInactive ? "false" : "true");
 
       if (selectedYearId) {
         params.set("academicYearId", selectedYearId);
@@ -275,7 +279,7 @@ export default function AdminStudents() {
     if (academicYears.length > 0) {
       loadStudents();
     }
-  }, [selectedYearId, selectedGrade, selectedClass, academicYears.length]);
+  }, [selectedYearId, selectedGrade, selectedClass, academicYears.length, showInactive]);
 
   const selectedYear = academicYears.find((year) => year.id === selectedYearId);
 
@@ -550,6 +554,22 @@ export default function AdminStudents() {
     }
   };
 
+  const handleReactivate = async (studentId: string) => {
+    try {
+      const response = await fetch(`/api/students/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: true }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "خطا در فعال‌سازی دانش‌آموز");
+      toast.success("دانش‌آموز دوباره فعال شد.");
+      await loadStudents();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "خطا در فعال‌سازی دانش‌آموز");
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteId) {
       return;
@@ -596,13 +616,14 @@ export default function AdminStudents() {
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">دانش‌آموزان</h1>
+          <h1 className="text-xl font-bold text-foreground">{showInactive ? "دانش‌آموزان غیرفعال" : "دانش‌آموزان"}</h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            مدیریت دانش‌آموزان بر اساس سال تحصیلی، پایه و کلاس
+            {showInactive ? "آرشیو دانش‌آموزانی که از فهرست فعال خارج شده‌اند" : "مدیریت دانش‌آموزان بر اساس سال تحصیلی، پایه و کلاس"}
           </p>
         </div>
 
+        {!showInactive && (
         <Button
           onClick={openCreate}
           size="sm"
@@ -612,6 +633,7 @@ export default function AdminStudents() {
           <Plus className="h-4 w-4" />
           افزودن دانش‌آموز
         </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -862,24 +884,36 @@ export default function AdminStudents() {
 
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => openEdit(student)}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-
-                          {student.isActive && (
+                          {showInactive ? (
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive"
-                              onClick={() => setDeleteId(student.id)}
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5"
+                              onClick={() => handleReactivate(student.id)}
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <UserRound className="h-3.5 w-3.5" />
+                              فعال‌سازی
                             </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => openEdit(student)}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive"
+                                onClick={() => setDeleteId(student.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </td>
