@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Check, Edit3, Plus, Power, Trash2, X } from "lucide-react";
 import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
 import { gregorianToJalali } from "@/lib/date/jalali";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 type Course = {
   id: string; title: string; slug: string; description: string; fullDescription: string | null;
@@ -63,6 +64,7 @@ export default function AdminCourses() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [registrations, setRegistrations] = useState<Registration[] | null>(null);
   const [registrationsError, setRegistrationsError] = useState("");
+  const [deleteCourse, setDeleteCourse] = useState<Course | null>(null);
 
   const load = async () => {
     const response = await fetch("/api/courses?activeOnly=false", { cache: "no-store" });
@@ -148,7 +150,6 @@ export default function AdminCourses() {
   };
 
   const remove = async (course: Course) => {
-    if (!window.confirm(`دوره «${course.title}» حذف/غیرفعال شود؟`)) return;
     const response = await fetch(`/api/courses?id=${course.id}`, { method: "DELETE" });
     if (response.ok) await load();
     else { const data = await response.json(); window.alert(data?.error || "عملیات انجام نشد."); }
@@ -284,6 +285,7 @@ export default function AdminCourses() {
           <div className="mt-6 flex justify-end gap-2"><button onClick={()=>setOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm">انصراف</button><button disabled={saving} onClick={save} className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">{saving ? "در حال ذخیره..." : "ذخیره دوره"}</button></div>
         </div>
       </div>}
+      <ConfirmDialog open={!!deleteCourse} onOpenChange={(open) => { if (!open) setDeleteCourse(null); }} title="حذف دوره" description={deleteCourse ? `دوره «${deleteCourse.title}» حذف/غیرفعال شود؟` : ""} confirmLabel="حذف" onConfirm={async () => { if (!deleteCourse) return; await remove(deleteCourse); setDeleteCourse(null); }} />
     </AdminLayout>
   );
 }
