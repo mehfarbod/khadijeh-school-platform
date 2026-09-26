@@ -275,6 +275,7 @@ export async function POST(request: NextRequest) {
         mobile: data.mobile || null,
         photo: data.photo || null,
         birthday,
+        isBirthdayVisible: true,
 
         // Father information
         fatherFirstName: data.fatherFirstName || null,
