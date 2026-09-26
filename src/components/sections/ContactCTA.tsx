@@ -1,27 +1,57 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Phone, Mail, MapPin, ArrowLeft } from "lucide-react";
 
-const contactItems = [
-  {
-    icon: Phone,
-    label: "تلفن",
-    value: "۰۲۱-۸۸۷۷۶۶۵۵",
-  },
-  {
-    icon: Mail,
-    label: "ایمیل",
-    value: "info@khadijeh-school.ir",
-  },
-  {
-    icon: MapPin,
-    label: "آدرس",
-    value: "قم، نیروگاه، 20 متری زاد",
-  },
-];
+type ContactSettings = {
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+};
+
+const fallbackSettings: ContactSettings = {
+  phone: "۰۲۱-۱۲۳۴۵۶۷۸",
+  email: "info@khadijeh-school.ir",
+  address: "تهران، خیابان نمونه، کوچه مدرسه، دبیرستان شاهد حضرت خدیجه (س)",
+};
 
 export default function ContactCTA() {
+  const [settings, setSettings] = useState<ContactSettings>(fallbackSettings);
+
+  useEffect(() => {
+    fetch("/api/settings/public", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!data) return;
+
+        setSettings({
+          phone: data.phone || data.mobile || null,
+          email: data.email || null,
+          address: data.address || null,
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  const contactItems = [
+    {
+      icon: Phone,
+      label: "تلفن",
+      value: settings.phone,
+    },
+    {
+      icon: Mail,
+      label: "ایمیل",
+      value: settings.email,
+    },
+    {
+      icon: MapPin,
+      label: "آدرس",
+      value: settings.address,
+    },
+  ];
+
   return (
     <section className="bg-[#194342] px-6 py-14 text-white md:py-16">
       <div className="mx-auto max-w-screen-xl">
@@ -73,7 +103,7 @@ export default function ContactCTA() {
                     </p>
 
                     <p className="truncate text-[13px] text-white">
-                      {item.value}
+                      {item.value || "—"}
                     </p>
                   </div>
                 </div>
