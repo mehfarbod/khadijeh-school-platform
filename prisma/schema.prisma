@@ -221,6 +221,18 @@ model TopStudent {
   @@index([isActive])
 }
 
+model DailyAbsence {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  grade     String
+  dateKey   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dateKey])
+}
+
 model Birthday {
   id        String   @id @default(cuid())
   studentId String?
