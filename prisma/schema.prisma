@@ -326,7 +326,7 @@ model EducationalProgram {
   examSchedule              ExamSchedule?
   calendarEvents            EducationalCalendarEvent[]
   parentMeetings            ParentMeeting[]
-  familyCounselingSessions  FamilyCounselingSession?
+  familyCounselingSessions  FamilyCounselingSession[]
 
   @@index([isActive])
   @@index([createdAt])
