@@ -24,6 +24,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 type Permission = {
   key: string;
@@ -107,6 +108,7 @@ export default function AdminUsers() {
   const [permissionState, setPermissionState] = useState<Record<string, boolean | null>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleteUser, setDeleteUser] = useState<UserItem | null>(null);
 
   const loadUsers = async () => {
     try {
@@ -244,8 +246,6 @@ export default function AdminUsers() {
   };
 
   const handleDelete = async (user: UserItem) => {
-    if (!window.confirm(`آیا از حذف کاربر «${user.name || user.email}» مطمئن هستید؟`)) return;
-
     try {
       const response = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
       const result = await response.json();
@@ -395,7 +395,7 @@ export default function AdminUsers() {
                             </Button>
                           )}
                           {user.id !== data?.currentUserId && data?.canEdit && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => void handleDelete(user)} title="حذف">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteUser(user)} title="حذف">
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           )}
@@ -583,6 +583,7 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog open={!!deleteUser} onOpenChange={(open) => { if (!open) setDeleteUser(null); }} title="حذف کاربر" description={deleteUser ? `آیا از حذف کاربر «${deleteUser.name || deleteUser.email}» مطمئن هستید؟` : ""} confirmLabel="حذف" onConfirm={async () => { if (!deleteUser) return; await handleDelete(deleteUser); setDeleteUser(null); }} />
     </AdminLayout>
   );
 }
