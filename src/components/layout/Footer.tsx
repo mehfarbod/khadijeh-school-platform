@@ -10,9 +10,6 @@ type Settings = {
   phone: string | null;
   email: string | null;
   address: string | null;
-  instagramUrl: string | null;
-  telegramUrl: string | null;
-  whatsappUrl: string | null;
   eitaaUrl: string | null;
   baleUrl: string | null;
   skyroomUrl: string | null;
@@ -24,7 +21,6 @@ const fallback: Settings = {
   phone: "۰۲۱-۱۲۳۴۵۶۷۸",
   email: "info@khadijeh-school.ir",
   address: "تهران، خیابان آموزش، کوچه مدرسه",
-  instagramUrl: null, telegramUrl: null, whatsappUrl: null,
   eitaaUrl: null, baleUrl: null, skyroomUrl: null,
 };
 
@@ -39,9 +35,6 @@ export default function Footer() {
   }, []);
 
   const socials = [
-    ["اینستاگرام", settings.instagramUrl],
-    ["تلگرام", settings.telegramUrl],
-    ["واتساپ", settings.whatsappUrl],
     ["ایتا", settings.eitaaUrl],
     ["بله", settings.baleUrl],
     ["اسکای‌روم", settings.skyroomUrl],
