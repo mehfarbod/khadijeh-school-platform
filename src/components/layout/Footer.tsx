@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Mail, MapPin, Phone, Send, MessageCircle, Video } from "lucide-react";
+import { BookOpen, Mail, MapPin, Phone, Video } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -21,7 +21,14 @@ const fallback: Settings = {
   phone: "۰۲۱-۱۲۳۴۵۶۷۸",
   email: "info@khadijeh-school.ir",
   address: "تهران، خیابان آموزش، کوچه مدرسه",
-  eitaaUrl: null, baleUrl: null, skyroomUrl: null,
+  eitaaUrl: null,
+  baleUrl: null,
+  skyroomUrl: null,
+};
+
+const socialLogoSrc: Record<string, string> = {
+  "ایتا": "https://raw.githubusercontent.com/aasaam/brand-icons/master/svg/ir_eitaa.svg",
+  "بله": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bale.svg",
 };
 
 export default function Footer() {
@@ -50,13 +57,35 @@ export default function Footer() {
             </div>
             <h2 className="text-[15px] font-bold text-[#194342]">{settings.footerTitle}</h2>
           </div>
-          <p className="mt-4 max-w-[330px] text-[12.5px] leading-[1.9] text-[#667085]">{settings.footerDescription}</p>
+
+          <p className="mt-4 max-w-[330px] text-[12.5px] leading-[1.9] text-[#667085]">
+            {settings.footerDescription}
+          </p>
+
           {socials.length > 0 && (
             <div className="mt-5 flex items-center gap-3">
-              {socials.map(([label, url]) => {
-                const Icon = label === "ایتا" ? Send : label === "بله" ? MessageCircle : Video;
-                return <a key={label} href={url} target="_blank" rel="noreferrer" aria-label={label} title={label} className="flex h-9 w-9 items-center justify-center rounded-full bg-[#DBE7C1] text-[#194342] transition hover:bg-[#C9DDA8] hover:text-[#B86F5B]"><Icon className="h-4 w-4" /></a>;
-              })}
+              {socials.map(([label, url]) => (
+                <a
+                  key={label}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  title={label}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DBE7C1] transition hover:bg-[#C9DDA8]"
+                >
+                  {socialLogoSrc[label] ? (
+                    <img
+                      src={socialLogoSrc[label]}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-5 w-5 object-contain"
+                    />
+                  ) : (
+                    <Video className="h-5 w-5 text-[#194342]" />
+                  )}
+                </a>
+              ))}
             </div>
           )}
         </div>
@@ -74,20 +103,27 @@ export default function Footer() {
         <div>
           <h3 className="text-[13px] font-bold text-[#194342]">تماس با ما</h3>
           <div className="mt-4 space-y-3">
-            {settings.address && <div className="flex items-start gap-2.5"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /><span className="text-[12.5px] leading-6 text-[#667085]">{settings.address}</span></div>}
-            {settings.phone && <div className="flex items-center gap-2.5"><Phone className="h-4 w-4 shrink-0" /><span dir="ltr" className="text-[12.5px] text-[#667085]">{settings.phone}</span></div>}
-            {settings.email && <div className="flex items-center gap-2.5"><Mail className="h-4 w-4 shrink-0" /><span className="text-[12.5px] text-[#667085]">{settings.email}</span></div>}
+            {settings.address && (
+              <div className="flex items-start gap-2.5">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="text-[12.5px] leading-6 text-[#667085]">{settings.address}</span>
+              </div>
+            )}
+            {settings.phone && (
+              <div className="flex items-center gap-2.5">
+                <Phone className="h-4 w-4 shrink-0" />
+                <span dir="ltr" className="text-[12.5px] text-[#667085]">{settings.phone}</span>
+              </div>
+            )}
+            {settings.email && (
+              <div className="flex items-center gap-2.5">
+                <Mail className="h-4 w-4 shrink-0" />
+                <span className="text-[12.5px] text-[#667085]">{settings.email}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {socials.length > 0 && (
-        <div className="border-t border-[#E1E8D6]">
-          <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-center gap-x-5 gap-y-2 px-6 py-4">
-            {socials.map(([label, url]) => <a key={label} href={url} target="_blank" rel="noreferrer" className="text-[11.5px] text-[#667085] hover:text-[#B86F5B]">{label}</a>)}
-          </div>
-        </div>
-      )}
 
       <div className="border-t border-[#E1E8D6]">
         <div className="mx-auto max-w-[1200px] px-6 py-5 text-center">
