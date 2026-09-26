@@ -61,33 +61,6 @@ export default function Footer() {
           <p className="mt-4 max-w-[330px] text-[12.5px] leading-[1.9] text-[#667085]">
             {settings.footerDescription}
           </p>
-
-          {socials.length > 0 && (
-            <div className="mt-5 flex items-center gap-3">
-              {socials.map(([label, url]) => (
-                <a
-                  key={label}
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={label}
-                  title={label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DBE7C1] transition hover:bg-[#C9DDA8]"
-                >
-                  {socialLogoSrc[label] ? (
-                    <img
-                      src={socialLogoSrc[label]}
-                      alt=""
-                      aria-hidden="true"
-                      className="h-5 w-5 object-contain"
-                    />
-                  ) : (
-                    <Video className="h-5 w-5 text-[#194342]" />
-                  )}
-                </a>
-              ))}
-            </div>
-          )}
         </div>
 
         <div>
@@ -119,6 +92,33 @@ export default function Footer() {
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0" />
                 <span className="text-[12.5px] text-[#667085]">{settings.email}</span>
+              </div>
+            )}
+
+            {socials.length > 0 && (
+              <div className="flex items-center gap-3 pt-2">
+                {socials.map(([label, url]) => (
+                  <a
+                    key={label}
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#DBE7C1] transition hover:bg-[#C9DDA8]"
+                  >
+                    {socialLogoSrc[label] ? (
+                      <img
+                        src={socialLogoSrc[label]}
+                        alt=""
+                        aria-hidden="true"
+                        className="h-5 w-5 object-contain"
+                      />
+                    ) : (
+                      <Video className="h-5 w-5 text-[#194342]" />
+                    )}
+                  </a>
+                ))}
               </div>
             )}
           </div>
