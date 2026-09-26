@@ -117,6 +117,10 @@ export default function AdminCourses() {
     if (!form.title.trim() || !form.description.trim() || !form.category.trim()) {
       setError("عنوان، توضیح کوتاه و دسته‌بندی الزامی است."); return;
     }
+    const capacity = Number(form.capacity);
+    const price = form.price ? Number(form.price) : null;
+    if (!Number.isInteger(capacity) || capacity < 1) { setError("ظرفیت باید حداقل ۱ نفر باشد."); return; }
+    if (price !== null && (!Number.isFinite(price) || price < 0)) { setError("هزینه دوره معتبر نیست."); return; }
     setSaving(true); setError("");
     try {
       const response = await fetch(editing ? `/api/courses?id=${editing.id}` : "/api/courses", {
