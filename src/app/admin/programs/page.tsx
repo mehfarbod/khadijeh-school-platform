@@ -1,5 +1,7 @@
 "use client";
 
+import AdminLayout from "@/components/admin/AdminLayout";
+
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 type Tab = "weekly" | "exams" | "calendar" | "parents-meetings" | "family-counseling";
