@@ -7,6 +7,10 @@ const SETTINGS_ID = "school-settings";
 
 const schema = z.object({
   schoolName: z.string().min(1).max(200),
+  heroTitle: z.string().min(1).max(300),
+  heroDescription: z.string().min(1).max(1000),
+  footerTitle: z.string().min(1).max(200),
+  footerDescription: z.string().min(1).max(1000),
   officialName: z.string().max(200).nullable().optional(),
   slogan: z.string().max(300).nullable().optional(),
   phone: z.string().max(50).nullable().optional(),
@@ -24,6 +28,10 @@ const schema = z.object({
   telegramUrl: z.string().max(500).nullable().optional(),
   whatsappUrl: z.string().max(500).nullable().optional(),
   mapUrl: z.string().max(1000).nullable().optional(),
+  namAddressUrl: z.string().max(1000).nullable().optional(),
+  eitaaUrl: z.string().max(500).nullable().optional(),
+  baleUrl: z.string().max(500).nullable().optional(),
+  skyroomUrl: z.string().max(500).nullable().optional(),
   schoolStatusEnabled: z.boolean(),
   schoolStatus: z.string().max(200).nullable().optional(),
   showNews: z.boolean(),
@@ -46,6 +54,10 @@ export async function GET() {
       create: {
         id: SETTINGS_ID,
         schoolName: "دبیرستان شاهد حضرت خدیجه (س)",
+        heroTitle: "دبیرستان دخترانه شاهد حضرت خدیجه (س)",
+        heroDescription: "محیطی امن، پویا و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان؛ جایی برای یادگیری، تجربه و ساختن آینده‌ای روشن.",
+        footerTitle: "شاهد حضرت خدیجه (س)",
+        footerDescription: "دبیرستان دخترانه شاهد حضرت خدیجه (س) با هدف پرورش استعدادهای علمی و مهارتی دانش‌آموزان.",
         schoolStatusEnabled: false,
       },
     });
@@ -82,6 +94,10 @@ export async function PUT(request: Request) {
       telegramUrl: emptyToNull(raw.telegramUrl),
       whatsappUrl: emptyToNull(raw.whatsappUrl),
       mapUrl: emptyToNull(raw.mapUrl),
+      namAddressUrl: emptyToNull(raw.namAddressUrl),
+      eitaaUrl: emptyToNull(raw.eitaaUrl),
+      baleUrl: emptyToNull(raw.baleUrl),
+      skyroomUrl: emptyToNull(raw.skyroomUrl),
       schoolStatus: emptyToNull(raw.schoolStatus),
     });
 
