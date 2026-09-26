@@ -6,29 +6,6 @@ import { Clock3, Mail, MapPin, Phone, Send } from "lucide-react";
 
 type Department = "management" | "deputy" | "education";
 
-const contactInfo = [
-  {
-    icon: MapPin,
-    title: "آدرس مدرسه",
-    value: "تهران، خیابان نمونه، کوچه مدرسه، دبیرستان شاهد حضرت خدیجه (س)",
-  },
-  {
-    icon: Phone,
-    title: "شماره تماس",
-    value: "۰۲۱-۱۲۳۴۵۶۷۸",
-  },
-  {
-    icon: Mail,
-    title: "ایمیل",
-    value: "info@khadijeh-school.ir",
-  },
-  {
-    icon: Clock3,
-    title: "ساعات پاسخگویی",
-    value: "شنبه تا چهارشنبه، ۸:۰۰ تا ۱۴:۰۰",
-  },
-];
-
 const subjects = [
   "اطلاعات عمومی مدرسه",
   "ثبت‌نام و پذیرش",
@@ -55,9 +32,28 @@ function ContactMainContent() {
       ? departmentFromUrl
       : "";
 
-  const [selectedDepartment, setSelectedDepartment] = useState<Department | "">(
-    initialDepartment,
-  );
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | "">(initialDepartment);
+  const [contactInfo, setContactInfo] = useState([
+    { icon: MapPin, title: "آدرس مدرسه", value: "تهران، خیابان نمونه، کوچه مدرسه، دبیرستان شاهد حضرت خدیجه (س)" },
+    { icon: Phone, title: "شماره تماس", value: "۰۲۱-۱۲۳۴۵۶۷۸" },
+    { icon: Mail, title: "ایمیل", value: "info@khadijeh-school.ir" },
+    { icon: Clock3, title: "ساعات پاسخگویی", value: "شنبه تا چهارشنبه، ۸:۰۰ تا ۱۴:۰۰" },
+  ]);
+
+  useEffect(() => {
+    fetch("/api/settings/public", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setContactInfo([
+          { icon: MapPin, title: "آدرس مدرسه", value: data.address || "—" },
+          { icon: Phone, title: "شماره تماس", value: data.phone || data.mobile || "—" },
+          { icon: Mail, title: "ایمیل", value: data.email || "—" },
+          { icon: Clock3, title: "ساعات پاسخگویی", value: data.workingHours || "—" },
+        ]);
+      })
+      .catch(() => {});
+  }, []);
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
