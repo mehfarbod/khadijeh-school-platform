@@ -18,7 +18,7 @@ type Absence = {
   dateKey: string;
 };
 
-type Form = Omit<Absence, "id">;
+type Form = Omit<Absence, "id" | "dateKey">;
 const emptyForm: Form = { firstName: "", lastName: "", grade: "" };
 
 export default function AdminAbsences() {
