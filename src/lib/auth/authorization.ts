@@ -20,9 +20,16 @@ export async function requireRole(allowedRoles: UserRole[]) {
     throw new Error("UNAUTHORIZED");
   }
 
-  const role = session.user.role as UserRole;
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, isActive: true },
+  });
 
-  if (!allowedRoles.includes(role)) {
+  if (!user || !user.isActive) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  if (!allowedRoles.includes(user.role as UserRole)) {
     throw new Error("FORBIDDEN");
   }
 
