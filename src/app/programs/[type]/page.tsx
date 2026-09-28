@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/layout/Header";
 import CoursesFooter from "@/components/courses/CoursesFooter";
 import { prisma } from "@/lib/prisma";
+import { ensureEducationalProgram } from "@/lib/educational-programs";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +41,8 @@ export default async function ProgramDetailPage({
   params: Promise<{ type: string }>;
 }) {
   const { type } = await params;
-  const program = await prisma.educationalProgram.findFirst({
-    where: { type, isActive: true },
-  });
+  const ensuredProgram = await ensureEducationalProgram(type);
+  const program = ensuredProgram?.isActive ? ensuredProgram : null;
 
   if (!program) notFound();
 
