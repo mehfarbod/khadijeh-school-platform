@@ -152,6 +152,8 @@ const studentSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+
     const { searchParams } = new URL(request.url);
 
     const academicYearId = searchParams.get("academicYearId");
