@@ -16,9 +16,9 @@ type ApiCourse = {
   gradeLevel: string | null;
 };
 
-const backgroundColors = ["#DBE7C1", "#BFD7EA", "#EEF2F7"];
+const gradeBackgroundColors: Record<"10" | "11" | "12", string> = {\n  "10": "#194342",\n  "11": "#B86F5B",\n  "12": "#DBE7C1",\n};
 
-function toCourse(course: ApiCourse, index: number): Course {
+function toCourse(course: ApiCourse): Course {
   return {
     id: course.id,
     slug: course.slug,
@@ -31,7 +31,7 @@ function toCourse(course: ApiCourse, index: number): Course {
     instructor: course.instructor || "کادر آموزشی مدرسه",
     initials: course.instructor?.trim().charAt(0) || "م",
     status: course.status,
-    bgColor: backgroundColors[index % backgroundColors.length],
+    bgColor: gradeBackgroundColors[course.gradeLevel as "10" | "11" | "12"] || "#EEF2F7",
     icon: course.category.includes("زبان")
       ? "language"
       : course.category.includes("هنر")
