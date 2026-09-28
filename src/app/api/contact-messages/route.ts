@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { NextRequest } from "next/server";
 
@@ -15,7 +15,7 @@ const createContactMessageSchema = z.object({
 
 export async function GET() {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("messages.view");
     const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
     return NextResponse.json(messages);
   } catch (error) {
