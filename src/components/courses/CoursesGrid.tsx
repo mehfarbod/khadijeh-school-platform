@@ -16,7 +16,11 @@ type ApiCourse = {
   gradeLevel: string | null;
 };
 
-const gradeBackgroundColors: Record<"10" | "11" | "12", string> = {\n  "10": "#194342",\n  "11": "#B86F5B",\n  "12": "#DBE7C1",\n};
+const gradeBackgroundColors: Record<"10" | "11" | "12", string> = {
+  "10": "#194342",
+  "11": "#B86F5B",
+  "12": "#DBE7C1",
+};
 
 function toCourse(course: ApiCourse): Course {
   return {
