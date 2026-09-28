@@ -67,7 +67,7 @@ export default function DailyAbsences() {
 
         <div
           ref={sliderRef}
-          dir="ltr"
+          dir="rtl"
           className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
