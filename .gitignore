@@ -28,3 +28,6 @@ src/generated/prisma
 # Local tooling
 skills-lock.json
 
+
+# Dotenv encryption keys
+.env.keys
