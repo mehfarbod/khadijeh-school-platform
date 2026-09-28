@@ -92,16 +92,95 @@ export default function AdminProgramsPage() {
     return data;
   }
 
+  function validateWeekly() {
+    const rows = weeklyEntries.filter((row) =>
+      Object.values(row).some((value) => value.trim()),
+    );
+
+    if (!rows.length) return "حداقل یک ردیف برای برنامه هفتگی وارد کنید.";
+
+    const incomplete = rows.find(
+      (row) =>
+        !row.className.trim() ||
+        !row.day.trim() ||
+        !row.startTime.trim() ||
+        !row.endTime.trim() ||
+        !row.subject.trim(),
+    );
+
+    if (incomplete) {
+      return "در برنامه هفتگی، کلاس، روز، زمان شروع، زمان پایان و درس الزامی هستند.";
+    }
+
+    return null;
+  }
+
+  function validateExams() {
+    const rows = examEntries.filter((row) =>
+      Object.values(row).some((value) => value.trim()),
+    );
+
+    if (!rows.length) return "حداقل یک امتحان وارد کنید.";
+
+    const incomplete = rows.find(
+      (row) => !row.subject.trim() || !row.date.trim() || !row.grade.trim(),
+    );
+
+    if (incomplete) return "در برنامه امتحانات، درس، تاریخ و پایه الزامی هستند.";
+
+    return null;
+  }
+
   async function saveWeekly(e: FormEvent) {
-    e.preventDefault(); setBusy(true);
-    try { await saveJson("/api/programs/weekly", { imageUrl: weeklyImage || undefined, isActive: weeklyActive, entries: weeklyEntries.filter(x => x.className && x.startTime && x.subject) }); notify("برنامه هفتگی ذخیره شد."); }
-    catch (e) { notify(e instanceof Error ? e.message : "خطا"); } finally { setBusy(false); }
+    e.preventDefault();
+    const validationError = validateWeekly();
+    if (validationError) {
+      notify(validationError);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const entries = weeklyEntries.filter((row) =>
+        Object.values(row).some((value) => value.trim()),
+      );
+      await saveJson("/api/programs/weekly", {
+        imageUrl: weeklyImage || undefined,
+        isActive: weeklyActive,
+        entries,
+      });
+      notify("برنامه هفتگی ذخیره شد.");
+    } catch (e) {
+      notify(e instanceof Error ? e.message : "خطا");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveExams(e: FormEvent) {
-    e.preventDefault(); setBusy(true);
-    try { await saveJson("/api/programs/exams", { imageUrl: examImage || undefined, isActive: examActive, entries: examEntries.filter(x => x.subject && x.date && x.grade) }); notify("برنامه امتحانات ذخیره شد."); }
-    catch (e) { notify(e instanceof Error ? e.message : "خطا"); } finally { setBusy(false); }
+    e.preventDefault();
+    const validationError = validateExams();
+    if (validationError) {
+      notify(validationError);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const entries = examEntries.filter((row) =>
+        Object.values(row).some((value) => value.trim()),
+      );
+      await saveJson("/api/programs/exams", {
+        imageUrl: examImage || undefined,
+        isActive: examActive,
+        entries,
+      });
+      notify("برنامه امتحانات ذخیره شد.");
+    } catch (e) {
+      notify(e instanceof Error ? e.message : "خطا");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleUpload(e: ChangeEvent<HTMLInputElement>, setter: (v: string) => void) {
@@ -132,7 +211,7 @@ export default function AdminProgramsPage() {
 
       {message && <div className="rounded-xl border border-[#D9E7E2] bg-[#F4FAF8] px-4 py-3 text-xs font-medium text-[#194342]">{message}</div>}
 
-      {tab === "weekly" && <form onSubmit={saveWeekly} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
+      {tab === "weekly" && <form noValidate onSubmit={saveWeekly} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
         <h2 className="text-sm font-bold text-[#194342]">برنامه هفتگی</h2>
         <p className="mt-1 text-xs text-[#667085]">برای هر کلاس چند ردیف ثبت کنید. تصویر برنامه هم کاملاً اختیاری است.</p>
         <div className="mt-5 overflow-x-auto rounded-xl border border-[#EEEAE3]">
@@ -152,7 +231,7 @@ export default function AdminProgramsPage() {
         <button disabled={busy} className={`mt-5 ${button}`}>{busy ? "در حال ذخیره..." : "ذخیره برنامه هفتگی"}</button>
       </form>}
 
-      {tab === "exams" && <form onSubmit={saveExams} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
+      {tab === "exams" && <form noValidate onSubmit={saveExams} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
         <h2 className="text-sm font-bold text-[#194342]">برنامه امتحانات</h2>
         <div className="mt-5 overflow-x-auto rounded-xl border border-[#EEEAE3]">
           <table className="min-w-[850px] w-full text-xs"><thead><tr className="bg-[#F8F6F2]"><th className="p-3">درس</th><th>تاریخ</th><th>ساعت</th><th>پایه</th><th>کلاس</th><th></th></tr></thead>
@@ -174,10 +253,30 @@ export default function AdminProgramsPage() {
   function SimpleManager({ title, items, fields, createUrl, onRefresh }: { title:string; items:Array<{id:string;title:string;isActive:boolean}>; fields:Array<[string,string]>; createUrl:string; onRefresh:()=>Promise<void> }) {
     const [form,setForm]=useState<Record<string,string>>({});
     const [saving,setSaving]=useState(false);
-    async function submit(e:FormEvent){e.preventDefault();setSaving(true);try{await saveJson(createUrl,{...form,isActive:true});setForm({});await onRefresh();notify("مورد جدید ذخیره شد.");}catch(e){notify(e instanceof Error?e.message:"خطا");}finally{setSaving(false);}}
+    const optionalFields = new Set(["time", "audience", "location"]);
+    async function submit(e:FormEvent){
+      e.preventDefault();
+      const requiredFields = fields.filter(([key]) => !optionalFields.has(key));
+      const missing = requiredFields.find(([key]) => !form[key]?.trim());
+      if (missing) {
+        notify(`فیلد «${missing[1]}» را تکمیل کنید.`);
+        return;
+      }
+      setSaving(true);
+      try {
+        await saveJson(createUrl, {...form, isActive:true});
+        setForm({});
+        await onRefresh();
+        notify("مورد جدید ذخیره شد.");
+      } catch(e) {
+        notify(e instanceof Error ? e.message : "خطا");
+      } finally {
+        setSaving(false);
+      }
+    }
     async function remove(id:string){if(!confirm("این مورد حذف شود؟"))return;setBusy(true);try{const r=await fetch(createUrl+"?id="+id,{method:"DELETE"});if(!r.ok)throw new Error((await r.json()).error||"حذف ناموفق بود.");await onRefresh();notify("مورد حذف شد.");}catch(e){notify(e instanceof Error?e.message:"خطا");}finally{setBusy(false);}}
     return <section className="space-y-5">
-      <form onSubmit={submit} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6"><h2 className="text-sm font-bold text-[#194342]">{title}</h2><div className="mt-5 grid gap-4 md:grid-cols-2">{fields.map(([key,label])=><Field key={key} label={label} wide={key==="description"}><input required={!["time","audience","location"].includes(key)} value={form[key]??""} onChange={e=>setForm({...form,[key]:e.target.value})} className={input}/></Field>)}</div><button disabled={saving||busy} className={`mt-5 ${button}`}>{saving?"در حال ذخیره...":"افزودن مورد"}</button></form>
+      <form noValidate onSubmit={submit} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6"><h2 className="text-sm font-bold text-[#194342]">{title}</h2><div className="mt-5 grid gap-4 md:grid-cols-2">{fields.map(([key,label])=><Field key={key} label={label} wide={key==="description"}><input value={form[key]??""} onChange={e=>setForm({...form,[key]:e.target.value})} className={input}/></Field>)}</div><button disabled={saving||busy} className={`mt-5 ${button}`}>{saving?"در حال ذخیره...":"افزودن مورد"}</button></form>
       <section className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6"><h2 className="text-sm font-bold text-[#194342]">موارد ثبت‌شده</h2><div className="mt-4 space-y-2">{items.map(x=><div key={x.id} className="flex items-center gap-3 rounded-xl border border-[#EEEAE3] p-4"><div className="min-w-0 flex-1"><p className="text-sm font-semibold">{x.title}</p><p className="mt-1 text-[11px] text-[#667085]">{x.isActive?"فعال":"غیرفعال"}</p></div><button type="button" onClick={()=>remove(x.id)} className="rounded-lg border border-[#E7E2DA] px-3 py-2 text-[11px]">حذف</button></div>)}</div></section>
     </section>;
   }
