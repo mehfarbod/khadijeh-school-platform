@@ -32,9 +32,9 @@ export default function SchoolCelebrations() {
   if (birthdays.length === 0) return null;
 
   return (
-    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-6 py-12 md:py-14">
-      <div className="mx-auto max-w-screen-xl">
-        <div className="mb-7 text-center">
+    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-5 py-14 sm:px-8 md:py-16">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-9 text-center">
           <div className="flex items-center justify-center gap-3">
             <Cake className="h-6 w-6 text-[#194342]" strokeWidth={1.7} />
             <span className="text-[13px] font-semibold text-[#667085]">{todayLabel()}</span>
@@ -46,7 +46,7 @@ export default function SchoolCelebrations() {
 
         <div className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4">
           {birthdays.map((student) => (
-            <article key={`${student.id}-birthday`} className="flex w-full max-w-[360px] items-center gap-4 rounded-[18px] border border-[#DBE7C1] bg-white p-5">
+            <article key={`${student.id}-birthday`} className="flex w-full max-w-[360px] items-center gap-4 rounded-2xl border border-[#DBE7C1] bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#194342] to-[#3F5D3E] text-xl font-bold leading-none text-white">
                 {student.firstName.trim().charAt(0)}
               </div>
