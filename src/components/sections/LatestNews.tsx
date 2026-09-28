@@ -73,9 +73,9 @@ export default function LatestNews() {
 
   if (!news) {
     return (
-      <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-6 py-16">
-        <div className="mx-auto max-w-screen-xl">
-          <div className="mb-10 flex items-center justify-between">
+      <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-5 py-14 sm:px-8 md:py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-9 flex items-center justify-between">
             <div>
               <div className="mb-2 h-7 w-56 animate-pulse rounded bg-[#E9EDE1]" />
               <div className="h-4 w-72 animate-pulse rounded bg-[#E9EDE1]" />
@@ -88,7 +88,7 @@ export default function LatestNews() {
             {[1, 2, 3, 4].map((item) => (
               <div
                 key={item}
-                className="h-64 animate-pulse rounded-[18px] bg-[#E9EDE1]"
+                className="h-64 animate-pulse rounded-2xl bg-[#E9EDE1]"
               />
             ))}
           </div>
@@ -102,10 +102,10 @@ export default function LatestNews() {
   }
 
   return (
-    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-6 py-16">
-      <div className="mx-auto max-w-screen-xl">
+    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-5 py-14 sm:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
         {/* Section Header */}
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-9 flex items-center justify-between">
           <div>
             <h2 className="mb-1 text-[22px] font-bold text-[#194342]">
               آخرین اخبار و اطلاعیه‌ها
@@ -134,9 +134,9 @@ export default function LatestNews() {
               <Link
                 key={item.id}
                 href={`/news/${item.slug}`}
-                className="group block rounded-[18px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#194342]/40"
+                className="group block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#194342]/40"
               >
-                <article className="h-full overflow-hidden rounded-[18px] border border-[#DBE7C1] bg-white transition-shadow duration-200 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+                <article className="h-full overflow-hidden rounded-2xl border border-[#DBE7C1] bg-white transition-shadow duration-200 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
                   {/* Category Color Bar */}
                   <div
                     className="h-1"
