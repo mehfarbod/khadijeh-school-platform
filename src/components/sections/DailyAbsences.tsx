@@ -32,9 +32,9 @@ export default function DailyAbsences() {
   if (absences.length === 0) return null;
 
   return (
-    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-6 py-16">
-      <div className="mx-auto max-w-screen-xl">
-        <div className="mb-10 flex items-center justify-between">
+    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-5 py-14 sm:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-9 flex items-center justify-between">
           <div>
             <h2 className="mb-1 text-[22px] font-bold text-[#194342]">
               دانش‌آموزان غایب
@@ -49,7 +49,7 @@ export default function DailyAbsences() {
               type="button"
               aria-label="حرکت به راست"
               onClick={() => moveSlider("right")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
             >
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -58,7 +58,7 @@ export default function DailyAbsences() {
               type="button"
               aria-label="حرکت به چپ"
               onClick={() => moveSlider("left")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -74,7 +74,7 @@ export default function DailyAbsences() {
           {absences.map((student) => (
             <article
               key={student.id}
-              className="w-[360px] shrink-0 rounded-[18px] border border-[#DBE7C1] bg-[#FAF8F3] p-5"
+              className="w-[360px] shrink-0 rounded-2xl border border-[#DBE7C1] bg-[#FAF8F3] p-5"
             >
               <div className="flex items-center gap-4" dir="rtl">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#F8ECE8] text-[#B86F5B]">
