@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    if (!program) return NextResponse.json({ error: "برنامه هفتگی یافت نشد." }, { status: 404 });
+    if (!program) {\n      const created = await ensureEducationalProgram("weekly");\n      if (!created) return NextResponse.json({ error: "برنامه هفتگی یافت نشد." }, { status: 404 });\n      return NextResponse.json({ program: created, schedule: null });\n    }
     if (activeOnly && (!program.isActive || !program.weeklySchedule?.isActive)) {
       return NextResponse.json({ program, schedule: null });
     }
