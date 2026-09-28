@@ -41,9 +41,9 @@ export default function CoursesCTA() {
   if (!courses || courses.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16 bg-background">
-      <div className="mx-auto max-w-6xl px-4 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
+    <section className="bg-background py-14 md:py-20">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+        <div className="flex items-center justify-between mb-9">
           <div>
             <p className="text-xs font-semibold text-rose uppercase tracking-wider mb-2">
               دوره‌ها
@@ -86,7 +86,7 @@ export default function CoursesCTA() {
               <Link
                 key={course.id}
                 href={`/courses/registration?course=${encodeURIComponent(course.slug)}`}
-                className="block rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="block rounded-2xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5">
