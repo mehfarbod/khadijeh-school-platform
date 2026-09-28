@@ -61,10 +61,10 @@ export default function TopStudents() {
   }
 
   return (
-    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-6 py-16">
-      <div className="mx-auto max-w-screen-xl">
+    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-5 py-14 sm:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-9 flex items-center justify-between">
           <div>
             <h2 className="mb-1 text-[22px] font-bold text-[#194342]">
               دانش‌آموزان برتر
@@ -81,7 +81,7 @@ export default function TopStudents() {
               type="button"
               aria-label="حرکت به راست"
               onClick={() => moveSlider("right")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
             >
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -90,7 +90,7 @@ export default function TopStudents() {
               type="button"
               aria-label="حرکت به چپ"
               onClick={() => moveSlider("left")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#DBE7C1] text-[#194342] transition-all duration-200 hover:border-[#194342] hover:bg-[#FAF8F3]"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -115,7 +115,7 @@ export default function TopStudents() {
             return (
               <article
                 key={student.id}
-                className="w-[210px] shrink-0 rounded-[18px] border border-[#DBE7C1] bg-[#FAF8F3] p-6"
+                className="w-[210px] shrink-0 rounded-2xl border border-[#DBE7C1] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
                 {/* Initial */}
                 <div className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gradient-to-br from-[#194342] to-[#3F5D3E] text-[26px] font-bold leading-none text-white">
