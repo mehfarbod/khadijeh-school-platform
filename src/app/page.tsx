@@ -104,7 +104,7 @@ export default async function HomePage() {
         id: student.id,
         firstName: student.firstName,
         lastName: student.lastName,
-        grade: student.grade,
+        grade: student.enrollments[0]?.grade ?? "—",
       })),
     ...manualBirthdays
       .filter((item) => isTodayBirthday(item.birthday))
