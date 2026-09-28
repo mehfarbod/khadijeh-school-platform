@@ -28,14 +28,14 @@ type Registration = {
 type FormState = {
   title: string; description: string; fullDescription: string; coverImage: string; instructor: string;
   startDate: string; endDate: string; schedule: string; duration: string; capacity: string;
-  price: string; status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12";
+  price: string; status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12" | "";
   registrationDeadline: string; isActive: boolean;
 };
 
 const emptyForm: FormState = {
   title: "", description: "", fullDescription: "", coverImage: "", instructor: "",
   startDate: "", endDate: "", schedule: "", duration: "", capacity: "20", price: "",
-  status: "upcoming", category: "آموزشی", gradeLevel: "10", registrationDeadline: "", isActive: true,
+  status: "upcoming", category: "آموزشی", gradeLevel: "", registrationDeadline: "", isActive: true,
 };
 
 const statusLabel = (status: string) => status === "active" ? "در حال ثبت‌نام" : "به‌زودی";
@@ -105,7 +105,7 @@ export default function AdminCourses() {
       coverImage: course.coverImage || "", instructor: course.instructor || "", startDate: toInputDate(course.startDate),
       endDate: toInputDate(course.endDate), schedule: course.schedule || "", duration: course.duration || "",
       capacity: String(course.capacity), price: course.price == null ? "" : String(course.price),
-      status: course.status, category: course.category, gradeLevel: (course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" ? course.gradeLevel : "10"),
+      status: course.status, category: course.category, gradeLevel: course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" ? course.gradeLevel : "",
       registrationDeadline: toInputDate(course.registrationDeadline), isActive: course.isActive,
     });
     setError(""); setOpen(true);
@@ -273,7 +273,7 @@ export default function AdminCourses() {
             <label className="sm:col-span-2 text-sm">عنوان دوره<input className={inputClass} value={form.title} onChange={e=>update("title",e.target.value)} placeholder="مثلاً کلاس تقویتی ریاضی"/></label>
             <label className="sm:col-span-2 text-sm">توضیح کوتاه<textarea className="mt-1.5 min-h-20 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.description} onChange={e=>update("description",e.target.value)}/></label>
             <label className="text-sm">دسته‌بندی<input className={inputClass} value={form.category} onChange={e=>update("category",e.target.value)} placeholder="آموزشی"/></label>
-            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option></select></label>
+            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="" disabled>پایه تحصیلی را انتخاب کنید</option><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option></select></label>
             <label className="text-sm">مدرس<input className={inputClass} value={form.instructor} onChange={e=>update("instructor",e.target.value)}/></label>
             <label className="text-sm">مدت دوره<input className={inputClass} value={form.duration} onChange={e=>update("duration",e.target.value)} placeholder="مثلاً ۱۲ جلسه"/></label>
             <label className="text-sm">زمان‌بندی<input className={inputClass} value={form.schedule} onChange={e=>update("schedule",e.target.value)} placeholder="شنبه‌ها، ساعت ۱۶"/></label>
