@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowLeft, GraduationCap, Users, Award } from "lucide-react";
-import { useEffect, useState } from "react";
 
 const stats = [
   { icon: Users, value: "+۳۵۰", label: "دانش‌آموز" },
@@ -10,19 +7,18 @@ const stats = [
   { icon: Award, value: "۱۵+", label: "سال سابقه" },
 ];
 
-export default function Hero() {
-  const [title, setTitle] = useState("دبیرستان دخترانه شاهد حضرت خدیجه (س)");
-  const [description, setDescription] = useState("محیطی امن، پویا و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان؛ جایی برای یادگیری، تجربه و ساختن آینده‌ای روشن.");
-
-  useEffect(() => {
-    fetch("/api/settings/public", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.heroTitle) setTitle(data.heroTitle);
-        if (data?.heroDescription) setDescription(data.heroDescription);
-      })
-      .catch(() => {});
-  }, []);
+export default function Hero({
+  title,
+  description,
+}: {
+  title?: string | null;
+  description?: string | null;
+}) {
+  const heroTitle =
+    title || "دبیرستان دخترانه شاهد حضرت خدیجه (س)";
+  const heroDescription =
+    description ||
+    "محیطی امن، پویا و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان؛ جایی برای یادگیری، تجربه و ساختن آینده‌ای روشن.";
 
   return (
     <section className="relative overflow-hidden bg-[#194342] text-white">
@@ -38,10 +34,10 @@ export default function Hero() {
             <span>سال تحصیلی ۱۴۰۵–۱۴۰۶</span>
           </div>
           <h1 className="text-3xl font-extrabold leading-[1.35] tracking-tight sm:text-4xl lg:text-5xl">
-            {title}
+            {heroTitle}
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-xs leading-7 text-white/75 sm:text-sm lg:text-base">
-            {description}
+            {heroDescription}
           </p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/registration" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#DBE7C1] px-5 text-xs font-bold text-[#194342] transition-all hover:-translate-y-0.5 hover:bg-white sm:text-sm">
