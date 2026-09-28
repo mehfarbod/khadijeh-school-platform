@@ -112,6 +112,10 @@ export default function Footer() {
                         src={socialLogoSrc[label]}
                         alt=""
                         aria-hidden="true"
+                        loading="lazy"
+                        decoding="async"
+                        width="20"
+                        height="20"
                         className="h-5 w-5 object-contain"
                       />
                     ) : (
