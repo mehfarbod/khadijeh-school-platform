@@ -184,7 +184,7 @@ const emptyForm: StudentForm = {
 
 export default function AdminStudents() {
   const searchParams = useSearchParams();
-  const showInactive = searchParams.get("status") === "inactive";
+  const showInactive = searchParams?.get("status") === "inactive";
 
   const [students, setStudents] = useState<Student[] | null>(null);
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
