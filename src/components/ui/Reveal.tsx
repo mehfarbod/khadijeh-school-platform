@@ -13,8 +13,8 @@ type RevealProps = {
 export default function Reveal({
   children,
   delay = 0,
-  y = 24,
-  duration = 0.6,
+  y = 40,
+  duration = 0.8,
 }: RevealProps) {
   return (
     <motion.div
@@ -28,7 +28,7 @@ export default function Reveal({
       }}
       viewport={{
         once: true,
-        amount: 0.15,
+        amount: 0.25,
       }}
       transition={{
         duration,
