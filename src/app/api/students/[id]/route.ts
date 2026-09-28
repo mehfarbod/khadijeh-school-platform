@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 import { jalaliToGregorian } from "@/lib/date/jalali";
 import {
   studentProfileSchema,
@@ -32,7 +32,7 @@ const updateStudentSchema = studentProfileSchema
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("students.edit");
 
     const { id } = await context.params;
 
@@ -396,7 +396,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("students.manage_status");
 
     const { id } = await context.params;
 
