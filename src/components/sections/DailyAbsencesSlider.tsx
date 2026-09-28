@@ -89,14 +89,7 @@ export default function DailyAbsencesSlider({
               </div>
             </article>
           ))}
-        </div>
-
-        <style jsx>{`
-          div::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-      </div>
+        </div></div>
     </section>
   );
 }
