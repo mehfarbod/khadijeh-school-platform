@@ -1,63 +1,33 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Users, BookOpen } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
-interface Course {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  capacity: number;
-  currentRegistrations: number;
-  status: string;
-  gradeLevel: "10" | "11" | "12" | null;
-}
+export default async function CoursesCTA() {
+  const courses = await prisma.course.findMany({
+    where: { isActive: true },
+    include: { _count: { select: { registrations: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 4,
+  });
 
-export default function CoursesCTA() {
-  const [courses, setCourses] = useState<Course[] | null>(null);
-
-  useEffect(() => {
-    const loadCourses = async () => {
-      try {
-        const response = await fetch("/api/courses");
-
-        if (!response.ok) {
-          throw new Error("خطا در دریافت دوره‌ها");
-        }
-
-        const data = await response.json();
-        setCourses(data);
-      } catch (error) {
-        console.error("Failed to load courses:", error);
-        setCourses([]);
-      }
-    };
-
-    loadCourses();
-  }, []);
-
-  if (!courses || courses.length === 0) return null;
+  if (courses.length === 0) return null;
 
   return (
     <section className="bg-background py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-        <div className="flex items-center justify-between mb-9">
+        <div className="mb-9 flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-rose uppercase tracking-wider mb-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose">
               دوره‌ها
             </p>
-
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">
+            <h2 className="text-xl font-bold text-foreground md:text-2xl">
               دوره‌های فعال آموزشی
             </h2>
           </div>
 
           <Link
             href="/courses"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/80"
           >
             مشاهده همه
             <ArrowLeft className="h-3.5 w-3.5" />
@@ -65,7 +35,7 @@ export default function CoursesCTA() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {courses.slice(0, 4).map((course) => {
+          {courses.map((course) => {
             const gradeBackground =
               course.gradeLevel === "10"
                 ? "#194342"
@@ -75,16 +45,14 @@ export default function CoursesCTA() {
                     ? "#DBE7C1"
                     : "#EEF2F7";
 
-            const isDarkGrade = course.gradeLevel === "10" || course.gradeLevel === "11";
+            const isDarkGrade =
+              course.gradeLevel === "10" || course.gradeLevel === "11";
 
-            const isFull =
-              course.currentRegistrations >= course.capacity;
-
+            const currentRegistrations = course._count.registrations;
+            const isFull = currentRegistrations >= course.capacity;
             const percent =
               course.capacity > 0
-                ? Math.round(
-                    (course.currentRegistrations / course.capacity) * 100
-                  )
+                ? Math.round((currentRegistrations / course.capacity) * 100)
                 : 0;
 
             const statusLabel =
@@ -105,11 +73,20 @@ export default function CoursesCTA() {
                   style={{ backgroundColor: gradeBackground }}
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
-                    <BookOpen className={`h-4 w-4 ${isDarkGrade ? "text-white" : "text-[#194342]"}`} />
+                    <BookOpen
+                      className={`h-4 w-4 ${isDarkGrade ? "text-white" : "text-[#194342]"}`}
+                    />
                   </div>
-
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${isDarkGrade ? "bg-white/15 text-white" : "bg-white/65 text-[#194342]"}`}>
-                    {course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : "بدون پایه"}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${isDarkGrade ? "bg-white/15 text-white" : "bg-white/65 text-[#194342]"}`}
+                  >
+                    {course.gradeLevel === "10"
+                      ? "دهم"
+                      : course.gradeLevel === "11"
+                        ? "یازدهم"
+                        : course.gradeLevel === "12"
+                          ? "دوازدهم"
+                          : "بدون پایه"}
                   </span>
                 </div>
 
@@ -117,7 +94,6 @@ export default function CoursesCTA() {
                   <h3 className="mb-2 line-clamp-2 text-sm font-semibold text-foreground">
                     {course.title}
                   </h3>
-
                   <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
                     {course.description}
                   </p>
@@ -126,32 +102,21 @@ export default function CoursesCTA() {
                     <div className="mb-1 flex items-center justify-between text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {course.currentRegistrations}/{course.capacity}
+                        {currentRegistrations}/{course.capacity}
                       </span>
-
                       <span>{percent}%</span>
                     </div>
 
                     <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                       <div
-                        className={`h-full rounded-full transition-all ${
-                          isFull
-                            ? "bg-destructive"
-                            : percent > 80
-                              ? "bg-gold"
-                              : "bg-primary"
-                        }`}
+                        className={`h-full rounded-full transition-all ${isFull ? "bg-destructive" : percent > 80 ? "bg-gold" : "bg-primary"}`}
                         style={{ width: `${Math.min(percent, 100)}%` }}
                       />
                     </div>
                   </div>
 
                   <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                      isFull
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-primary/5 text-primary"
-                    }`}
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-medium ${isFull ? "bg-destructive/10 text-destructive" : "bg-primary/5 text-primary"}`}
                   >
                     {statusLabel}
                   </span>
