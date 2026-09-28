@@ -65,7 +65,7 @@ export default function CoursesCTA() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {courses.slice(0, 4).map((course) => {
-            const isFull =
+            const gradeBackground =\n              course.gradeLevel === "10"\n                ? "#194342"\n                : course.gradeLevel === "11"\n                  ? "#B86F5B"\n                  : course.gradeLevel === "12"\n                    ? "#DBE7C1"\n                    : "#EEF2F7";\n\n            const isDarkGrade = course.gradeLevel === "10" || course.gradeLevel === "11";\n\n            const isFull =
               course.currentRegistrations >= course.capacity;
 
             const percent =
@@ -86,9 +86,9 @@ export default function CoursesCTA() {
               <Link
                 key={course.id}
                 href={`/courses/registration?course=${encodeURIComponent(course.slug)}`}
-                className="block rounded-2xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="block overflow-hidden rounded-2xl border border-border/60 bg-card transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 px-5 pt-5">\n                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: gradeBackground }}>
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5">
                     <BookOpen className="h-4 w-4 text-primary" />
                   </div>
