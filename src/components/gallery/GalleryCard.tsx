@@ -1,7 +1,6 @@
 
 "use client";
 
-import Image from "next/image";
 import { CalendarDays, Images } from "lucide-react";
 import { useState } from "react";
 
@@ -45,7 +44,7 @@ export default function GalleryCard({
     >
       {/* Image */}
       <div className="relative h-[220px] overflow-hidden">
-        <Image src={item.imageUrl} alt={item.title} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-300" style={{ transform: isHovered ? "scale(1.03)" : "scale(1)" }} />
+        <img src={item.imageUrl} alt={item.title} loading="lazy" decoding="async" className="h-full w-full object-cover transition-transform duration-300" style={{ transform: isHovered ? "scale(1.03)" : "scale(1)" }} />
         <span className="absolute right-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[10.5px] font-medium text-[#194342]">{item.categoryLabel}</span>
       </div>
 
