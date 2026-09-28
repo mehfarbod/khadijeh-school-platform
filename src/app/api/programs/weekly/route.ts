@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { ensureEducationalProgram } from "@/lib/educational-programs";
 
 const entrySchema = z.object({
   className: z.string().trim().min(1).max(100),
@@ -63,7 +64,7 @@ async function save(request: NextRequest) {
     const parsed = schema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ error: "اطلاعات برنامه هفتگی معتبر نیست.", details: parsed.error.flatten().fieldErrors }, { status: 400 });
 
-    const program = await prisma.educationalProgram.findUnique({ where: { type: "weekly" } });
+    const program = await ensureEducationalProgram("weekly");
     if (!program) return NextResponse.json({ error: "تعریف برنامه هفتگی پیدا نشد." }, { status: 404 });
 
     const schedule = await prisma.$transaction(async (tx) => {
