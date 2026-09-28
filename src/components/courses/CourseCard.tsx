@@ -65,7 +65,7 @@ export default function CourseCard({ course }: { course: Course }) {
       >
         <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[16px] bg-white/20">
           <Icon
-            className="h-7 w-7 text-[#194342]"
+            className={`h-7 w-7 ${course.bgColor === "#194342" || course.bgColor === "#B86F5B" ? "text-white" : "text-[#194342]"}`}
             strokeWidth={1.8}
           />
         </div>
