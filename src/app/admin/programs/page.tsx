@@ -1,6 +1,9 @@
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
@@ -36,6 +39,29 @@ function Field({ label, children, wide = false }: { label: string; children: Rea
 }
 const input = "mt-1.5 w-full rounded-lg border border-[#E7E2DA] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#194342]";
 const button = "rounded-lg bg-[#194342] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-50";
+
+function JalaliDateField({
+  value,
+  onChange,
+  placeholder = "۱۴۰۵/۱۰/۰۵",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <DatePicker
+      calendar={persian}
+      locale={persian_fa}
+      value={value || ""}
+      onChange={(date) => onChange(date ? date.format("YYYY/MM/DD") : "")}
+      format="YYYY/MM/DD"
+      calendarPosition="bottom-right"
+      inputClass={input}
+      placeholder={placeholder}
+    />
+  );
+}
 
 export default function AdminProgramsPage() {
   const [tab, setTab] = useState<Tab>("weekly");
@@ -99,9 +125,39 @@ export default function AdminProgramsPage() {
   }
 
   async function saveExams(e: FormEvent) {
-    e.preventDefault(); setBusy(true);
-    try { await saveJson("/api/programs/exams", { imageUrl: examImage || undefined, isActive: examActive, entries: examEntries.filter(x => x.subject && x.date && x.grade) }); notify("برنامه امتحانات ذخیره شد."); }
-    catch (e) { notify(e instanceof Error ? e.message : "خطا"); } finally { setBusy(false); }
+    e.preventDefault();
+
+    const entries = examEntries.filter((row) =>
+      Object.values(row).some((value) => value.trim()),
+    );
+
+    if (!entries.length) {
+      notify("حداقل یک امتحان وارد کنید.");
+      return;
+    }
+
+    const invalidIndex = entries.findIndex(
+      (row) => !row.subject.trim() || !row.date.trim() || !row.grade.trim(),
+    );
+
+    if (invalidIndex !== -1) {
+      notify("برای هر امتحان، درس، تاریخ و پایه را وارد کنید.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await saveJson("/api/programs/exams", {
+        imageUrl: examImage || undefined,
+        isActive: examActive,
+        entries,
+      });
+      notify("برنامه امتحانات ذخیره شد.");
+    } catch (e) {
+      notify(e instanceof Error ? e.message : "خطا");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleUpload(e: ChangeEvent<HTMLInputElement>, setter: (v: string) => void) {
@@ -152,11 +208,29 @@ export default function AdminProgramsPage() {
         <button disabled={busy} className={`mt-5 ${button}`}>{busy ? "در حال ذخیره..." : "ذخیره برنامه هفتگی"}</button>
       </form>}
 
-      {tab === "exams" && <form onSubmit={saveExams} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
+      {tab === "exams" && <form noValidate onSubmit={saveExams} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
         <h2 className="text-sm font-bold text-[#194342]">برنامه امتحانات</h2>
         <div className="mt-5 overflow-x-auto rounded-xl border border-[#EEEAE3]">
           <table className="min-w-[850px] w-full text-xs"><thead><tr className="bg-[#F8F6F2]"><th className="p-3">درس</th><th>تاریخ</th><th>ساعت</th><th>پایه</th><th>کلاس</th><th></th></tr></thead>
-          <tbody>{examEntries.map((row,i)=><tr key={i} className="border-t border-[#EEEAE3]">{(["subject","date","time","grade","className"] as const).map(key=><td key={key} className="p-2"><input value={row[key]} onChange={e=>setExamEntries(a=>a.map((x,j)=>j===i?{...x,[key]:e.target.value}:x))} className="w-full rounded-lg border border-[#E7E2DA] px-2.5 py-2" placeholder={key==="date"?"۱۴۰۵/۱۰/۰۵":key==="grade"?"دهم":""}/></td>)}<td className="p-2"><button type="button" onClick={()=>setExamEntries(a=>a.filter((_,j)=>j!==i))} className="rounded-lg border px-2 py-2 text-[11px]">حذف</button></td></tr>)}</tbody></table>
+          <tbody>{examEntries.map((row,i)=><tr key={i} className="border-t border-[#EEEAE3]">{(["subject","date","time","grade","className"] as const).map(key=>
+  <td key={key} className="p-2">
+    {key === "date" ? (
+      <JalaliDateField
+        value={row.date}
+        onChange={(value) =>
+          setExamEntries((a) => a.map((x, j) => j === i ? { ...x, date: value } : x))
+        }
+      />
+    ) : (
+      <input
+        value={row[key]}
+        onChange={e => setExamEntries(a => a.map((x,j) => j===i ? {...x,[key]:e.target.value}:x))}
+        className="w-full rounded-lg border border-[#E7E2DA] px-2.5 py-2"
+        placeholder={key==="grade"?"دهم":""}
+      />
+    )}
+  </td>
+)}<td className="p-2"><button type="button" onClick={()=>setExamEntries(a=>a.filter((_,j)=>j!==i))} className="rounded-lg border px-2 py-2 text-[11px]">حذف</button></td></tr>)}</tbody></table>
         </div>
         <button type="button" onClick={()=>setExamEntries(a=>[...a,emptyExam()])} className="mt-3 rounded-lg border border-[#E7E2DA] px-4 py-2.5 text-xs font-semibold">+ افزودن امتحان</button>
         <div className="mt-5"><Field label="تصویر برنامه امتحانات (اختیاری)"><input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>handleUpload(e,setExamImage)} className={input+" file:ml-3 file:rounded-md file:border-0 file:bg-[#F3F1EC] file:px-3 file:py-1.5"}/></Field></div>
@@ -164,20 +238,55 @@ export default function AdminProgramsPage() {
         <button disabled={busy} className={`mt-5 ${button}`}>{busy ? "در حال ذخیره..." : "ذخیره برنامه امتحانات"}</button>
       </form>}
 
-      {tab === "calendar" && <SimpleManager title="تقویم آموزشی" items={events} fields={[["title","عنوان"],["date","تاریخ"],["eventType","نوع رویداد"],["description","توضیحات"]]} createUrl="/api/programs/calendar" onRefresh={loadList} />}
-      {tab === "parents-meetings" && <SimpleManager title="جلسات انجمن اولیا و مربیان" items={meetings} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/parents-meetings" onRefresh={loadList} />}
-      {tab === "family-counseling" && <SimpleManager title="جلسات مشاوره خانواده" items={sessions} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["counselor","مشاور"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/family-counseling" onRefresh={loadList} />}
+      {tab === "calendar" && <SimpleManager title="تقویم آموزشی" items={events} fields={[["title","عنوان"],["date","تاریخ"],["eventType","نوع رویداد"],["description","توضیحات"]]} createUrl="/api/programs/calendar" onRefresh={loadList} dateField="date" />}
+      {tab === "parents-meetings" && <SimpleManager title="جلسات انجمن اولیا و مربیان" items={meetings} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/parents-meetings" onRefresh={loadList} dateField="date" />}
+      {tab === "family-counseling" && <SimpleManager title="جلسات مشاوره خانواده" items={sessions} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["counselor","مشاور"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/family-counseling" onRefresh={loadList} dateField="date" />}
       </div>
     </AdminLayout>
   );
 
-  function SimpleManager({ title, items, fields, createUrl, onRefresh }: { title:string; items:Array<{id:string;title:string;isActive:boolean}>; fields:Array<[string,string]>; createUrl:string; onRefresh:()=>Promise<void> }) {
+  function SimpleManager({ title, items, fields, createUrl, onRefresh, dateField }: { title:string; items:Array<{id:string;title:string;isActive:boolean}>; fields:Array<[string,string]>; createUrl:string; onRefresh:()=>Promise<void>; dateField?: string }) {
     const [form,setForm]=useState<Record<string,string>>({});
     const [saving,setSaving]=useState(false);
-    async function submit(e:FormEvent){e.preventDefault();setSaving(true);try{await saveJson(createUrl,{...form,isActive:true});setForm({});await onRefresh();notify("مورد جدید ذخیره شد.");}catch(e){notify(e instanceof Error?e.message:"خطا");}finally{setSaving(false);}}
+    async function submit(e:FormEvent){
+      e.preventDefault();
+
+      const requiredFields = fields.filter(([key]) => !["time","audience","location"].includes(key));
+      const missing = requiredFields.find(([key]) => !form[key]?.trim());
+
+      if (missing) {
+        notify(`وارد کردن «${missing[1]}» الزامی است.`);
+        return;
+      }
+
+      setSaving(true);
+      try {
+        await saveJson(createUrl,{...form,isActive:true});
+        setForm({});
+        await onRefresh();
+        notify("مورد جدید ذخیره شد.");
+      } catch(e) {
+        notify(e instanceof Error?e.message:"خطا");
+      } finally {
+        setSaving(false);
+      }
+    }
     async function remove(id:string){if(!confirm("این مورد حذف شود؟"))return;setBusy(true);try{const r=await fetch(createUrl+"?id="+id,{method:"DELETE"});if(!r.ok)throw new Error((await r.json()).error||"حذف ناموفق بود.");await onRefresh();notify("مورد حذف شد.");}catch(e){notify(e instanceof Error?e.message:"خطا");}finally{setBusy(false);}}
     return <section className="space-y-5">
-      <form onSubmit={submit} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6"><h2 className="text-sm font-bold text-[#194342]">{title}</h2><div className="mt-5 grid gap-4 md:grid-cols-2">{fields.map(([key,label])=><Field key={key} label={label} wide={key==="description"}><input required={!["time","audience","location"].includes(key)} value={form[key]??""} onChange={e=>setForm({...form,[key]:e.target.value})} className={input}/></Field>)}</div><button disabled={saving||busy} className={`mt-5 ${button}`}>{saving?"در حال ذخیره...":"افزودن مورد"}</button></form>
+      <form noValidate onSubmit={submit} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6"><h2 className="text-sm font-bold text-[#194342]">{title}</h2><div className="mt-5 grid gap-4 md:grid-cols-2">{fields.map(([key,label])=><Field key={key} label={label} wide={key==="description"}>
+        {dateField === key ? (
+          <JalaliDateField
+            value={form[key] ?? ""}
+            onChange={(value) => setForm({...form,[key]:value})}
+          />
+        ) : (
+          <input
+            value={form[key]??""}
+            onChange={e=>setForm({...form,[key]:e.target.value})}
+            className={input}
+          />
+        )}
+      </Field>)}</div><button disabled={saving||busy} className={`mt-5 ${button}`}>{saving?"در حال ذخیره...":"افزودن مورد"}</button></form>
       <section className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6"><h2 className="text-sm font-bold text-[#194342]">موارد ثبت‌شده</h2><div className="mt-4 space-y-2">{items.map(x=><div key={x.id} className="flex items-center gap-3 rounded-xl border border-[#EEEAE3] p-4"><div className="min-w-0 flex-1"><p className="text-sm font-semibold">{x.title}</p><p className="mt-1 text-[11px] text-[#667085]">{x.isActive?"فعال":"غیرفعال"}</p></div><button type="button" onClick={()=>remove(x.id)} className="rounded-lg border border-[#E7E2DA] px-3 py-2 text-[11px]">حذف</button></div>)}</div></section>
     </section>;
   }
