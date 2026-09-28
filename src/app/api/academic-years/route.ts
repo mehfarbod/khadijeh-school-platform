@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 
 const academicYearSchema = z.object({
   title: z.string().trim().min(1, "عنوان سال تحصیلی الزامی است."),
@@ -13,7 +13,7 @@ const academicYearSchema = z.object({
 
 export async function GET() {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("academic_years.manage");
 
     const academicYears = await prisma.academicYear.findMany({
       orderBy: { title: "desc" },
