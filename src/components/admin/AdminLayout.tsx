@@ -191,7 +191,7 @@ export default function AdminLayout({
 
   const pathname = usePathname() ?? "/admin";
   const searchParams = useSearchParams();
-  const showInactiveStudents = searchParams.get("status") === "inactive";
+  const showInactiveStudents = searchParams?.get("status") === "inactive";
   const { user, signOut } = useAuth();
 
   useEffect(() => {
