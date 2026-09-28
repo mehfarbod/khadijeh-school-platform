@@ -47,7 +47,11 @@ export const PERMISSIONS = [
   { key: "users.edit", name: "ویرایش کاربر", group: "کاربران و دسترسی‌ها" },
   { key: "users.manage_permissions", name: "مدیریت دسترسی‌ها", group: "کاربران و دسترسی‌ها" },
 
-  { key: "settings.manage", name: "مدیریت تنظیمات مدرسه", group: "تنظیمات" },
+    { key: "settings.manage", name: "مدیریت تنظیمات مدرسه", group: "تنظیمات" },
+  { key: "absences.view", name: "مشاهده غیبت‌ها", group: "دانش‌آموزان" },
+  { key: "absences.manage", name: "مدیریت غیبت‌ها", group: "دانش‌آموزان" },
+  { key: "academic_years.manage", name: "مدیریت سال‌های تحصیلی", group: "تنظیمات" },
+  { key: "gallery.manage", name: "مدیریت گالری", group: "محتوا" },
 ] as const;
 
 export const ROLE_DEFAULT_PERMISSION_KEYS: Record<string, PermissionKey[]> = {
