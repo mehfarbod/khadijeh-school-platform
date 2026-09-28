@@ -78,11 +78,7 @@ export default function TopStudents({
         <div
           ref={sliderRef}
           dir="rtl"
-          className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
+          className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-2"
         >
           {students.map((student) => {
             const name = `${student.firstName} ${student.lastName}`;
