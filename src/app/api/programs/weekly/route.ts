@@ -73,6 +73,11 @@ async function save(request: NextRequest) {
         update: { imageUrl: parsed.data.imageUrl || null, isActive: parsed.data.isActive },
       });
 
+      await tx.educationalProgram.update({
+        where: { id: program.id },
+        data: { isActive: parsed.data.isActive },
+      });
+
       await tx.weeklyScheduleEntry.deleteMany({ where: { scheduleId: saved.id } });
       if (parsed.data.entries.length) {
         await tx.weeklyScheduleEntry.createMany({
