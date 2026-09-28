@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, requirePermission } from "@/lib/auth/authorization";
+import { rateLimit } from "@/lib/security/rate-limit";
 
 const normalizeDigits = (value: string) =>
   value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
@@ -46,6 +47,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const limit = rateLimit(request as import("next/server").NextRequest, "public:course-registration", { limit: 5, windowMs: 60 * 60 * 1000 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "تعداد درخواست‌های ثبت‌نام بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const body = await request.json();
 
     const courseSlug = typeof body.courseSlug === "string" ? body.courseSlug.trim() : "";
