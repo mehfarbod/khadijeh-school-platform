@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
 interface NewsItem {
@@ -175,11 +176,13 @@ export default function NewsList() {
                   />
 
                   {item.coverImage && (
-                    <div className="aspect-[16/9] overflow-hidden bg-[#F1F5E8]">
-                      <img
+                    <div className="relative aspect-[16/9] overflow-hidden bg-[#F1F5E8]">
+                      <Image
                         src={item.coverImage}
                         alt={item.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                       />
                     </div>
                   )}
