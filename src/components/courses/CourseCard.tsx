@@ -63,7 +63,7 @@ export default function CourseCard({ course }: { course: Course }) {
         className="relative flex h-32 items-center justify-center"
         style={{ backgroundColor: course.bgColor }}
       >
-        <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[16px] bg-white/65">
+        <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[16px] bg-white/20">
           <Icon
             className="h-7 w-7 text-[#194342]"
             strokeWidth={1.8}
