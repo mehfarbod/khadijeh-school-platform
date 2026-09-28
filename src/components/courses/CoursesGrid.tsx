@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+"use client";
+
 import CourseCard, { type Course } from "./CourseCard";
 import type { FilterTab } from "./CourseFilters";
 
@@ -42,7 +43,9 @@ function toCourse(course: ApiCourse): Course {
     instructor: course.instructor || "کادر آموزشی مدرسه",
     initials: course.instructor?.trim().charAt(0) || "م",
     status: course.status,
-    bgColor: gradeBackgroundColors[course.gradeLevel as "10" | "11" | "12"] || "#EEF2F7",
+    bgColor:
+      gradeBackgroundColors[course.gradeLevel as "10" | "11" | "12"] ||
+      "#EEF2F7",
     icon: course.category.includes("زبان")
       ? "language"
       : course.category.includes("هنر")
@@ -58,51 +61,28 @@ function toCourse(course: ApiCourse): Course {
 }
 
 interface CoursesGridProps {
+  courses: ApiCourse[];
   filter: FilterTab;
 }
 
-export default function CoursesGrid({ filter }: CoursesGridProps) {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadCourses() {
-      try {
-        setIsLoading(true);
-        setError("");
-        const response = await fetch("/api/courses?activeOnly=false", { cache: "no-store" });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || "خطا در دریافت دوره‌ها.");
-        if (!cancelled) setCourses((data as ApiCourse[]).map(toCourse));
-      } catch (error) {
-        if (!cancelled) {
-          setError(error instanceof Error ? error.message : "خطا در دریافت دوره‌ها.");
-          setCourses([]);
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-    loadCourses();
-    return () => { cancelled = true; };
-  }, []);
-
-  const filteredCourses = filter === "all" ? courses : courses.filter((course) => course.status === filter);
+export default function CoursesGrid({ courses, filter }: CoursesGridProps) {
+  const mappedCourses = courses.map(toCourse);
+  const filteredCourses =
+    filter === "all"
+      ? mappedCourses
+      : mappedCourses.filter((course) => course.status === filter);
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-6 pb-20 pt-8">
-      {isLoading ? (
-        <div className="py-16 text-center text-sm text-[#667085]">در حال دریافت دوره‌ها...</div>
-      ) : error ? (
-        <div className="rounded-[14px] border border-red-200 bg-red-50 p-5 text-center text-sm text-red-700">{error}</div>
-      ) : filteredCourses.length === 0 ? (
-        <div className="rounded-[14px] border border-[#DBE7C1] bg-white p-12 text-center text-sm text-[#667085]">دوره‌ای برای نمایش وجود ندارد.</div>
+      {filteredCourses.length === 0 ? (
+        <div className="rounded-[14px] border border-[#DBE7C1] bg-white p-12 text-center text-sm text-[#667085]">
+          دوره‌ای برای نمایش وجود ندارد.
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredCourses.map((course) => <CourseCard key={course.id} course={course} />)}
+          {filteredCourses.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
         </div>
       )}
     </section>
