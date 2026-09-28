@@ -65,8 +65,14 @@ export default async function HomePage() {
           id: true,
           firstName: true,
           lastName: true,
-          grade: true,
           birthday: true,
+          enrollments: {
+            orderBy: { academicYear: { title: "desc" } },
+            take: 1,
+            select: {
+              grade: true,
+            },
+          },
         },
       }),
       prisma.birthday.findMany({
