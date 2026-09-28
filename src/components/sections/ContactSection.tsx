@@ -38,10 +38,10 @@ const contacts = [
 
 export default function ContactSection() {
   return (
-    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-6 py-16">
-      <div className="mx-auto max-w-screen-xl">
+    <section className="border-t border-[#E8E3D8] bg-[#FAF8F3] px-5 py-14 sm:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
         {/* Section Header */}
-        <div className="mb-12 text-center">
+        <div className="mb-10 text-center">
           <h2 className="mb-2 text-[22px] font-bold text-[#194342]">
             ارتباط با مدرسه
           </h2>
@@ -60,7 +60,7 @@ export default function ContactSection() {
             return (
               <article
                 key={contact.title}
-                className="group flex min-h-[260px] flex-col gap-4 rounded-[20px] p-8 transition-transform duration-200 hover:-translate-y-1"
+                className="group flex min-h-[260px] flex-col gap-4 rounded-2xl p-8 transition-transform duration-200 hover:-translate-y-1"
                 style={{
                   backgroundColor: contact.background,
                 }}
@@ -98,7 +98,7 @@ export default function ContactSection() {
                 {/* Action */}
                 <Link
                   href={`/contact?department=${contact.department}`}
-                  className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/13 px-[18px] py-2.5 text-[13px] font-semibold transition-colors duration-200 hover:bg-white/20"
+                  className="mt-auto inline-flex w-fit items-center gap-1.5 min-h-11 rounded-xl border border-white/20 bg-white/13 px-[18px] py-2.5 text-[13px] font-semibold transition-colors duration-200 hover:bg-white/20"
                   style={{
                     color: contact.textColor,
                   }}
