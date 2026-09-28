@@ -6,6 +6,7 @@ import { ArrowLeft, Users, BookOpen } from "lucide-react";
 
 interface Course {
   id: string;
+  slug: string;
   title: string;
   description: string;
   category: string;
@@ -74,10 +75,18 @@ export default function CoursesCTA() {
                   )
                 : 0;
 
+            const statusLabel =
+              course.status.toLowerCase() === "active"
+                ? "در حال ثبت‌نام"
+                : course.status.toLowerCase() === "upcoming"
+                  ? "به‌زودی"
+                  : course.status;
+
             return (
-              <div
+              <Link
                 key={course.id}
-                className="rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm"
+                href={`/courses/registration?course=${encodeURIComponent(course.slug)}`}
+                className="block rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5">
@@ -128,9 +137,9 @@ export default function CoursesCTA() {
                       : "bg-primary/5 text-primary"
                   }`}
                 >
-                  {course.status}
+                  {statusLabel}
                 </span>
-              </div>
+              </Link>
             );
           })}
         </div>
