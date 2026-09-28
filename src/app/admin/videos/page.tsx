@@ -58,6 +58,30 @@ export default function AdminVideosPage() {
     event.preventDefault();
     setMessage("");
 
+    const title = form.title.trim();
+    const duration = form.duration.trim();
+    const instructor = form.instructor.trim();
+
+    if (!title) {
+      setMessage("وارد کردن «عنوان ویدیو» الزامی است.");
+      return;
+    }
+    if (title.length < 2) {
+      setMessage("عنوان ویدیو باید حداقل ۲ کاراکتر باشد.");
+      return;
+    }
+    if (!duration) {
+      setMessage("وارد کردن «مدت ویدیو» الزامی است.");
+      return;
+    }
+    if (!instructor) {
+      setMessage("وارد کردن «مدرس» الزامی است.");
+      return;
+    }
+    if (instructor.length < 2) {
+      setMessage("نام مدرس باید حداقل ۲ کاراکتر باشد.");
+      return;
+    }
     if (!file) {
       setMessage("فایل ویدیو را انتخاب کنید.");
       return;
@@ -141,12 +165,12 @@ export default function AdminVideosPage() {
         <p className="mt-1 text-xs text-[#667085]">افزودن و مدیریت ویدیوهای آموزشی درسی</p>
       </div>
 
-      <form onSubmit={submit} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
+      <form noValidate onSubmit={submit} className="rounded-2xl border border-[#E7E2DA] bg-white p-5 sm:p-6">
         <h2 className="text-sm font-bold text-[#194342]">افزودن ویدیو</h2>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="text-xs font-medium text-[#475467]">عنوان ویدیو
-            <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm outline-none focus:border-[#194342]" />
+            <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm outline-none focus:border-[#194342]" />
           </label>
 
           <label className="text-xs font-medium text-[#475467]">درس
@@ -162,15 +186,15 @@ export default function AdminVideosPage() {
           </label>
 
           <label className="text-xs font-medium text-[#475467]">مدت ویدیو
-            <input required placeholder="مثلاً ۱۸ دقیقه" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" />
+            <input placeholder="مثلاً ۱۸ دقیقه" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" />
           </label>
 
           <label className="text-xs font-medium text-[#475467]">مدرس
-            <input required value={form.instructor} onChange={(e) => setForm({ ...form, instructor: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" />
+            <input value={form.instructor} onChange={(e) => setForm({ ...form, instructor: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" />
           </label>
 
           <label className="text-xs font-medium text-[#475467]">فایل ویدیو
-            <input id="video-file" required type="file" accept="video/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-1.5 block w-full rounded-lg border border-[#E7E2DA] px-3 py-2 text-xs" />
+            <input id="video-file" type="file" accept="video/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-1.5 block w-full rounded-lg border border-[#E7E2DA] px-3 py-2 text-xs" />
             <span className="mt-1 block text-[10px] text-[#98A2B3]">حداکثر ۵۰۰ مگابایت</span>
           </label>
         </div>
