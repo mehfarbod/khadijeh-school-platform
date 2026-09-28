@@ -1,8 +1,6 @@
-"use client";
-
 import { BookOpen, Mail, MapPin, Phone, Video } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { prisma } from "@/lib/prisma";
 
 type Settings = {
   footerTitle: string;
@@ -31,20 +29,36 @@ const socialLogoSrc: Record<string, string> = {
   "بله": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/bale.svg",
 };
 
-export default function Footer() {
-  const [settings, setSettings] = useState(fallback);
+export default async function Footer() {
+  const settings = await prisma.schoolSettings.findUnique({
+    where: { id: "school-settings" },
+    select: {
+      footerTitle: true,
+      footerDescription: true,
+      phone: true,
+      email: true,
+      address: true,
+      eitaaUrl: true,
+      baleUrl: true,
+      skyroomUrl: true,
+    },
+  });
 
-  useEffect(() => {
-    fetch("/api/settings/public", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => data && setSettings({ ...fallback, ...data }))
-      .catch(() => {});
-  }, []);
+  const currentSettings: Settings = {
+    footerTitle: settings?.footerTitle || fallback.footerTitle,
+    footerDescription: settings?.footerDescription || fallback.footerDescription,
+    phone: settings?.phone ?? fallback.phone,
+    email: settings?.email ?? fallback.email,
+    address: settings?.address ?? fallback.address,
+    eitaaUrl: settings?.eitaaUrl ?? fallback.eitaaUrl,
+    baleUrl: settings?.baleUrl ?? fallback.baleUrl,
+    skyroomUrl: settings?.skyroomUrl ?? fallback.skyroomUrl,
+  };
 
   const socials = [
-    ["ایتا", settings.eitaaUrl],
-    ["بله", settings.baleUrl],
-    ["اسکای‌روم", settings.skyroomUrl],
+    ["ایتا", currentSettings.eitaaUrl],
+    ["بله", currentSettings.baleUrl],
+    ["اسکای‌روم", currentSettings.skyroomUrl],
   ].filter(([, url]) => Boolean(url)) as [string, string][];
 
   return (
@@ -55,11 +69,11 @@ export default function Footer() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DBE7C1]">
               <BookOpen className="h-5 w-5 text-[#194342]" />
             </div>
-            <h2 className="text-[15px] font-bold text-[#194342]">{settings.footerTitle}</h2>
+            <h2 className="text-[15px] font-bold text-[#194342]">{currentSettings.footerTitle}</h2>
           </div>
 
           <p className="mt-4 max-w-[330px] text-[12.5px] leading-[1.9] text-[#667085]">
-            {settings.footerDescription}
+            {currentSettings.footerDescription}
           </p>
         </div>
 
@@ -76,22 +90,22 @@ export default function Footer() {
         <div>
           <h3 className="text-[13px] font-bold text-[#194342]">تماس با ما</h3>
           <div className="mt-4 space-y-3">
-            {settings.address && (
+            {currentSettings.address && (
               <div className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="text-[12.5px] leading-6 text-[#667085]">{settings.address}</span>
+                <span className="text-[12.5px] leading-6 text-[#667085]">{currentSettings.address}</span>
               </div>
             )}
-            {settings.phone && (
+            {currentSettings.phone && (
               <div className="flex items-center gap-2.5">
                 <Phone className="h-4 w-4 shrink-0" />
-                <span dir="ltr" className="text-[12.5px] text-[#667085]">{settings.phone}</span>
+                <span dir="ltr" className="text-[12.5px] text-[#667085]">{currentSettings.phone}</span>
               </div>
             )}
-            {settings.email && (
+            {currentSettings.email && (
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0" />
-                <span className="text-[12.5px] text-[#667085]">{settings.email}</span>
+                <span className="text-[12.5px] text-[#667085]">{currentSettings.email}</span>
               </div>
             )}
 
@@ -131,7 +145,7 @@ export default function Footer() {
 
       <div className="border-t border-[#E1E8D6]">
         <div className="mx-auto max-w-[1200px] px-6 py-5 text-center">
-          <p className="text-[11.5px] text-[#667085]">© ۱۴۰۵ {settings.footerTitle} — تمامی حقوق محفوظ است.</p>
+          <p className="text-[11.5px] text-[#667085]">© ۱۴۰۵ {currentSettings.footerTitle} — تمامی حقوق محفوظ است.</p>
         </div>
       </div>
     </footer>
