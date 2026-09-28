@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  outputFileTracingRoot: process.cwd(),
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
