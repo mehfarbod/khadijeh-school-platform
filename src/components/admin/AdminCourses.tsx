@@ -11,7 +11,7 @@ type Course = {
   id: string; title: string; slug: string; description: string; fullDescription: string | null;
   coverImage: string | null; instructor: string | null; startDate: string | null; endDate: string | null;
   schedule: string | null; duration: string | null; capacity: number; price: number | null;
-  status: "active" | "upcoming"; category: string; gradeLevel: string | null;
+  status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12";
   registrationDeadline: string | null; isActive: boolean; currentRegistrations: number;
 };
 
@@ -28,14 +28,14 @@ type Registration = {
 type FormState = {
   title: string; description: string; fullDescription: string; coverImage: string; instructor: string;
   startDate: string; endDate: string; schedule: string; duration: string; capacity: string;
-  price: string; status: "active" | "upcoming"; category: string; gradeLevel: string;
+  price: string; status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12";
   registrationDeadline: string; isActive: boolean;
 };
 
 const emptyForm: FormState = {
   title: "", description: "", fullDescription: "", coverImage: "", instructor: "",
   startDate: "", endDate: "", schedule: "", duration: "", capacity: "20", price: "",
-  status: "upcoming", category: "آموزشی", gradeLevel: "", registrationDeadline: "", isActive: true,
+  status: "upcoming", category: "آموزشی", gradeLevel: "10", registrationDeadline: "", isActive: true,
 };
 
 const statusLabel = (status: string) => status === "active" ? "در حال ثبت‌نام" : "به‌زودی";
@@ -114,8 +114,8 @@ export default function AdminCourses() {
   const update = (key: keyof FormState, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
 
   const save = async () => {
-    if (!form.title.trim() || !form.description.trim() || !form.category.trim()) {
-      setError("عنوان، توضیح کوتاه و دسته‌بندی الزامی است."); return;
+    if (!form.title.trim() || !form.description.trim() || !form.category.trim() || !form.gradeLevel) {
+      setError("عنوان، توضیح کوتاه، دسته‌بندی و پایه تحصیلی الزامی است."); return;
     }
     const capacity = Number(form.capacity);
     const price = form.price ? Number(form.price) : null;
@@ -183,11 +183,11 @@ export default function AdminCourses() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
             <thead><tr className="border-b border-border/60 bg-muted/30">
-              {["عنوان دوره","دسته‌بندی","وضعیت","ظرفیت","ثبت‌نام","نمایش","عملیات"].map((h)=><th key={h} className="px-4 py-3 text-right font-medium text-muted-foreground">{h}</th>)}
+              {["عنوان دوره","پایه","دسته‌بندی","وضعیت","ظرفیت","ثبت‌نام","نمایش","عملیات"].map((h)=><th key={h} className="px-4 py-3 text-right font-medium text-muted-foreground">{h}</th>)}
             </tr></thead>
             <tbody>
               {!courses ? <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">در حال دریافت...</td></tr> :
-              courses.length === 0 ? <tr><td colSpan={7} className="p-12 text-center text-muted-foreground"><BookOpen className="mx-auto mb-2 h-8 w-8 opacity-30"/>هنوز دوره‌ای ثبت نشده.</td></tr> :
+              courses.length === 0 ? <tr><td colSpan={8} className="p-12 text-center text-muted-foreground"><BookOpen className="mx-auto mb-2 h-8 w-8 opacity-30"/>هنوز دوره‌ای ثبت نشده.</td></tr> :
               courses.map((course)=><tr key={course.id} className="border-b border-border/30 last:border-0">
                 
                 <td className="px-4 py-3 font-medium">
@@ -272,7 +272,7 @@ export default function AdminCourses() {
             <label className="sm:col-span-2 text-sm">عنوان دوره<input className={inputClass} value={form.title} onChange={e=>update("title",e.target.value)} placeholder="مثلاً کلاس تقویتی ریاضی"/></label>
             <label className="sm:col-span-2 text-sm">توضیح کوتاه<textarea className="mt-1.5 min-h-20 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.description} onChange={e=>update("description",e.target.value)}/></label>
             <label className="text-sm">دسته‌بندی<input className={inputClass} value={form.category} onChange={e=>update("category",e.target.value)} placeholder="آموزشی"/></label>
-            <label className="text-sm">پایه<input className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value)} placeholder="دهم تا دوازدهم"/></label>
+            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option></select></label>
             <label className="text-sm">مدرس<input className={inputClass} value={form.instructor} onChange={e=>update("instructor",e.target.value)}/></label>
             <label className="text-sm">مدت دوره<input className={inputClass} value={form.duration} onChange={e=>update("duration",e.target.value)} placeholder="مثلاً ۱۲ جلسه"/></label>
             <label className="text-sm">زمان‌بندی<input className={inputClass} value={form.schedule} onChange={e=>update("schedule",e.target.value)} placeholder="شنبه‌ها، ساعت ۱۶"/></label>
