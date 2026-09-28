@@ -54,7 +54,6 @@ function errorResponse(error: unknown) {
 }
 
 export async function GET(request: NextRequest) {
-  await requirePermission("users.view");
   try {
     const session = await getCurrentSession();
 
