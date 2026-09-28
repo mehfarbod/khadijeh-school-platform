@@ -13,6 +13,7 @@ interface Course {
   capacity: number;
   currentRegistrations: number;
   status: string;
+  gradeLevel: "10" | "11" | "12" | null;
 }
 
 export default function CoursesCTA() {
@@ -65,7 +66,18 @@ export default function CoursesCTA() {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {courses.slice(0, 4).map((course) => {
-            const gradeBackground =\n              course.gradeLevel === "10"\n                ? "#194342"\n                : course.gradeLevel === "11"\n                  ? "#B86F5B"\n                  : course.gradeLevel === "12"\n                    ? "#DBE7C1"\n                    : "#EEF2F7";\n\n            const isDarkGrade = course.gradeLevel === "10" || course.gradeLevel === "11";\n\n            const isFull =
+            const gradeBackground =
+              course.gradeLevel === "10"
+                ? "#194342"
+                : course.gradeLevel === "11"
+                  ? "#B86F5B"
+                  : course.gradeLevel === "12"
+                    ? "#DBE7C1"
+                    : "#EEF2F7";
+
+            const isDarkGrade = course.gradeLevel === "10" || course.gradeLevel === "11";
+
+            const isFull =
               course.currentRegistrations >= course.capacity;
 
             const percent =
@@ -88,57 +100,62 @@ export default function CoursesCTA() {
                 href={`/courses/registration?course=${encodeURIComponent(course.slug)}`}
                 className="block overflow-hidden rounded-2xl border border-border/60 bg-card transition-all hover:border-border hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                <div className="flex items-center gap-2 px-5 pt-5">\n                  <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: gradeBackground }}>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5">
-                    <BookOpen className="h-4 w-4 text-primary" />
+                <div
+                  className="flex items-center gap-2 px-5 py-4"
+                  style={{ backgroundColor: gradeBackground }}
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                    <BookOpen className={`h-4 w-4 ${isDarkGrade ? "text-white" : "text-[#194342]"}`} />
                   </div>
 
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    {course.category}
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${isDarkGrade ? "bg-white/15 text-white" : "bg-white/65 text-[#194342]"}`}>
+                    {course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : "بدون پایه"}
                   </span>
                 </div>
 
-                <h3 className="text-sm font-semibold text-foreground mb-2 line-clamp-2">
-                  {course.title}
-                </h3>
+                <div className="p-5">
+                  <h3 className="mb-2 line-clamp-2 text-sm font-semibold text-foreground">
+                    {course.title}
+                  </h3>
 
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                  {course.description}
-                </p>
+                  <p className="mb-3 line-clamp-2 text-xs text-muted-foreground">
+                    {course.description}
+                  </p>
 
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {course.currentRegistrations}/{course.capacity}
-                    </span>
+                  <div className="mb-3">
+                    <div className="mb-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {course.currentRegistrations}/{course.capacity}
+                      </span>
 
-                    <span>{percent}%</span>
+                      <span>{percent}%</span>
+                    </div>
+
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          isFull
+                            ? "bg-destructive"
+                            : percent > 80
+                              ? "bg-gold"
+                              : "bg-primary"
+                        }`}
+                        style={{ width: `${Math.min(percent, 100)}%` }}
+                      />
+                    </div>
                   </div>
 
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        isFull
-                          ? "bg-destructive"
-                          : percent > 80
-                            ? "bg-gold"
-                            : "bg-primary"
-                      }`}
-                      style={{ width: `${Math.min(percent, 100)}%` }}
-                    />
-                  </div>
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
+                      isFull
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-primary/5 text-primary"
+                    }`}
+                  >
+                    {statusLabel}
+                  </span>
                 </div>
-
-                <span
-                  className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                    isFull
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-primary/5 text-primary"
-                  }`}
-                >
-                  {statusLabel}
-                </span>
               </Link>
             );
           })}
