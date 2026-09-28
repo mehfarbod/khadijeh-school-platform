@@ -28,7 +28,14 @@ function toCourse(course: ApiCourse): Course {
     slug: course.slug,
     title: course.title,
     description: course.description,
-    grade:\n      course.gradeLevel === "10"\n        ? "پایه دهم"\n        : course.gradeLevel === "11"\n          ? "پایه یازدهم"\n          : course.gradeLevel === "12"\n            ? "پایه دوازدهم"\n            : "همه پایه‌ها",
+    grade:
+      course.gradeLevel === "10"
+        ? "پایه دهم"
+        : course.gradeLevel === "11"
+          ? "پایه یازدهم"
+          : course.gradeLevel === "12"
+            ? "پایه دوازدهم"
+            : "همه پایه‌ها",
     sessions: course.duration || "برنامه آموزشی",
     schedule: course.schedule || "زمان‌بندی متعاقباً اعلام می‌شود",
     capacity: `ظرفیت ${course.capacity} نفر`,
