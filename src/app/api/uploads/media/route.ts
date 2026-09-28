@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 import { hasValidImageSignature } from "@/lib/security/image-signature";
 
 const allowed = new Map([["image/jpeg","jpg"],["image/png","png"],["image/webp","webp"]]);
@@ -13,7 +13,7 @@ export async function POST(request:NextRequest){
     if (contentLength > 6 * 1024 * 1024) {
       return NextResponse.json({error:"حجم درخواست بیش از حد مجاز است."},{status:413});
     }
-    await requireRole(["SUPER_ADMIN","SCHOOL_ADMIN","CONTENT_MANAGER"]);
+    await requirePermission("gallery.manage");
     const formData=await request.formData();
     const file=formData.get("file");
     const folder=String(formData.get("folder")||"gallery").replace(/[^a-z0-9_-]/gi,"");
