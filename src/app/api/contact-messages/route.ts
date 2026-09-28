@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth/authorization";
+import { rateLimit } from "@/lib/security/rate-limit";
+import { NextRequest } from "next/server";
 
 const createContactMessageSchema = z.object({
   name: z.string().trim().min(1, "نام الزامی است.").max(150),
@@ -24,8 +26,16 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const limit = rateLimit(request, "public:contact-message", { limit: 5, windowMs: 60 * 60 * 1000 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "تعداد پیام‌های ارسالی بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const result = createContactMessageSchema.safeParse(await request.json());
     if (!result.success) return NextResponse.json({ error: "اطلاعات واردشده معتبر نیست.", details: result.error.flatten().fieldErrors }, { status: 400 });
 
