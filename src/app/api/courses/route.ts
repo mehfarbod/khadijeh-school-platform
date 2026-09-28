@@ -20,7 +20,7 @@ const courseSchema = z.object({
   price: z.coerce.number().int().min(0).optional().nullable(),
   status: z.enum(["active", "upcoming"]),
   category: z.string().trim().min(1).max(100),
-  gradeLevel: z.string().trim().max(100).optional().nullable(),
+  gradeLevel: z.enum(["10", "11", "12"]),
   registrationDeadline: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
 });
@@ -180,7 +180,7 @@ export async function PATCH(request: NextRequest) {
         ...(data.price !== undefined ? { price: data.price ?? null } : {}),
         ...(data.status !== undefined ? { status: data.status } : {}),
         ...(data.category !== undefined ? { category: data.category } : {}),
-        ...(data.gradeLevel !== undefined ? { gradeLevel: data.gradeLevel || null } : {}),
+        ...(data.gradeLevel !== undefined ? { gradeLevel: data.gradeLevel } : {}),
         ...(data.registrationDeadline !== undefined ? { registrationDeadline: toDate(data.registrationDeadline) } : {}),
         ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
       },
