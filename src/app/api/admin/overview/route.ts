@@ -4,8 +4,8 @@ import { requirePermission } from "@/lib/auth/authorization";
 import { getCurrentSession } from "@/lib/auth/authorization";
 
 export async function GET() {
-  await requirePermission("users.view");
   try {
+    await requirePermission("users.view");
     const session = await getCurrentSession();
 
     if (!session?.user?.id) {
