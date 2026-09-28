@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import PublicLayout from "@/components/layout/PublicLayout";
 
 type SearchResult = {
   type: string;
@@ -163,63 +164,112 @@ export default async function SearchPage({
   }
 
   return (
-    <main dir="rtl" className="min-h-[70vh] bg-[#FAF8F5] px-5 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-8">
-          <p className="mb-2 text-xs font-semibold text-[#B86F5B]">جست‌وجوی سایت</p>
-          <h1 className="text-2xl font-bold text-[#194342] sm:text-3xl">نتایج جست‌وجو</h1>
-          <p className="mt-2 text-sm text-[#667085]">
-            {query ? `نتایج مرتبط با «${query}»` : "عبارت موردنظر خود را جست‌وجو کنید."}
-          </p>
-        </div>
+    <PublicLayout>
+      <main dir="rtl" className="relative overflow-hidden bg-[#FAF8F5]">
+        <section className="relative border-b border-[#E8E2D8] px-5 pb-14 pt-12 sm:px-6 sm:pb-16 sm:pt-16 lg:px-8">
+          <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#DBE7C1]/35 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[#E9D6C8]/35 blur-3xl" />
 
-        <form action="/search" className="mb-8 flex gap-2">
-          <div className="flex h-12 flex-1 items-center gap-3 rounded-xl border border-[#D5DECB] bg-white px-4 shadow-sm">
-            <Search className="h-5 w-5 shrink-0 text-[#667085]" />
-            <input
-              name="q"
-              defaultValue={query}
-              placeholder="مثلاً اخبار، دوره، برنامه هفتگی..."
-              className="min-w-0 flex-1 bg-transparent text-sm text-[#1F2933] outline-none"
-              dir="rtl"
-            />
-          </div>
-          <button className="h-12 rounded-xl bg-[#194342] px-6 text-sm font-medium text-white transition hover:bg-[#3F5D3E]">
-            جست‌وجو
-          </button>
-        </form>
+          <div className="relative mx-auto max-w-4xl text-center">
+            <span className="inline-flex items-center rounded-full bg-[#F1F5E8] px-4 py-1.5 text-xs font-semibold text-[#3F5D3E]">
+              جست‌وجوی سایت
+            </span>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#194342] sm:text-4xl">
+              چه چیزی می‌خواهید پیدا کنید؟
+            </h1>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#667085] sm:text-base">
+              اخبار، اطلاعیه‌ها، رویدادها، دوره‌ها و محتوای آموزشی مدرسه را جست‌وجو کنید.
+            </p>
 
-        {query.length < 2 ? (
-          <div className="rounded-2xl border border-dashed border-[#D5DECB] bg-white p-10 text-center text-sm text-[#667085]">
-            برای جست‌وجو حداقل دو کاراکتر وارد کنید.
-          </div>
-        ) : results.length === 0 ? (
-          <div className="rounded-2xl border border-[#E1E8D6] bg-white p-10 text-center">
-            <p className="font-medium text-[#194342]">نتیجه‌ای پیدا نشد.</p>
-            <p className="mt-2 text-sm text-[#667085]">عبارت دیگری را امتحان کنید.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {results.map((result, index) => (
-              <Link
-                key={`${result.type}-${index}-${result.title}`}
-                href={result.href}
-                className="block rounded-2xl border border-[#E1E8D6] bg-white p-5 transition hover:border-[#C9DDA8] hover:shadow-sm"
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="rounded-full bg-[#F1F5E8] px-2.5 py-1 text-[10px] font-semibold text-[#194342]">
-                    {result.label}
-                  </span>
+            <form action="/search" className="mx-auto mt-8 max-w-3xl">
+              <div className="flex flex-col gap-3 rounded-2xl border border-[#D5DECB] bg-white p-2 shadow-[0_14px_40px_rgba(25,67,66,0.08)] sm:flex-row">
+                <div className="flex h-12 flex-1 items-center gap-3 rounded-xl px-4">
+                  <Search className="h-5 w-5 shrink-0 text-[#8A9488]" />
+                  <input
+                    name="q"
+                    defaultValue={query}
+                    autoComplete="off"
+                    placeholder="مثلاً اخبار مدرسه، دوره‌های آموزشی..."
+                    className="min-w-0 flex-1 bg-transparent text-sm text-[#1F2933] outline-none placeholder:text-[#A0A8A0]"
+                    dir="rtl"
+                    aria-label="عبارت جست‌وجو"
+                  />
                 </div>
-                <h2 className="text-base font-semibold text-[#194342]">{result.title}</h2>
-                <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#667085]">
-                  {result.description}
-                </p>
-              </Link>
-            ))}
+                <button
+                  type="submit"
+                  className="h-12 rounded-xl bg-[#194342] px-7 text-sm font-semibold text-white transition hover:bg-[#3F5D3E] focus:outline-none focus:ring-2 focus:ring-[#C9DDA8] focus:ring-offset-2"
+                >
+                  جست‌وجو
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </div>
-    </main>
+        </section>
+
+        <section className="px-5 py-10 sm:px-6 sm:py-12 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            {query.length < 2 ? (
+              <div className="rounded-2xl border border-[#E1E8D6] bg-white px-6 py-14 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#F1F5E8]">
+                  <Search className="h-6 w-6 text-[#3F5D3E]" />
+                </div>
+                <h2 className="mt-5 text-base font-semibold text-[#194342]">جست‌وجو را شروع کنید</h2>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#667085]">
+                  حداقل دو کاراکتر وارد کنید تا نتایج مرتبط با محتوای عمومی سایت نمایش داده شود.
+                </p>
+              </div>
+            ) : results.length === 0 ? (
+              <div className="rounded-2xl border border-[#E1E8D6] bg-white px-6 py-14 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#F8EDE8]">
+                  <Search className="h-6 w-6 text-[#B86F5B]" />
+                </div>
+                <h2 className="mt-5 text-lg font-semibold text-[#194342]">نتیجه‌ای پیدا نشد</h2>
+                <p className="mt-2 text-sm leading-6 text-[#667085]">
+                  برای «{query}» نتیجه‌ای پیدا نکردیم. عبارت دیگری را امتحان کنید.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold text-[#B86F5B]">نتایج جست‌وجو</p>
+                    <h2 className="mt-1 text-lg font-bold text-[#194342]">
+                      {results.length} نتیجه برای «{query}»
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {results.map((result, index) => (
+                    <Link
+                      key={`${result.type}-${index}-${result.title}`}
+                      href={result.href}
+                      className="group rounded-2xl border border-[#E1E8D6] bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#C9DDA8] hover:shadow-[0_12px_30px_rgba(25,67,66,0.08)]"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <span className="inline-flex rounded-full bg-[#F1F5E8] px-2.5 py-1 text-[10px] font-semibold text-[#3F5D3E]">
+                            {result.label}
+                          </span>
+                          <h3 className="mt-3 text-base font-bold leading-7 text-[#194342] transition-colors group-hover:text-[#3F5D3E]">
+                            {result.title}
+                          </h3>
+                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#667085]">
+                            {result.description}
+                          </p>
+                        </div>
+                        <span className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F7F5F0] text-[#667085] transition group-hover:bg-[#DBE7C1] group-hover:text-[#194342]">
+                          ←
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      </main>
+    </PublicLayout>
   );
 }
