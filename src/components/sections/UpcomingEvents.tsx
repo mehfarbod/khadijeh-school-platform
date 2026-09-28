@@ -1,11 +1,9 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin, Clock, ArrowLeft } from "lucide-react";
 
 import { formatDateShort, toPersianNumber } from "@/lib/persian";
-import { isUpcomingEventDate } from "@/lib/event-date";
+import { getTodayDateString } from "@/lib/event-date";
+import { prisma } from "@/lib/prisma";
 
 interface EventItem {
   id: string;
@@ -20,64 +18,31 @@ interface EventItem {
   isActive: boolean;
 }
 
-export default function UpcomingEvents() {
-  const [events, setEvents] = useState<EventItem[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadEvents() {
-      try {
-        const response = await fetch("/api/events?activeOnly=true");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch events");
-        }
-
-        const data: EventItem[] = await response.json();
-
-        const upcomingEvents = data
-          .filter((event) => isUpcomingEventDate(event.date))
-          .sort((a, b) => a.date.localeCompare(b.date))
-          .slice(0, 4);
-
-        if (!cancelled) {
-          setEvents(upcomingEvents);
-        }
-      } catch (error) {
-        console.error("Failed to load upcoming events:", error);
-
-        if (!cancelled) {
-          setEvents([]);
-        }
-      }
-    }
-
-    loadEvents();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (!events) {
-    return (
-      <section className="bg-background py-14 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-          <div className="mb-8 h-8 w-48 animate-pulse rounded bg-muted" />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="h-32 animate-pulse rounded-2xl bg-muted"
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+export default async function UpcomingEvents() {
+  const events = await prisma.event.findMany({
+    where: {
+      isActive: true,
+      date: {
+        gte: getTodayDateString(),
+      },
+    },
+    orderBy: {
+      date: "asc",
+    },
+    take: 4,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      date: true,
+      time: true,
+      location: true,
+      eventType: true,
+      coverImage: true,
+      isActive: true,
+    },
+  });
 
   if (events.length === 0) {
     return null;
