@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
           label: row.isActive ? "دانش‌آموز" : "دانش‌آموز غیرفعال",
           title: `${row.firstName} ${row.lastName}`,
           description: "پرونده دانش‌آموز",
-          href: `/admin/students/${row.id}`,
+          href: `/admin/students`,
         })),
       );
     }
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
           label: "کادر مدرسه",
           title: `${row.firstName} ${row.lastName}`,
           description: row.position,
-          href: `/admin/staff?edit=${row.id}`,
+          href: `/admin/staff`,
         })),
       );
     }
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
       });
       results.push(...rows.map((row) => ({
         type: "news", label: "خبر", title: row.title, description: row.category,
-        href: `/admin/news?edit=${row.id}`,
+        href: `/admin/news`,
       })));
     }
 
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
       });
       results.push(...rows.map((row) => ({
         type: "events", label: "رویداد", title: row.title, description: row.eventType,
-        href: `/admin/events?edit=${row.id}`,
+        href: `/admin/events`,
       })));
     }
 
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
       });
       results.push(...rows.map((row) => ({
         type: "announcements", label: "اطلاعیه", title: row.title, description: row.category,
-        href: `/admin/announcements?edit=${row.id}`,
+        href: `/admin/announcements`,
       })));
     }
 
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
       });
       results.push(...rows.map((row) => ({
         type: "courses", label: "دوره", title: row.title, description: row.category,
-        href: `/admin/courses?edit=${row.id}`,
+        href: `/admin/courses`,
       })));
     }
 
@@ -209,7 +209,7 @@ export async function GET(request: NextRequest) {
         type: "registrations", label: "ثبت‌نام دوره",
         title: `${row.studentFirstName} ${row.studentLastName}`,
         description: `وضعیت: ${row.status}`,
-        href: `/admin/registrations?edit=${row.id}`,
+        href: `/admin/registrations`,
       })));
     }
 
@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
         type: "admissions", label: "پیش‌ثبت‌نام مدرسه",
         title: `${row.studentFirstName} ${row.studentLastName}`,
         description: `وضعیت: ${row.status}`,
-        href: `/admin/admission-applications?edit=${row.id}`,
+        href: `/admin/admission-applications`,
       })));
     }
 
@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
       });
       results.push(...rows.map((row) => ({
         type: "videos", label: "ویدیوی آموزشی", title: row.title, description: row.subject,
-        href: `/admin/videos?edit=${row.id}`,
+        href: `/admin/videos`,
       })));
     }
 
@@ -262,7 +262,7 @@ export async function GET(request: NextRequest) {
       results.push(...rows.map((row) => ({
         type: "top-students", label: "دانش‌آموز برتر",
         title: `${row.firstName} ${row.lastName}`, description: row.achievement,
-        href: `/admin/top-students?edit=${row.id}`,
+        href: `/admin/top-students`,
       })));
     }
 
@@ -276,7 +276,7 @@ export async function GET(request: NextRequest) {
       results.push(...rows.map((row) => ({
         type: "birthdays", label: "تولد",
         title: row.firstName, description: `پایه ${row.grade}`,
-        href: `/admin/birthdays?edit=${row.id}`,
+        href: `/admin/birthdays`,
       })));
     }
 
@@ -290,7 +290,7 @@ export async function GET(request: NextRequest) {
       results.push(...rows.map((row) => ({
         type: "messages", label: row.isRead ? "پیام" : "پیام جدید",
         title: row.name, description: row.subject || "پیام تماس",
-        href: `/admin/messages?message=${row.id}`,
+        href: `/admin/messages`,
       })));
     }
 
