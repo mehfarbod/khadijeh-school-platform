@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 
 const createStaffSchema = z.object({
   firstName: z
@@ -78,7 +78,7 @@ const createStaffSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "CONTENT_MANAGER", "TEACHER", "STAFF"]);
+    await requirePermission("staff.view");
 
     const { searchParams } = new URL(request.url);
 
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("staff.create");
 
     const body = await request.json();
 
