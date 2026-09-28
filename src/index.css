@@ -118,3 +118,34 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+
+.reveal-hidden,
+.reveal-visible {
+  transform: translate3d(0, var(--reveal-y), 0);
+  opacity: 0;
+}
+
+.reveal-visible {
+  animation: reveal-in var(--reveal-duration) var(--reveal-delay) ease-out forwards;
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-y), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-hidden,
+  .reveal-visible {
+    transform: none;
+    opacity: 1;
+    animation: none;
+  }
+}
