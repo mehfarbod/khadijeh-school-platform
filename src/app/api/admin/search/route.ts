@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/auth/authorization";
 import { getCurrentSession, hasPermission } from "@/lib/auth/authorization";
 
 type AdminSearchResult = {
@@ -53,6 +54,7 @@ function errorResponse(error: unknown) {
 }
 
 export async function GET(request: NextRequest) {
+  await requirePermission("users.view");
   try {
     const session = await getCurrentSession();
 
