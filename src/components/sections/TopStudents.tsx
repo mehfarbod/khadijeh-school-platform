@@ -121,13 +121,6 @@ export default function TopStudents({
             );
           })}
         </div>
-      </div>
-
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </section>
+      </div></section>
   );
 }
