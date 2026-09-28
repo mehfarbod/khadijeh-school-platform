@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 type RevealProps = {
   children: ReactNode;
@@ -54,7 +54,7 @@ export default function Reveal({
           "--reveal-delay": `${delay}s`,
           "--reveal-duration": `${duration}s`,
           "--reveal-y": `${y}px`,
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       {children}
