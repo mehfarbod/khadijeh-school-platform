@@ -62,8 +62,7 @@ export default function DailyAbsencesSlider({
         <div
           ref={sliderRef}
           dir="rtl"
-          className="flex gap-4 overflow-x-auto scroll-smooth pb-2"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth pb-2"
         >
           {absences.map((student) => (
             <article
