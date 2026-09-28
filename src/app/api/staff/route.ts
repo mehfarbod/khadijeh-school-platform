@@ -78,6 +78,8 @@ const createStaffSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "CONTENT_MANAGER", "TEACHER", "STAFF"]);
+
     const { searchParams } = new URL(request.url);
 
     const category = searchParams.get("category");
