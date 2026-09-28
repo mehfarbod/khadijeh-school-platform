@@ -52,10 +52,10 @@ const quickAccessItems = [
 
 export default function QuickAccess() {
   return (
-    <section className="bg-[#FAF8F3] py-10 md:py-12">
+    <section className="bg-[#FAF8F3] py-14 md:py-20">
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         {/* Heading */}
-        <div className="mb-7 text-center">
+        <div className="mb-9 text-center">
           <span className="mb-2 block text-xs font-semibold text-[#3F5D3E]">
             دسترسی سریع
           </span>
@@ -78,7 +78,7 @@ export default function QuickAccess() {
               <Link
                 key={item.title}
                 href={item.href}
-                className="group flex min-h-[145px] flex-col rounded-2xl border border-[#E5E8DE] bg-white px-4 py-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-[#CBD8BD] hover:shadow-[0_10px_25px_rgba(25,67,66,0.08)]"
+                className="group flex min-h-[152px] flex-col rounded-2xl border border-[#E5E8DE] bg-white px-4 py-5 transition-all duration-200 ease-out hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2 hover:border-[#CBD8BD] hover:shadow-[0_10px_25px_rgba(25,67,66,0.08)]"
               >
                 {/* Icon */}
                 <Icon
