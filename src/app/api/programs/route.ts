@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { ensureAllEducationalPrograms } from "@/lib/educational-programs";
 
 const schema = z.object({
   type: z.enum(["weekly", "exams", "calendar", "parents-meetings", "family-counseling"]),
@@ -15,6 +16,7 @@ const schema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureAllEducationalPrograms();
     const params = new URL(request.url).searchParams;
     const type = params.get("type");
     const activeOnly = params.get("activeOnly") !== "false";
