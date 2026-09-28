@@ -11,7 +11,7 @@ type Course = {
   id: string; title: string; slug: string; description: string; fullDescription: string | null;
   coverImage: string | null; instructor: string | null; startDate: string | null; endDate: string | null;
   schedule: string | null; duration: string | null; capacity: number; price: number | null;
-  status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12";
+  status: "active" | "upcoming"; category: string; gradeLevel: string | null;
   registrationDeadline: string | null; isActive: boolean; currentRegistrations: number;
 };
 
@@ -105,7 +105,7 @@ export default function AdminCourses() {
       coverImage: course.coverImage || "", instructor: course.instructor || "", startDate: toInputDate(course.startDate),
       endDate: toInputDate(course.endDate), schedule: course.schedule || "", duration: course.duration || "",
       capacity: String(course.capacity), price: course.price == null ? "" : String(course.price),
-      status: course.status, category: course.category, gradeLevel: course.gradeLevel || "",
+      status: course.status, category: course.category, gradeLevel: (course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" ? course.gradeLevel : "10"),
       registrationDeadline: toInputDate(course.registrationDeadline), isActive: course.isActive,
     });
     setError(""); setOpen(true);
@@ -135,7 +135,7 @@ export default function AdminCourses() {
           instructor: form.instructor || null,
           startDate: form.startDate || null, endDate: form.endDate || null,
           schedule: form.schedule || null, duration: form.duration || null,
-          gradeLevel: form.gradeLevel || null, registrationDeadline: form.registrationDeadline || null,
+          gradeLevel: form.gradeLevel, registrationDeadline: form.registrationDeadline || null,
         }),
       });
       const data = await response.json();
