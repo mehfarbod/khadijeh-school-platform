@@ -16,8 +16,16 @@ const requestOtpSchema = z.object({
     .transform((value) => value.toLowerCase()),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const limit = rateLimit(request, "auth:otp-request", { limit: 10, windowMs: 15 * 60 * 1000 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const body = await request.json();
 
     const result = requestOtpSchema.safeParse(body);
@@ -120,7 +128,9 @@ export async function POST(request: Request) {
 
     // فقط برای توسعه؛ قبل از production باید حذف شود
     // و ارسال واقعی ایمیل جایگزین شود.
-    console.log(`[DEV OTP] ${email}: ${code}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[DEV OTP] ${email}: ${code}`);
+    }
 
     return NextResponse.json({
       success: true,
