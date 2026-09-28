@@ -39,7 +39,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("absences.manage");
     const { id } = await context.params;
     await prisma.dailyAbsence.delete({ where: { id } });
     return NextResponse.json({ success: true });
