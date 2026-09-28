@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 import { jalaliToGregorian } from "@/lib/date/jalali";
 import { rateLimit } from "@/lib/security/rate-limit";
 import {
@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("admissions.view");
 
     const { searchParams } = new URL(request.url);
 
