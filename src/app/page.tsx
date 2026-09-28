@@ -15,16 +15,33 @@ import ContactSection from "@/components/sections/ContactSection";
 import Reveal from "@/components/ui/Reveal";
 
 export default async function HomePage() {
-  const settings = await prisma.schoolSettings.findUnique({
-    where: { id: "school-settings" },
-    select: {
-      showNews: true,
-      showEvents: true,
-      showBirthdays: true,
-      showTopStudents: true,
-      showDailyAbsences: true,
-    },
-  });
+  const [settings, topStudents] = await Promise.all([
+    prisma.schoolSettings.findUnique({
+      where: { id: "school-settings" },
+      select: {
+        showNews: true,
+        showEvents: true,
+        showBirthdays: true,
+        showTopStudents: true,
+        showDailyAbsences: true,
+      },
+    }),
+    prisma.topStudent.findMany({
+      where: { isActive: true },
+      orderBy: [
+        { academicYear: "desc" },
+        { lastName: "asc" },
+        { firstName: "asc" },
+      ],
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        grade: true,
+        achievement: true,
+      },
+    }),
+  ]);
 
   const visibility = {
     showNews: settings?.showNews ?? true,
@@ -59,7 +76,7 @@ export default async function HomePage() {
 
       {visibility.showTopStudents && (
         <Reveal>
-          <TopStudents />
+          <TopStudents students={topStudents} />
         </Reveal>
       )}
 
