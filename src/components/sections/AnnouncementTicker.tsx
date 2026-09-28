@@ -60,22 +60,6 @@ export default async function AnnouncementTicker() {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .ticker-track {
-          animation: ticker 24s linear infinite;
-        }
-
-        @keyframes ticker {
-          from {
-            transform: translateX(0);
-          }
-
-          to {
-            transform: translateX(50%);
-          }
-        }
-      `}</style>
     </section>
   );
 }
