@@ -14,34 +14,72 @@ import LatestNews from "@/components/sections/LatestNews";
 import ContactSection from "@/components/sections/ContactSection";
 import Reveal from "@/components/ui/Reveal";
 
+function isTodayBirthday(date: Date | string | null) {
+  if (!date) return false;
+
+  const value = new Date(date);
+  const today = new Date();
+
+  return (
+    value.getMonth() === today.getMonth() &&
+    value.getDate() === today.getDate()
+  );
+}
+
 export default async function HomePage() {
-  const [settings, topStudents] = await Promise.all([
-    prisma.schoolSettings.findUnique({
-      where: { id: "school-settings" },
-      select: {
-        showNews: true,
-        showEvents: true,
-        showBirthdays: true,
-        showTopStudents: true,
-        showDailyAbsences: true,
-      },
-    }),
-    prisma.topStudent.findMany({
-      where: { isActive: true },
-      orderBy: [
-        { academicYear: "desc" },
-        { lastName: "asc" },
-        { firstName: "asc" },
-      ],
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        grade: true,
-        achievement: true,
-      },
-    }),
-  ]);
+  const [settings, topStudents, birthdayStudents, manualBirthdays] =
+    await Promise.all([
+      prisma.schoolSettings.findUnique({
+        where: { id: "school-settings" },
+        select: {
+          showNews: true,
+          showEvents: true,
+          showBirthdays: true,
+          showTopStudents: true,
+          showDailyAbsences: true,
+        },
+      }),
+      prisma.topStudent.findMany({
+        where: { isActive: true },
+        orderBy: [
+          { academicYear: "desc" },
+          { lastName: "asc" },
+          { firstName: "asc" },
+        ],
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          grade: true,
+          achievement: true,
+        },
+      }),
+      prisma.student.findMany({
+        where: {
+          isActive: true,
+          isBirthdayVisible: true,
+          birthday: { not: null },
+        },
+        orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          grade: true,
+          birthday: true,
+        },
+      }),
+      prisma.birthday.findMany({
+        where: { isVisible: true },
+        orderBy: { birthday: "asc" },
+        select: {
+          id: true,
+          firstName: true,
+          grade: true,
+          birthday: true,
+        },
+      }),
+    ]);
 
   const visibility = {
     showNews: settings?.showNews ?? true,
@@ -50,6 +88,25 @@ export default async function HomePage() {
     showTopStudents: settings?.showTopStudents ?? true,
     showDailyAbsences: settings?.showDailyAbsences ?? true,
   };
+
+  const birthdays = [
+    ...birthdayStudents
+      .filter((student) => isTodayBirthday(student.birthday))
+      .map((student) => ({
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        grade: student.grade,
+      })),
+    ...manualBirthdays
+      .filter((item) => isTodayBirthday(item.birthday))
+      .map((item) => ({
+        id: item.id,
+        firstName: item.firstName,
+        lastName: "",
+        grade: item.grade,
+      })),
+  ];
 
   return (
     <PublicLayout>
@@ -82,7 +139,7 @@ export default async function HomePage() {
 
       {visibility.showBirthdays && (
         <Reveal>
-          <Birthdays />
+          <Birthdays birthdays={birthdays} />
         </Reveal>
       )}
 
