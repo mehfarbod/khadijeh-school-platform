@@ -13,7 +13,7 @@ type CourseData = {
   schedule: string | null;
   duration: string | null;
   capacity: number;
-  status: "active" | "upcoming";
+  status: string;
   category: string;
   gradeLevel: string | null;
 };
@@ -25,10 +25,15 @@ export default function CoursesInteractive({
 }) {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 
+  const normalizedCourses = courses.map((course) => ({
+    ...course,
+    status: course.status === "active" ? "active" as const : "upcoming" as const,
+  }));
+
   return (
     <>
       <CourseFilters activeTab={activeFilter} onChange={setActiveFilter} />
-      <CoursesGrid courses={courses} filter={activeFilter} />
+      <CoursesGrid courses={normalizedCourses} filter={activeFilter} />
     </>
   );
 }
