@@ -28,6 +28,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(absences);
   } catch (error) {
     console.error("GET /api/absences error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN")
+      return NextResponse.json({ error: "شما مجوز مشاهده غیبت‌ها را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت غیبت‌ها" }, { status: 500 });
   }
 }
