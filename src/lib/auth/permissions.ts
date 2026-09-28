@@ -59,6 +59,7 @@ export const ROLE_DEFAULT_PERMISSION_KEYS: Record<string, PermissionKey[]> = {
   SCHOOL_ADMIN: PERMISSIONS.map((permission) => permission.key),
   CONTENT_MANAGER: [
     "news.view", "news.create", "news.edit", "news.manage",
+    "gallery.manage",
     "events.view", "events.manage",
     "announcements.view", "announcements.manage",
     "top_students.manage", "birthdays.manage",
