@@ -20,7 +20,7 @@ const courseSchema = z.object({
   price: z.coerce.number().int().min(0).optional().nullable(),
   status: z.enum(["active", "upcoming"]),
   category: z.string().trim().min(1).max(100),
-  gradeLevel: z.enum(["10", "11", "12"]),
+  gradeLevel: z.enum(["10", "11", "12", "all"]),
   registrationDeadline: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
 });
