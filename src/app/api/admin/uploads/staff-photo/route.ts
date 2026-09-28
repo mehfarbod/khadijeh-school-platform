@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { requireRole } from "@/lib/auth/authorization";
+import { hasValidImageSignature } from "@/lib/security/image-signature";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,11 @@ const ALLOWED_TYPES: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const contentLength = Number(request.headers.get("content-length") ?? "0");
+    if (contentLength > 6 * 1024 * 1024) {
+      return NextResponse.json({ error: "حجم درخواست بیش از حد مجاز است." }, { status: 413 });
+    }
+
     await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
 
     const formData = await request.formData();
@@ -42,6 +48,13 @@ export async function POST(request: NextRequest) {
 
     if (file.size === 0) {
       return NextResponse.json({ error: "فایل تصویر خالی است." }, { status: 400 });
+    }
+
+    if (!(await hasValidImageSignature(file, file.type as "image/jpeg" | "image/png" | "image/webp"))) {
+      return NextResponse.json(
+        { error: "محتوای فایل با فرمت اعلام‌شده مطابقت ندارد." },
+        { status: 400 },
+      );
     }
 
     const extension = ALLOWED_TYPES[file.type];
