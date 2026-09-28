@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyEmailOtp } from "@/lib/auth/verify-otp";
+import { rateLimit } from "@/lib/security/rate-limit";
 
 const verifyOtpSchema = z.object({
   email: z
@@ -16,8 +17,16 @@ const verifyOtpSchema = z.object({
     .regex(/^\d{6}$/, "کد تأیید باید ۶ رقم باشد."),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const limit = rateLimit(request, "auth:otp-verify", { limit: 20, windowMs: 15 * 60 * 1000 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "تعداد تلاش‌ها بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const body = await request.json();
 
     const result = verifyOtpSchema.safeParse(body);
