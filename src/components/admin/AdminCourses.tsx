@@ -28,7 +28,7 @@ type Registration = {
 type FormState = {
   title: string; description: string; fullDescription: string; coverImage: string; instructor: string;
   startDate: string; endDate: string; schedule: string; duration: string; capacity: string;
-  price: string; status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12" | "";
+  price: string; status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12" | "all" | "";
   registrationDeadline: string; isActive: boolean;
 };
 
@@ -105,7 +105,7 @@ export default function AdminCourses() {
       coverImage: course.coverImage || "", instructor: course.instructor || "", startDate: toInputDate(course.startDate),
       endDate: toInputDate(course.endDate), schedule: course.schedule || "", duration: course.duration || "",
       capacity: String(course.capacity), price: course.price == null ? "" : String(course.price),
-      status: course.status, category: course.category, gradeLevel: course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" ? course.gradeLevel : "",
+      status: course.status, category: course.category, gradeLevel: course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" || course.gradeLevel === "all" ? course.gradeLevel : "",
       registrationDeadline: toInputDate(course.registrationDeadline), isActive: course.isActive,
     });
     setError(""); setOpen(true);
@@ -199,7 +199,7 @@ export default function AdminCourses() {
                     {course.title}
                   </button>
                 </td>
-                <td className="px-4 py-3">{course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : "—"}</td>
+                <td className="px-4 py-3">{course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : course.gradeLevel === "all" ? "همه پایه‌ها" : "—"}</td>
                 <td className="px-4 py-3">{course.category}</td>
                 <td className="px-4 py-3">{statusLabel(course.status)}</td>
                 <td className="px-4 py-3">{course.capacity}</td>
@@ -273,7 +273,7 @@ export default function AdminCourses() {
             <label className="sm:col-span-2 text-sm">عنوان دوره<input className={inputClass} value={form.title} onChange={e=>update("title",e.target.value)} placeholder="مثلاً کلاس تقویتی ریاضی"/></label>
             <label className="sm:col-span-2 text-sm">توضیح کوتاه<textarea className="mt-1.5 min-h-20 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.description} onChange={e=>update("description",e.target.value)}/></label>
             <label className="text-sm">دسته‌بندی<input className={inputClass} value={form.category} onChange={e=>update("category",e.target.value)} placeholder="آموزشی"/></label>
-            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="" disabled>پایه تحصیلی را انتخاب کنید</option><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option></select></label>
+            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="" disabled>پایه تحصیلی را انتخاب کنید</option><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option><option value="all">همه پایه‌ها</option></select></label>
             <label className="text-sm">مدرس<input className={inputClass} value={form.instructor} onChange={e=>update("instructor",e.target.value)}/></label>
             <label className="text-sm">مدت دوره<input className={inputClass} value={form.duration} onChange={e=>update("duration",e.target.value)} placeholder="مثلاً ۱۲ جلسه"/></label>
             <label className="text-sm">زمان‌بندی<input className={inputClass} value={form.schedule} onChange={e=>update("schedule",e.target.value)} placeholder="شنبه‌ها، ساعت ۱۶"/></label>
