@@ -62,15 +62,15 @@ export default function UpcomingEvents() {
 
   if (!events) {
     return (
-      <section className="bg-background py-12 md:py-16">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+      <section className="bg-background py-14 md:py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <div className="mb-8 h-8 w-48 animate-pulse rounded bg-muted" />
 
           <div className="grid gap-4 md:grid-cols-2">
             {[1, 2, 3, 4].map((item) => (
               <div
                 key={item}
-                className="h-32 animate-pulse rounded-xl bg-muted"
+                className="h-32 animate-pulse rounded-2xl bg-muted"
               />
             ))}
           </div>
@@ -84,8 +84,8 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <section className="bg-background py-12 md:py-16">
-      <div className="mx-auto max-w-6xl px-4 lg:px-8">
+    <section className="bg-background py-14 md:py-20">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose">
@@ -111,9 +111,9 @@ export default function UpcomingEvents() {
             <Link
               key={event.id}
               href={`/events/${event.id}`}
-              className="group block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="group block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
-              <article className="h-full rounded-xl border border-border/60 bg-card p-5 transition-all group-hover:-translate-y-0.5 group-hover:border-border group-hover:shadow-sm">
+              <article className="h-full rounded-2xl border border-border/60 bg-card p-5 transition-all group-hover:-translate-y-0.5 group-hover:border-border group-hover:shadow-sm">
                 <div className="flex items-start gap-4">
                   <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-primary/5 text-center">
                     <span className="text-[10px] font-medium leading-none text-primary/70">
