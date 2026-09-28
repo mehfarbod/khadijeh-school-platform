@@ -37,6 +37,8 @@ export default async function HomePage() {
           showBirthdays: true,
           showTopStudents: true,
           showDailyAbsences: true,
+          heroTitle: true,
+          heroDescription: true,
         },
       }),
       prisma.topStudent.findMany({
@@ -117,7 +119,7 @@ export default async function HomePage() {
   return (
     <PublicLayout>
       <AnnouncementTicker />
-      <Hero />
+      <Hero title={settings?.heroTitle} description={settings?.heroDescription} />
 
       <Reveal>
         <QuickAccess />
