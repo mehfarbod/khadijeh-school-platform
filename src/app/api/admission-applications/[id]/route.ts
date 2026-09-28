@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 
 const updateAdmissionApplicationSchema = z
   .object({
@@ -27,7 +27,7 @@ export async function PATCH(
   },
 ) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("admissions.manage");
 
     const { id } = await context.params;
 
