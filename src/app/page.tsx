@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import PublicLayout from "@/components/layout/PublicLayout";
 import Hero from "@/components/sections/Hero";
 import QuickAccess from "@/components/sections/QuickAccess";
-import SchoolIntro from "@/components/sections/SchoolIntro";
 import UpcomingEvents from "@/components/sections/UpcomingEvents";
 import AnnouncementsPreview from "@/components/sections/AnnouncementsPreview";
 import TopStudents from "@/components/sections/TopStudents";
@@ -39,14 +38,14 @@ export default async function HomePage() {
       <AnnouncementTicker />
       <Hero />
       <QuickAccess />
+      <CoursesCTA />
       {visibility.showEvents && <UpcomingEvents />}
+      <AnnouncementsPreview />
       {visibility.showTopStudents && <TopStudents />}
       {visibility.showBirthdays && <Birthdays />}
       {visibility.showDailyAbsences && <DailyAbsences />}
       {visibility.showNews && <LatestNews />}
       <ContactSection />
-      <AnnouncementsPreview />
-      <CoursesCTA />
       <ContactCTA />
     </PublicLayout>
   );
