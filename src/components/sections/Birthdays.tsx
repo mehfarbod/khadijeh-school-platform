@@ -23,7 +23,7 @@ export default function SchoolCelebrations() {
   const [birthdays, setBirthdays] = useState<BirthdayStudent[]>([]);
 
   useEffect(() => {
-    fetch("/api/birthdays", { cache: "no-store" })
+    fetch("/api/birthdays")
       .then((response) => (response.ok ? response.json() : []))
       .then(setBirthdays)
       .catch(() => setBirthdays([]));
