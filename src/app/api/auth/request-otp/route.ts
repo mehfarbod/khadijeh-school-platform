@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { generateOtp, getOtpExpiration, hashOtp } from "@/lib/auth/otp";
+import { rateLimit } from "@/lib/security/rate-limit";
 
 const OTP_COOLDOWN_MS = 60 * 1000;
 const OTP_WINDOW_MS = 15 * 60 * 1000;
