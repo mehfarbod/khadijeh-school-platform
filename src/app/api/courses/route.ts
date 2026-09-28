@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         price: data.price ?? null,
         status: data.status,
         category: data.category,
-        gradeLevel: data.gradeLevel || null,
+        gradeLevel: data.gradeLevel,
         registrationDeadline: toDate(data.registrationDeadline),
         isActive: data.isActive ?? true,
         createdById: user.user.id,
