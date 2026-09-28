@@ -31,7 +31,7 @@ export default function Hero() {
         <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full border border-white/[0.06]" />
         <div className="absolute -bottom-40 -left-32 h-80 w-80 rounded-full border border-[#DBE7C1]/10" />
       </div>
-      <div className="relative mx-auto max-w-[1440px] px-5 py-8 sm:px-8 md:py-10 lg:px-12 lg:py-12">
+      <div className="relative mx-auto max-w-7xl px-5 py-12 sm:px-8 md:py-16 lg:px-10 lg:py-20">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1 text-[11px] font-medium text-white/75">
             <GraduationCap className="h-3.5 w-3.5 text-[#DBE7C1]" />
@@ -40,24 +40,24 @@ export default function Hero() {
           <h1 className="text-3xl font-extrabold leading-[1.35] tracking-tight sm:text-4xl lg:text-5xl">
             {title}
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-xs leading-7 text-white/65 sm:text-sm lg:text-base">
+          <p className="mx-auto mt-3 max-w-2xl text-xs leading-7 text-white/75 sm:text-sm lg:text-base">
             {description}
           </p>
-          <div className="mt-5 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
-            <Link href="/registration" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#DBE7C1] px-5 text-xs font-bold text-[#194342] transition-all hover:-translate-y-0.5 hover:bg-white sm:text-sm">
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/registration" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#DBE7C1] px-5 text-xs font-bold text-[#194342] transition-all hover:-translate-y-0.5 hover:bg-white sm:text-sm">
               پیش‌ثبت‌نام مدرسه <ArrowLeft className="h-3.5 w-3.5" />
             </Link>
-            <Link href="/courses" className="inline-flex h-10 items-center justify-center rounded-lg bg-[#B86F5B] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#B86F5B]/90 sm:text-sm">
+            <Link href="/courses" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#B86F5B] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#B86F5B]/90 sm:text-sm">
               مشاهده دوره‌ها
             </Link>
           </div>
-          <div className="mx-auto mt-5 grid max-w-lg grid-cols-3 border-t border-white/10 pt-3.5">
+          <div className="mx-auto mt-8 grid max-w-lg grid-cols-3 border-t border-white/10 pt-3.5">
             {stats.map((stat) => {
               const Icon = stat.icon;
               return <div key={stat.label} className="flex flex-col items-center gap-0.5 border-l border-white/10 px-2 text-center first:border-l-0">
                 <Icon className="mb-0.5 h-3.5 w-3.5 text-[#BFD7EA]" />
                 <span className="text-base font-bold text-white sm:text-lg">{stat.value}</span>
-                <span className="text-[10px] text-white/45 sm:text-[11px]">{stat.label}</span>
+                <span className="text-[10px] text-white/60 sm:text-[11px]">{stat.label}</span>
               </div>;
             })}
           </div>
