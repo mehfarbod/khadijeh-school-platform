@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth/authorization";
 import { jalaliToGregorian } from "@/lib/date/jalali";
+import { rateLimit } from "@/lib/security/rate-limit";
 import {
   iranianNationalIdSchema,
   iranianMobileSchema,
@@ -123,6 +124,14 @@ const admissionApplicationSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const limit = rateLimit(request, "public:admission-application", { limit: 3, windowMs: 60 * 60 * 1000 });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "تعداد درخواست‌های ثبت‌نام بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const body = await request.json();
 
     const result = admissionApplicationSchema.safeParse(body);
