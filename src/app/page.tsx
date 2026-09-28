@@ -12,6 +12,7 @@ import ContactCTA from "@/components/sections/ContactCTA";
 import AnnouncementTicker from "@/components/sections/AnnouncementTicker";
 import LatestNews from "@/components/sections/LatestNews";
 import ContactSection from "@/components/sections/ContactSection";
+import Reveal from "@/components/ui/Reveal";
 
 export default async function HomePage() {
   const settings = await prisma.schoolSettings.findUnique({
@@ -37,15 +38,53 @@ export default async function HomePage() {
     <PublicLayout>
       <AnnouncementTicker />
       <Hero />
-      <QuickAccess />
-      <CoursesCTA />
-      {visibility.showEvents && <UpcomingEvents />}
-      <AnnouncementsPreview />
-      {visibility.showTopStudents && <TopStudents />}
-      {visibility.showBirthdays && <Birthdays />}
-      {visibility.showDailyAbsences && <DailyAbsences />}
-      {visibility.showNews && <LatestNews />}
-      <ContactSection />
+
+      <Reveal>
+        <QuickAccess />
+      </Reveal>
+
+      <Reveal>
+        <CoursesCTA />
+      </Reveal>
+
+      {visibility.showEvents && (
+        <Reveal>
+          <UpcomingEvents />
+        </Reveal>
+      )}
+
+      <Reveal>
+        <AnnouncementsPreview />
+      </Reveal>
+
+      {visibility.showTopStudents && (
+        <Reveal>
+          <TopStudents />
+        </Reveal>
+      )}
+
+      {visibility.showBirthdays && (
+        <Reveal>
+          <Birthdays />
+        </Reveal>
+      )}
+
+      {visibility.showDailyAbsences && (
+        <Reveal>
+          <DailyAbsences />
+        </Reveal>
+      )}
+
+      {visibility.showNews && (
+        <Reveal>
+          <LatestNews />
+        </Reveal>
+      )}
+
+      <Reveal>
+        <ContactSection />
+      </Reveal>
+
       <ContactCTA />
     </PublicLayout>
   );
