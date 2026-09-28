@@ -1,6 +1,5 @@
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 import {
   CalendarDays,
   Clock3,
@@ -42,11 +41,13 @@ export default function EventCard({ event }: EventCardProps) {
     >
       <article className="h-full overflow-hidden rounded-2xl border border-[#E1E8D6] bg-white transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-[#194342]/20 group-hover:shadow-[0_12px_30px_rgba(25,67,66,0.08)]">
         {event.coverImage && (
-          <div className="aspect-[16/7] overflow-hidden bg-[#F1F5E8]">
-            <img
+          <div className="relative aspect-[16/7] overflow-hidden bg-[#F1F5E8]">
+            <Image
               src={event.coverImage}
               alt={event.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
             />
           </div>
         )}
