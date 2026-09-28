@@ -7,7 +7,7 @@ export default async function AnnouncementsPreview() {
   const announcements = await prisma.announcement.findMany({
     where: {
       isActive: true,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date().toISOString() } }],
     },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     take: 4,
