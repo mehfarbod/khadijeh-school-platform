@@ -186,7 +186,7 @@ export default function AdminCourses() {
               {["عنوان دوره","پایه","دسته‌بندی","وضعیت","ظرفیت","ثبت‌نام","نمایش","عملیات"].map((h)=><th key={h} className="px-4 py-3 text-right font-medium text-muted-foreground">{h}</th>)}
             </tr></thead>
             <tbody>
-              {!courses ? <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">در حال دریافت...</td></tr> :
+              {!courses ? <tr><td colSpan={8} className="p-10 text-center text-muted-foreground">در حال دریافت...</td></tr> :
               courses.length === 0 ? <tr><td colSpan={8} className="p-12 text-center text-muted-foreground"><BookOpen className="mx-auto mb-2 h-8 w-8 opacity-30"/>هنوز دوره‌ای ثبت نشده.</td></tr> :
               courses.map((course)=><tr key={course.id} className="border-b border-border/30 last:border-0">
                 
@@ -199,6 +199,7 @@ export default function AdminCourses() {
                     {course.title}
                   </button>
                 </td>
+                <td className="px-4 py-3">{course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : "—"}</td>
                 <td className="px-4 py-3">{course.category}</td>
                 <td className="px-4 py-3">{statusLabel(course.status)}</td>
                 <td className="px-4 py-3">{course.capacity}</td>
