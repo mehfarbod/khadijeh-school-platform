@@ -30,6 +30,7 @@ import {
   UserRoundX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import AdminSearch from "@/components/admin/AdminSearch";
 
 interface SidebarItem {
   label: string;
@@ -390,7 +391,8 @@ export default function AdminLayout({
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="mr-auto flex items-center gap-2">
+          <div className="mr-auto flex items-center gap-3">
+            <AdminSearch />
             <Link
               href="/admin"
               className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-[#667085] transition-colors hover:bg-white hover:text-[#194342]"
