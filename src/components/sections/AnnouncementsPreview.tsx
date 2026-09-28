@@ -41,8 +41,8 @@ export default function AnnouncementsPreview() {
 
   if (!announcements) {
     return (
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+      <section className="bg-muted/30 py-14 md:py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -60,8 +60,8 @@ export default function AnnouncementsPreview() {
   if (announcements.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16 bg-muted/30">
-      <div className="mx-auto max-w-6xl px-4 lg:px-8">
+    <section className="bg-muted/30 py-14 md:py-20">
+      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between mb-8">
           <div>
             <p className="text-xs font-semibold text-rose uppercase tracking-wider mb-2">
@@ -86,7 +86,7 @@ export default function AnnouncementsPreview() {
           {announcements.slice(0, 4).map((item) => (
             <div
               key={item.id}
-              className="flex items-start gap-4 rounded-xl border border-border/60 bg-card p-4 transition-all hover:border-border hover:shadow-sm"
+              className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-4 transition-all hover:border-border hover:shadow-sm"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/5">
                 {item.isPinned ? (
