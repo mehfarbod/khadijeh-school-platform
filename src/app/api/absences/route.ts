@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth/authorization";
+import { requirePermission } from "@/lib/auth/authorization";
 
 const todayKey = () =>
   new Intl.DateTimeFormat("en-CA", {
@@ -18,6 +18,7 @@ const absenceSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  await requirePermission("absences.view");
   try {
     const activeOnly = new URL(request.url).searchParams.get("activeOnly") !== "false";
     const absences = await prisma.dailyAbsence.findMany({
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
+    await requirePermission("absences.manage");
     const result = absenceSchema.safeParse(await request.json());
 
     if (!result.success) {
