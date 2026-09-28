@@ -1,39 +1,35 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { prisma } from "@/lib/prisma";
 
 type Announcement = {
   id: string;
   title: string;
+  expiresAt: string | null;
 };
 
-export default function AnnouncementTicker() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+export default async function AnnouncementTicker() {
+  const announcements = await prisma.announcement.findMany({
+    where: {
+      isActive: true,
+      isTicker: true,
+    },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    take: 8,
+    select: {
+      id: true,
+      title: true,
+      expiresAt: true,
+    },
+  });
 
-  useEffect(() => {
-    let cancelled = false;
+  const visibleAnnouncements = announcements.filter(
+    (item: Announcement) =>
+      !item.expiresAt ||
+      Number.isNaN(new Date(item.expiresAt).getTime()) ||
+      new Date(item.expiresAt).getTime() > Date.now(),
+  );
 
-    fetch("/api/announcements?activeOnly=true&tickerOnly=true", {
-      cache: "no-store",
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Failed to load announcements");
-        return response.json();
-      })
-      .then((data: Announcement[]) => {
-        if (!cancelled) setAnnouncements(data);
-      })
-      .catch(() => {
-        if (!cancelled) setAnnouncements([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (announcements.length === 0) return null;
+  if (visibleAnnouncements.length === 0) return null;
 
   return (
     <section
@@ -49,16 +45,18 @@ export default function AnnouncementTicker() {
 
         <div className="relative min-w-0 flex-1 overflow-hidden">
           <div className="ticker-track flex w-max items-center gap-16 pr-8">
-            {[...announcements, ...announcements].map((announcement, index) => (
-              <Link
-                key={`${announcement.id}-${index}`}
-                href="/announcements"
-                className="whitespace-nowrap text-xs text-white/80 transition-colors hover:text-white"
-                aria-label={`مشاهده اطلاعیه: ${announcement.title}`}
-              >
-                ⬥ {announcement.title}
-              </Link>
-            ))}
+            {[...visibleAnnouncements, ...visibleAnnouncements].map(
+              (announcement, index) => (
+                <Link
+                  key={`${announcement.id}-${index}`}
+                  href="/announcements"
+                  className="whitespace-nowrap text-xs text-white/80 transition-colors hover:text-white"
+                  aria-label={`مشاهده اطلاعیه: ${announcement.title}`}
+                >
+                  ⬥ {announcement.title}
+                </Link>
+              ),
+            )}
           </div>
         </div>
       </div>
