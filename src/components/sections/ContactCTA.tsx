@@ -53,8 +53,8 @@ export default function ContactCTA() {
   ];
 
   return (
-    <section className="bg-[#194342] px-6 py-14 text-white md:py-16">
-      <div className="mx-auto max-w-screen-xl">
+    <section className="bg-[#194342] px-5 py-16 text-white sm:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl">
         <div className="grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           {/* Content */}
           <div>
@@ -73,7 +73,7 @@ export default function ContactCTA() {
 
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 rounded-[10px] bg-[#B86F5B] px-[18px] py-2.5 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[#A45F4D]"
+              className="inline-flex items-center gap-2 min-h-11 rounded-xl bg-[#B86F5B] px-[18px] py-2.5 text-[13px] font-semibold text-white transition-colors duration-200 hover:bg-[#A45F4D]"
             >
               <span>تماس با مدرسه</span>
               <ArrowLeft className="h-[14px] w-[14px]" strokeWidth={1.7} />
@@ -88,7 +88,7 @@ export default function ContactCTA() {
               return (
                 <div
                   key={item.label}
-                  className="flex items-center gap-3 rounded-[14px] border border-white/10 bg-white/5 px-4 py-3.5"
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#DBE7C1]/10">
                     <Icon
