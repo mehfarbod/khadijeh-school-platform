@@ -35,7 +35,6 @@ function formatNewsDate(date: Date) {
 }
 
 export default async function LatestNews() {
-  const queryStart = performance.now();
   const news = await prisma.news.findMany({
     where: { isActive: true },
     orderBy: { createdAt: "desc" },
@@ -50,9 +49,6 @@ export default async function LatestNews() {
     },
   })
 
-  console.log(
-    `[Home] LatestNews Prisma: ${(performance.now() - queryStart).toFixed(0)}ms`,
-  );;
 
   if (news.length === 0) return null;
 
