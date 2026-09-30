@@ -280,6 +280,31 @@ model StudentGrade {
   @@index([term])
 }
 
+model StudentAssessment {
+  id             String   @id @default(cuid())
+  studentId      String
+  academicYearId String
+  subject        String
+  type           String   @default("هفتگی")
+  title          String
+  assessmentDate DateTime?
+  score          Decimal  @db.Decimal(5, 2)
+  teacherId      String?
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  teacher      User?        @relation("AssessmentTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([academicYearId])
+  @@index([subject])
+  @@index([assessmentDate])
+  @@index([teacherId])
+}
+
 model DailyAbsence {
   id        String   @id @default(cuid())
   firstName String
