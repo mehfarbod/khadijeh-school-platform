@@ -30,7 +30,6 @@ const socialLogoSrc: Record<string, string> = {
 };
 
 export default async function Footer() {
-  const queryStart = performance.now();
   const settings = await prisma.schoolSettings.findUnique({
     where: { id: "school-settings" },
     select: {
@@ -45,9 +44,6 @@ export default async function Footer() {
     },
   })
 
-  console.log(
-    `[Home] Footer Prisma: ${(performance.now() - queryStart).toFixed(0)}ms`,
-  );;
 
   const currentSettings: Settings = {
     footerTitle: settings?.footerTitle || fallback.footerTitle,
