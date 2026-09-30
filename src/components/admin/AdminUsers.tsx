@@ -198,17 +198,37 @@ export default function AdminUsers() {
 
   const savePermissions = async () => {
     if (!selectedStaff?.user || !data?.canManagePermissions) return;
+    if (!email.trim()) {
+      toast.error("ایمیل ورود را وارد کنید.");
+      return;
+    }
+
     setSaving(true);
     try {
+      const accountResponse = await fetch(`/api/admin/users/${selectedStaff.user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
+          email: email.trim(),
+          role,
+          staffId: selectedStaff.id,
+          isActive,
+        }),
+      });
+      const accountResult = await accountResponse.json();
+      if (!accountResponse.ok) throw new Error(accountResult.error || "خطا در ذخیره اطلاعات دسترسی");
+
       const permissions = Object.entries(permissionState).map(([key, allowed]) => ({ key, allowed }));
-      const response = await fetch(`/api/admin/users/${selectedStaff.user.id}`, {
+      const permissionResponse = await fetch(`/api/admin/users/${selectedStaff.user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ permissions }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "خطا در ذخیره دسترسی‌ها");
-      toast.success("دسترسی‌ها ذخیره شد.");
+      const permissionResult = await permissionResponse.json();
+      if (!permissionResponse.ok) throw new Error(permissionResult.error || "خطا در ذخیره دسترسی‌ها");
+
+      toast.success("اطلاعات و دسترسی‌های کادر ذخیره شد.");
       setAccessOpen(false);
       await loadUsers();
     } catch (error) {
