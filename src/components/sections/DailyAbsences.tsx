@@ -10,7 +10,6 @@ const todayKey = () =>
   }).format(new Date());
 
 export default async function DailyAbsences() {
-  const queryStart = performance.now();
   const absences = await prisma.dailyAbsence.findMany({
     where: { dateKey: todayKey() },
     orderBy: [{ grade: "asc" }, { lastName: "asc" }, { firstName: "asc" }],
@@ -23,9 +22,6 @@ export default async function DailyAbsences() {
     },
   })
 
-  console.log(
-    `[Home] DailyAbsences Prisma: ${(performance.now() - queryStart).toFixed(0)}ms`,
-  );;
 
   if (absences.length === 0) return null;
 
