@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
-    const grades = await prisma.studentGrade.findMany({
+    const grades = academicYearId || studentId ? await prisma.studentGrade.findMany({
       where: {
         ...(academicYearId ? { academicYearId } : {}),
         ...(studentId ? { studentId } : {}),
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
         description: true,
       },
       orderBy: [{ subject: "asc" }, { term: "asc" }],
-    });
+    }) : [];
 
     return NextResponse.json({
       academicYears,
