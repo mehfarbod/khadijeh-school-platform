@@ -21,11 +21,26 @@ export default async function StudentGradesPage() {
     orderBy: [{ academicYear: { startDate: "desc" } }, { subject: "asc" }],
   });
 
+  const termOrder = ["مستمر نوبت اول", "نوبت اول", "مستمر نوبت دوم", "نوبت دوم"];
   const grouped = grades.reduce<Record<string, typeof grades>>((result, grade) => {
-    const key = `${grade.academicYear.title} — ${grade.term}`;
+    const key = grade.academicYear.title;
     (result[key] ??= []).push(grade);
     return result;
   }, {});
+
+  const orderedGroups = Object.entries(grouped).map(([year, items]) => {
+    const subjects = Array.from(new Set(items.map((item) => item.subject)));
+    return {
+      year,
+      rows: subjects.map((subject) => {
+        const row = items.filter((item) => item.subject === subject);
+        return {
+          subject,
+          grades: termOrder.map((term) => row.find((item) => item.term === term)?.score.toString() ?? "—"),
+        };
+      }),
+    };
+  });
 
   return (
     <main className="min-h-screen bg-muted/30 px-4 py-10">
@@ -58,29 +73,37 @@ export default async function StudentGradesPage() {
             </p>
           </section>
         ) : (
-          Object.entries(grouped).map(([group, items]) => (
-            <section key={group} className="rounded-2xl border bg-background p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold">{group}</h2>
+          orderedGroups.map((group) => (
+            <section key={group.year} className="rounded-2xl border bg-background p-5 shadow-sm">
+              <div className="mb-4">
+                <h2 className="font-semibold">کارنامه سال تحصیلی {group.year}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">نمرات مستمر و پایانی به تفکیک هر درس</p>
+              </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[520px] text-sm">
+                <table className="w-full min-w-[760px] text-sm">
                   <thead>
                     <tr className="border-b text-right text-muted-foreground">
                       <th className="pb-3 font-medium">درس</th>
-                      <th className="pb-3 font-medium">نمره</th>
-                      <th className="pb-3 font-medium">توضیحات</th>
+                      <th className="pb-3 text-center font-medium">مستمر نوبت اول</th>
+                      <th className="pb-3 text-center font-medium">نوبت اول</th>
+                      <th className="pb-3 text-center font-medium">مستمر نوبت دوم</th>
+                      <th className="pb-3 text-center font-medium">نوبت دوم</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((grade) => (
-                      <tr key={grade.id} className="border-b last:border-0">
-                        <td className="py-3 font-medium">{grade.subject}</td>
-                        <td className="py-3">{grade.score.toString()}</td>
-                        <td className="py-3 text-muted-foreground">
-                          {grade.description || "—"}
-                        </td>
+                    {group.rows.map((row) => (
+                      <tr key={row.subject} className="border-b last:border-0">
+                        <td className="py-3 font-medium">{row.subject}</td>
+                        {row.grades.map((score, index) => (
+                          <td key={index} className="py-3 text-center">{score}</td>
+                        ))}
                       </tr>
                     ))}
                   </tbody>
+                </table>
+              </div>
+            </section>
+          ))                 </tbody>
                 </table>
               </div>
             </section>
