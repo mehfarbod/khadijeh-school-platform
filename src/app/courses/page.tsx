@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Header from "@/components/layout/Header";
 import CoursesHero from "@/components/courses/CoursesHero";
 import CoursesInteractive from "@/components/courses/CoursesInteractive";
-import CoursesFooter from "@/components/courses/CoursesFooter";
+import CoursesFooterServer from "@/components/courses/CoursesFooterServer";
 
 export default async function CoursesPage() {
   const queryStart = performance.now();
@@ -38,7 +38,7 @@ export default async function CoursesPage() {
         <CoursesInteractive courses={courses} />
       </main>
 
-      <CoursesFooter />
+      <CoursesFooterServer />
     </>
   );
 }
