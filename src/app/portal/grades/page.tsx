@@ -15,11 +15,18 @@ export default async function StudentGradesPage() {
     redirect("/portal/login");
   }
 
-  const grades = await prisma.studentGrade.findMany({
+  const [grades, assessments] = await Promise.all([
+    prisma.studentGrade.findMany({
     where: { studentId: student.id },
     include: { academicYear: true },
     orderBy: [{ academicYear: { startDate: "desc" } }, { subject: "asc" }],
-  });
+    }),
+    prisma.studentAssessment.findMany({
+      where: { studentId: student.id },
+      include: { academicYear: true },
+      orderBy: [{ assessmentDate: "desc" }, { createdAt: "desc" }],
+    }),
+  ]);
 
   const termOrder = ["مستمر نوبت اول", "نوبت اول", "مستمر نوبت دوم", "نوبت دوم"];
   const grouped = grades.reduce<Record<string, typeof grades>>((result, grade) => {
@@ -109,6 +116,40 @@ export default async function StudentGradesPage() {
             </section>
           ))
         )}
+        <section className="rounded-2xl border bg-background p-5 shadow-sm">
+          <div className="mb-4">
+            <h2 className="font-semibold">ارزیابی‌های هفتگی</h2>
+            <p className="mt-1 text-xs text-muted-foreground">نمرات آزمون‌ها و فعالیت‌های هفتگی ثبت‌شده توسط مدرس</p>
+          </div>
+          {assessments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">هنوز ارزیابی هفتگی ثبت نشده است.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
+                  <tr className="border-b text-right text-muted-foreground">
+                    <th className="pb-3 font-medium">سال تحصیلی</th>
+                    <th className="pb-3 font-medium">درس</th>
+                    <th className="pb-3 font-medium">عنوان</th>
+                    <th className="pb-3 text-center font-medium">تاریخ</th>
+                    <th className="pb-3 text-center font-medium">نمره</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assessments.map((item) => (
+                    <tr key={item.id} className="border-b last:border-0">
+                      <td className="py-3">{item.academicYear.title}</td>
+                      <td className="py-3 font-medium">{item.subject}</td>
+                      <td className="py-3">{item.title}</td>
+                      <td className="py-3 text-center">{item.assessmentDate ? new Intl.DateTimeFormat("fa-IR").format(item.assessmentDate) : "—"}</td>
+                      <td className="py-3 text-center">{item.score.toString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );
