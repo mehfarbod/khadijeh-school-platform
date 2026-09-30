@@ -315,6 +315,9 @@ export async function POST(request: NextRequest) {
             className: data.className || null,
           },
         },
+        studentAccount: {
+          create: {},
+        },
       },
 
       include: {
@@ -326,11 +329,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await prisma.studentAccount.create({
-      data: {
-        studentId: student.id,
-      },
-    });
 
     return NextResponse.json(student, {
       status: 201,
