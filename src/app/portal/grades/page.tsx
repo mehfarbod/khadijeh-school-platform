@@ -56,11 +56,33 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
   const subjects = Array.from(new Set(grades.map((item) => item.subject)));
   const rows = subjects.map((subject) => {
     const row = grades.filter((item) => item.subject === subject);
+    const scores = row.map((item) => Number(item.score));
+    const subjectAverage =
+      scores.length > 0
+        ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2)
+        : null;
+
+    const firstTermScores = row
+      .filter((item) => item.term === "مستمر نوبت اول" || item.term === "نوبت اول")
+      .map((item) => Number(item.score));
+    const secondTermScores = row
+      .filter((item) => item.term === "مستمر نوبت دوم" || item.term === "نوبت دوم")
+      .map((item) => Number(item.score));
+
     return {
       subject,
       grades: termOrder.map(
         (term) => row.find((item) => item.term === term)?.score.toString() ?? "—",
       ),
+      firstTermAverage:
+        firstTermScores.length > 0
+          ? (firstTermScores.reduce((sum, score) => sum + score, 0) / firstTermScores.length).toFixed(2)
+          : "—",
+      secondTermAverage:
+        secondTermScores.length > 0
+          ? (secondTermScores.reduce((sum, score) => sum + score, 0) / secondTermScores.length).toFixed(2)
+          : "—",
+      subjectAverage: subjectAverage ?? "—",
     };
   });
 
@@ -68,6 +90,22 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
   const average =
     scoreValues.length > 0
       ? (scoreValues.reduce((sum, score) => sum + score, 0) / scoreValues.length).toFixed(2)
+      : null;
+
+  const firstTermScores = grades
+    .filter((item) => item.term === "مستمر نوبت اول" || item.term === "نوبت اول")
+    .map((item) => Number(item.score));
+  const secondTermScores = grades
+    .filter((item) => item.term === "مستمر نوبت دوم" || item.term === "نوبت دوم")
+    .map((item) => Number(item.score));
+
+  const firstTermAverage =
+    firstTermScores.length > 0
+      ? (firstTermScores.reduce((sum, score) => sum + score, 0) / firstTermScores.length).toFixed(2)
+      : null;
+  const secondTermAverage =
+    secondTermScores.length > 0
+      ? (secondTermScores.reduce((sum, score) => sum + score, 0) / secondTermScores.length).toFixed(2)
       : null;
 
   return (
@@ -140,7 +178,7 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
           </section>
         ) : (
           <>
-            <section className="grid gap-4 sm:grid-cols-3">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border bg-background p-5 shadow-sm">
                 <p className="text-sm text-muted-foreground">تعداد نمرات</p>
                 <p className="mt-2 text-2xl font-bold">{grades.length}</p>
@@ -153,13 +191,21 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                 <p className="text-sm text-muted-foreground">میانگین نمرات ثبت‌شده</p>
                 <p className="mt-2 text-2xl font-bold">{average ?? "—"}</p>
               </div>
+              <div className="rounded-2xl border bg-background p-5 shadow-sm">
+                <p className="text-sm text-muted-foreground">میانگین نوبت اول</p>
+                <p className="mt-2 text-2xl font-bold">{firstTermAverage ?? "—"}</p>
+              </div>
+              <div className="rounded-2xl border bg-background p-5 shadow-sm">
+                <p className="text-sm text-muted-foreground">میانگین نوبت دوم</p>
+                <p className="mt-2 text-2xl font-bold">{secondTermAverage ?? "—"}</p>
+              </div>
             </section>
 
             <section className="rounded-2xl border bg-background p-5 shadow-sm">
               <div className="mb-4">
                 <h2 className="font-semibold">کارنامه سال تحصیلی {selectedYear.title}</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  نمرات پایانی و مستمر؛ ثبت مستمر اختیاری است.
+                  نمرات ثبت‌شده هر درس و میانگین نمرات موجود در این سال تحصیلی.
                 </p>
               </div>
 
@@ -177,6 +223,7 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                         <th className="pb-3 text-center font-medium">نوبت اول</th>
                         <th className="pb-3 text-center font-medium">مستمر نوبت دوم</th>
                         <th className="pb-3 text-center font-medium">نوبت دوم</th>
+                        <th className="pb-3 text-center font-medium">میانگین درس</th>
                       </tr>
                     </thead>
                     <tbody>
