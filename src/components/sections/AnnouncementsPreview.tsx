@@ -4,6 +4,7 @@ import { Pin, ArrowLeft, Bell } from "lucide-react";
 import { toPersianNumber } from "@/lib/persian";
 
 export default async function AnnouncementsPreview() {
+  const queryStart = performance.now();
   const announcements = await prisma.announcement.findMany({
     where: {
       isActive: true,
@@ -11,7 +12,11 @@ export default async function AnnouncementsPreview() {
     },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     take: 4,
-  });
+  })
+
+  console.log(
+    `[Home] AnnouncementsPreview Prisma: ${(performance.now() - queryStart).toFixed(0)}ms`,
+  );;
 
   if (announcements.length === 0) return null;
 
