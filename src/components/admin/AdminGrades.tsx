@@ -2,7 +2,7 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
-import { Check, GraduationCap, RefreshCw } from "lucide-react";
+import { Check, GraduationCap, Pencil, RefreshCw, Trash2, X } from "lucide-react";
 
 type Year = { id: string; title: string; isCurrent: boolean };
 type Student = {
@@ -22,7 +22,9 @@ type Grade = {
 };
 
 const termOptions = [
+  { value: "مستمر نوبت اول", label: "مستمر نوبت اول" },
   { value: "نوبت اول", label: "نوبت اول" },
+  { value: "مستمر نوبت دوم", label: "مستمر نوبت دوم" },
   { value: "نوبت دوم", label: "نوبت دوم" },
 ];
 
@@ -38,6 +40,7 @@ export default function AdminGrades() {
   const [term, setTerm] = useState("نوبت اول");
   const [score, setScore] = useState("");
   const [description, setDescription] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -123,7 +126,8 @@ export default function AdminGrades() {
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "ثبت نمره انجام نشد.");
 
-      setSuccess("نمره با موفقیت ثبت شد.");
+      setSuccess(editingId ? "نمره با موفقیت ویرایش شد." : "نمره با موفقیت ثبت شد.");
+      setEditingId(null);
       setScore("");
       setDescription("");
       await load();
@@ -227,7 +231,7 @@ export default function AdminGrades() {
 
         <button type="button" disabled={saving} onClick={save} className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">
           <Check className="h-4 w-4" />
-          {saving ? "در حال ذخیره..." : "ثبت نمره"}
+          {saving ? "در حال ذخیره..." : editingId ? "ذخیره ویرایش" : "ثبت نمره"}
         </button>
       </section>
 
@@ -241,14 +245,14 @@ export default function AdminGrades() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-sm">
-                <thead><tr className="border-b"><th className="px-3 py-2 text-right">درس</th><th className="px-3 py-2 text-right">نوبت</th><th className="px-3 py-2 text-right">نمره</th><th className="px-3 py-2 text-right">توضیحات</th></tr></thead>
+                <thead><tr className="border-b"><th className="px-3 py-2 text-right">درس</th><th className="px-3 py-2 text-right">نوبت</th><th className="px-3 py-2 text-right">نمره</th><th className="px-3 py-2 text-right">توضیحات</th><th className="px-3 py-2 text-right">عملیات</th></tr></thead>
                 <tbody>
                   {studentGrades.map((item) => (
                     <tr key={item.id} className="border-b last:border-0">
                       <td className="px-3 py-3">{item.subject}</td>
                       <td className="px-3 py-3">{item.term}</td>
                       <td className="px-3 py-3 font-medium">{item.score}</td>
-                      <td className="px-3 py-3 text-muted-foreground">{item.description || "—"}</td>
+                      <td className="px-3 py-3 text-muted-foreground">{item.description || "—"}</td>\n                      <td className="px-3 py-3"><div className="flex items-center gap-2"><button type="button" onClick={() => startEdit(item)} className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs"><Pencil className="h-3.5 w-3.5" />ویرایش</button><button type="button" onClick={() => removeGrade(item.id)} className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-xs text-red-600"><Trash2 className="h-3.5 w-3.5" />حذف</button></div></td>
                     </tr>
                   ))}
                 </tbody>
