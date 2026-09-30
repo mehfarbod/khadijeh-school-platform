@@ -38,6 +38,7 @@ model User {
   staff          Staff?
   permissions    UserPermission[]
   enteredGrades  StudentGrade[] @relation("GradeTeacher")
+  enteredAssessments StudentAssessment[] @relation("AssessmentTeacher")
 }
 
 model Student {
@@ -85,6 +86,7 @@ model Student {
   studentAccount      StudentAccount?
   studentOtps         StudentOtp[]
   grades              StudentGrade[]
+  assessments         StudentAssessment[]
 
   @@index([isActive])
   @@index([birthday])
@@ -611,6 +613,7 @@ model AcademicYear {
   enrollments           StudentEnrollment[]
   admissionApplications AdmissionApplication[]
   grades                StudentGrade[]
+  assessments           StudentAssessment[]
 
   @@index([isCurrent])
 }
