@@ -138,6 +138,40 @@ export default function AdminGrades() {
     }
   };
 
+  const startEdit = (item: Grade) => {
+    setEditingId(item.id);
+    setSubject(item.subject);
+    setTerm(item.term);
+    setScore(item.score);
+    setDescription(item.description || "");
+    setError("");
+    setSuccess("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setSubject("");
+    setScore("");
+    setDescription("");
+    setError("");
+  };
+
+  const removeGrade = async (id: string) => {
+    if (!window.confirm("این نمره حذف شود؟")) return;
+    setError("");
+    setSuccess("");
+    try {
+      const response = await fetch(`/api/admin/grades?id=${id}`, { method: "DELETE" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "حذف نمره انجام نشد.");
+      setSuccess("نمره با موفقیت حذف شد.");
+      if (editingId === id) cancelEdit();
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "حذف نمره انجام نشد.");
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -230,9 +264,15 @@ export default function AdminGrades() {
         </div>
 
         <button type="button" disabled={saving} onClick={save} className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">
-          <Check className="h-4 w-4" />
+          {editingId ? <Pencil className="h-4 w-4" /> : <Check className="h-4 w-4" />}
           {saving ? "در حال ذخیره..." : editingId ? "ذخیره ویرایش" : "ثبت نمره"}
         </button>
+        {editingId && (
+          <button type="button" onClick={cancelEdit} className="mr-2 inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-medium">
+            <X className="h-4 w-4" />
+            لغو ویرایش
+          </button>
+        )}
       </section>
 
       {studentId && (
@@ -252,7 +292,8 @@ export default function AdminGrades() {
                       <td className="px-3 py-3">{item.subject}</td>
                       <td className="px-3 py-3">{item.term}</td>
                       <td className="px-3 py-3 font-medium">{item.score}</td>
-                      <td className="px-3 py-3 text-muted-foreground">{item.description || "—"}</td>\n                      <td className="px-3 py-3"><div className="flex items-center gap-2"><button type="button" onClick={() => startEdit(item)} className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs"><Pencil className="h-3.5 w-3.5" />ویرایش</button><button type="button" onClick={() => removeGrade(item.id)} className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-xs text-red-600"><Trash2 className="h-3.5 w-3.5" />حذف</button></div></td>
+                      <td className="px-3 py-3 text-muted-foreground">{item.description || "—"}</td>
+                      <td className="px-3 py-3"><div className="flex items-center gap-2"><button type="button" onClick={() => startEdit(item)} className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs"><Pencil className="h-3.5 w-3.5" />ویرایش</button><button type="button" onClick={() => removeGrade(item.id)} className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-xs text-red-600"><Trash2 className="h-3.5 w-3.5" />حذف</button></div></td>
                     </tr>
                   ))}
                 </tbody>
