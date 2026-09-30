@@ -19,6 +19,7 @@ interface EventItem {
 }
 
 export default async function UpcomingEvents() {
+  const queryStart = performance.now();
   const events = await prisma.event.findMany({
     where: {
       isActive: true,
@@ -42,7 +43,11 @@ export default async function UpcomingEvents() {
       coverImage: true,
       isActive: true,
     },
-  });
+  })
+
+  console.log(
+    `[Home] UpcomingEvents Prisma: ${(performance.now() - queryStart).toFixed(0)}ms`,
+  );;
 
   if (events.length === 0) {
     return null;
