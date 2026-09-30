@@ -46,9 +46,7 @@ type Staff = {
   photo: string | null;
   phone: string | null;
   email: string | null;
-  userId: string | null;
   isActive: boolean;
-  user: StaffUser | null;
 };
 
 type StaffForm = {
@@ -117,7 +115,7 @@ export default function AdminStaff() {
     const query = search.trim().toLowerCase();
     if (!query) return staff ?? [];
     return staff?.filter((member) =>
-      [member.firstName, member.lastName, member.position, member.category, member.subject ?? "", member.phone ?? "", member.email ?? "", member.user?.email ?? ""]
+      [member.firstName, member.lastName, member.position, member.category, member.subject ?? "", member.phone ?? "", member.email ?? ""]
         .join(" ").toLowerCase().includes(query)
     ) ?? [];
   }, [search, staff]);
