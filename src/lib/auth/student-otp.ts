@@ -22,7 +22,6 @@ export async function requestStudentOtp(identifier: string) {
     where: {
       isActive: true,
       OR: [{ mobile: normalized }, { fatherMobile: normalized }],
-      studentAccount: { is: { isActive: true } },
     },
     select: { id: true, mobile: true, fatherMobile: true },
     take: 2,
@@ -38,6 +37,12 @@ export async function requestStudentOtp(identifier: string) {
   if (!phone) {
     return { success: true, message: GENERIC_MESSAGE };
   }
+
+  await prisma.studentAccount.upsert({
+    where: { studentId: student.id },
+    create: { studentId: student.id, isActive: true },
+    update: {},
+  });
 
   const code = generateOtp();
   const now = new Date();
@@ -75,7 +80,6 @@ export async function verifyStudentOtp(
     where: {
       isActive: true,
       OR: [{ mobile: normalized }, { fatherMobile: normalized }],
-      studentAccount: { is: { isActive: true } },
     },
     select: { id: true },
     take: 2,
@@ -86,6 +90,15 @@ export async function verifyStudentOtp(
   }
 
   const student = students[0];
+  const account = await prisma.studentAccount.findUnique({
+    where: { studentId: student.id },
+    select: { isActive: true },
+  });
+
+  if (!account?.isActive) {
+    return { success: false, error: "کد تأیید نامعتبر است.", status: 400 };
+  }
+
   const otp = await prisma.studentOtp.findFirst({
     where: { studentId: student.id, consumedAt: null },
     orderBy: { createdAt: "desc" },
