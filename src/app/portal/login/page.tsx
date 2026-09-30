@@ -15,25 +15,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, LogIn } from "lucide-react";
-import { signIn, useSession } from "next-auth/react";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function StudentPortalLoginPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-
   const [step, setStep] = useState<"identifier" | "otp">("identifier");
   const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.accountType === "student") {
-      router.replace("/portal");
-    }
-  }, [status, session, router]);
 
   async function requestOtp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,14 +72,16 @@ export default function StudentPortalLoginPage() {
     setError(null);
 
     try {
-      const result = await signIn("student-credentials", {
-        identifier,
-        code: otp,
-        redirect: false,
+      const response = await fetch("/api/student-auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier, code: otp }),
       });
 
-      if (!result?.ok) {
-        throw new Error("کد تأیید نادرست است.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error ?? "کد تأیید نادرست است.");
       }
 
       router.replace("/portal");
