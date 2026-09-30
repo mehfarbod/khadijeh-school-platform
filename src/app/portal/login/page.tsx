@@ -7,12 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, LogIn } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
@@ -30,10 +30,7 @@ export default function StudentPortalLoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (
-      status === "authenticated" &&
-      session?.user?.accountType === "student"
-    ) {
+    if (status === "authenticated" && session?.user?.accountType === "student") {
       router.replace("/portal");
     }
   }, [status, session, router]);
@@ -43,7 +40,7 @@ export default function StudentPortalLoginPage() {
     const value = identifier.trim();
 
     if (!value) {
-      setError("ایمیل یا کد ملی را وارد کنید.");
+      setError("شماره موبایل خود را وارد کنید.");
       return;
     }
 
@@ -114,7 +111,7 @@ export default function StudentPortalLoginPage() {
             <CardTitle>ورود به پرتال دانش‌آموز</CardTitle>
             <CardDescription>
               {step === "identifier"
-                ? "ایمیل یا کد ملی خود را وارد کنید."
+                ? "شماره موبایل خود را وارد کنید."
                 : "کد ۶ رقمی ارسال‌شده را وارد کنید."}
             </CardDescription>
           </CardHeader>
@@ -125,15 +122,14 @@ export default function StudentPortalLoginPage() {
                 <Input
                   value={identifier}
                   onChange={(event) => setIdentifier(event.target.value)}
-                  placeholder="ایمیل یا کد ملی"
+                  placeholder="شماره موبایل"
                   disabled={loading}
-                  autoComplete="username"
+                  autoComplete="tel"
                   dir="ltr"
+                  inputMode="tel"
                 />
 
-                {error && (
-                  <p className="text-sm text-destructive">{error}</p>
-                )}
+                {error && <p className="text-sm text-destructive">{error}</p>}
 
                 <Button className="w-full" type="submit" disabled={loading}>
                   {loading ? (
@@ -152,7 +148,7 @@ export default function StudentPortalLoginPage() {
           ) : (
             <form onSubmit={verifyOtp} noValidate>
               <CardContent className="space-y-5">
-                <div className="rounded-lg bg-muted px-3 py-2 text-center text-sm">
+                <div className="rounded-lg bg-muted px-3 py-2 text-center text-sm" dir="ltr">
                   {identifier}
                 </div>
 
@@ -173,9 +169,7 @@ export default function StudentPortalLoginPage() {
                 </div>
 
                 {error && (
-                  <p className="text-center text-sm text-destructive">
-                    {error}
-                  </p>
+                  <p className="text-center text-sm text-destructive">{error}</p>
                 )}
 
                 <Button
@@ -202,7 +196,7 @@ export default function StudentPortalLoginPage() {
                     setError(null);
                   }}
                 >
-                  تغییر ایمیل یا کد ملی
+                  تغییر شماره موبایل
                 </Button>
               </CardContent>
             </form>
