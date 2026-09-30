@@ -48,6 +48,9 @@ export const PERMISSIONS = [
   { key: "users.manage_permissions", name: "مدیریت دسترسی‌ها", group: "کاربران و دسترسی‌ها" },
 
     { key: "settings.manage", name: "مدیریت تنظیمات مدرسه", group: "تنظیمات" },
+  { key: "grades.view", name: "مشاهده نمرات", group: "نمرات و کارنامه" },
+  { key: "grades.manage", name: "مدیریت نمرات", group: "نمرات و کارنامه" },
+
   { key: "absences.view", name: "مشاهده غیبت‌ها", group: "دانش‌آموزان" },
   { key: "absences.manage", name: "مدیریت غیبت‌ها", group: "دانش‌آموزان" },
   { key: "academic_years.manage", name: "مدیریت سال‌های تحصیلی", group: "تنظیمات" },
@@ -69,6 +72,8 @@ export const ROLE_DEFAULT_PERMISSION_KEYS: Record<string, PermissionKey[]> = {
   ],
   TEACHER: [
     "students.view",
+    "grades.view",
+    "grades.manage",
     "courses.view",
     "registrations.view",
     "videos.view", "videos.create", "videos.edit_own", "videos.delete_own",
