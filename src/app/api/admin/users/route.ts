@@ -29,25 +29,24 @@ async function syncRoleDefaults() {
   });
 
   const operations = Object.entries(ROLE_DEFAULT_PERMISSION_KEYS).flatMap(
-    ([role, keys]) =>
-      keys
+    ([role, keys]) => {
+      const roleValue = role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF";
+      const rolePermissions = keys
         .map((key) => permissions.find((permission) => permission.key === key))
-        .filter((permission): permission is { id: string; key: string } => Boolean(permission))
-        .map((permission) =>
-          prisma.rolePermission.upsert({
-            where: {
-              role_permissionId: {
-                role: role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF",
-                permissionId: permission.id,
-              },
-            },
-            update: {},
-            create: {
-              role: role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF",
+        .filter((permission): permission is { id: string; key: string } => Boolean(permission));
+
+      return [
+        prisma.rolePermission.deleteMany({ where: { role: roleValue } }),
+        ...rolePermissions.map((permission) =>
+          prisma.rolePermission.create({
+            data: {
+              role: roleValue,
               permissionId: permission.id,
             },
           }),
         ),
+      ];
+    },
   );
 
   if (operations.length) await prisma.$transaction(operations);
@@ -88,7 +87,7 @@ export async function GET() {
       }),
       prisma.staff.findMany({
         orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
-        select: { id: true, firstName: true, lastName: true, position: true, userId: true },
+        select: {          id: true,          firstName: true,          lastName: true,          position: true,          category: true,          email: true,          userId: true,          user: { select: { id: true, name: true, email: true, role: true, isActive: true, permissions: { include: { permission: { select: { key: true, name: true, group: true } } } } } },        },
       }),
     ]);
 
