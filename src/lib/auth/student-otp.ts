@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { generateOtp, getOtpExpiration, hashOtp, verifyOtp } from "@/lib/auth/otp";
-import { sendEmailOtp } from "@/lib/notifications/email";
 import { sendSmsOtp } from "@/lib/notifications/sms";
 
 const GENERIC_MESSAGE =
-  "اگر اطلاعات واردشده مربوط به یک حساب فعال باشد، کد تأیید ارسال خواهد شد.";
+  "اگر شماره موبایل واردشده مربوط به یک حساب فعال باشد، کد تأیید ارسال خواهد شد.";
 
 function normalizeDigits(value: string) {
   return value
@@ -13,8 +12,7 @@ function normalizeDigits(value: string) {
 }
 
 export function normalizeStudentIdentifier(value: string) {
-  const normalized = normalizeDigits(value.trim());
-  return normalized.includes("@") ? normalized.toLowerCase() : normalized;
+  return normalizeDigits(value.trim()).replace(/\s+/g, "");
 }
 
 export async function requestStudentOtp(identifier: string) {
@@ -23,10 +21,10 @@ export async function requestStudentOtp(identifier: string) {
   const students = await prisma.student.findMany({
     where: {
       isActive: true,
-      OR: [{ email: normalized }, { nationalId: normalized }],
+      OR: [{ mobile: normalized }, { fatherMobile: normalized }],
       studentAccount: { is: { isActive: true } },
     },
-    select: { id: true, email: true, mobile: true, fatherMobile: true },
+    select: { id: true, mobile: true, fatherMobile: true },
     take: 2,
   });
 
@@ -36,11 +34,8 @@ export async function requestStudentOtp(identifier: string) {
 
   const student = students[0];
   const phone = student.mobile?.trim() || student.fatherMobile?.trim() || "";
-  const email = student.email?.trim().toLowerCase() || "";
-  const useDevelopmentEmail =
-    process.env.NODE_ENV !== "production" && Boolean(email);
 
-  if (!phone && !useDevelopmentEmail) {
+  if (!phone) {
     return { success: true, message: GENERIC_MESSAGE };
   }
 
@@ -61,11 +56,7 @@ export async function requestStudentOtp(identifier: string) {
     },
   });
 
-  if (useDevelopmentEmail) {
-    await sendEmailOtp({ to: email, code });
-  } else {
-    await sendSmsOtp({ to: phone, code });
-  }
+  await sendSmsOtp({ to: phone, code });
 
   return { success: true, message: GENERIC_MESSAGE };
 }
@@ -83,7 +74,7 @@ export async function verifyStudentOtp(
   const students = await prisma.student.findMany({
     where: {
       isActive: true,
-      OR: [{ email: normalized }, { nationalId: normalized }],
+      OR: [{ mobile: normalized }, { fatherMobile: normalized }],
       studentAccount: { is: { isActive: true } },
     },
     select: { id: true },
