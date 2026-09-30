@@ -89,6 +89,39 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"]);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "شناسه نمره الزامی است." }, { status: 400 });
+    }
+
+    const existing = await prisma.studentGrade.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "نمره موردنظر پیدا نشد." }, { status: 404 });
+    }
+
+    await prisma.studentGrade.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/admin/grades error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    }
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return NextResponse.json({ error: "شما مجوز حذف نمرات را ندارید." }, { status: 403 });
+    }
+    return NextResponse.json({ error: "حذف نمره انجام نشد." }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"]);
