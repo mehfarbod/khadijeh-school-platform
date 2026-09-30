@@ -26,6 +26,7 @@ import {
   PlaySquare,
   FileText,
   Settings,
+  CalendarRange,
   UserCog,
   UserRoundX,
 } from "lucide-react";
@@ -172,6 +173,11 @@ const sidebarGroups: SidebarGroup[] = [
   {
     label: "تنظیمات",
     items: [
+      {
+        label: "سال‌های تحصیلی",
+        href: "/admin/academic-years",
+        icon: CalendarRange,
+      },
       {
         label: "کاربران و دسترسی‌ها",
         href: "/admin/users",
