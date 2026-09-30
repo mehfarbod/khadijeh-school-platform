@@ -91,7 +91,6 @@ export async function getCurrentStudent() {
       enrollments: {
         include: { academicYear: true },
         orderBy: { createdAt: "desc" },
-        take: 1,
       },
     },
   });
