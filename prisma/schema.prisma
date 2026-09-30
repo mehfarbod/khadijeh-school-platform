@@ -81,11 +81,41 @@ model Student {
   enrollments         StudentEnrollment[]
   courseRegistrations CourseRegistration[]
   birthdays           Birthday[]
+  studentAccount      StudentAccount?
+  studentOtps         StudentOtp[]
 
   @@index([isActive])
   @@index([birthday])
   @@index([fatherNationalId])
   @@index([motherNationalId])
+}
+
+model StudentAccount {
+  id          String   @id @default(cuid())
+  studentId   String   @unique
+  isActive    Boolean  @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model StudentOtp {
+  id         String    @id @default(cuid())
+  studentId  String
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([phone])
+  @@index([expiresAt])
 }
 
 model Staff {
