@@ -8,6 +8,7 @@ type Announcement = {
 };
 
 export default async function AnnouncementTicker() {
+  const queryStart = performance.now();
   const announcements = await prisma.announcement.findMany({
     where: {
       isActive: true,
@@ -20,7 +21,11 @@ export default async function AnnouncementTicker() {
       title: true,
       expiresAt: true,
     },
-  });
+  })
+
+  console.log(
+    `[Home] AnnouncementTicker Prisma: ${(performance.now() - queryStart).toFixed(0)}ms`,
+  );;
 
   const visibleAnnouncements = announcements.filter(
     (item: Announcement) =>
