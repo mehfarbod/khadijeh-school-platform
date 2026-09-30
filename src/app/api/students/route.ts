@@ -326,6 +326,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await prisma.studentAccount.create({
+      data: {
+        studentId: student.id,
+      },
+    });
+
     return NextResponse.json(student, {
       status: 201,
     });
