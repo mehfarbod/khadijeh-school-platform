@@ -39,6 +39,7 @@ export default function AdminGrades() {
   const [score, setScore] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -62,6 +63,7 @@ export default function AdminGrades() {
       setYears(data.academicYears);
       setStudents(data.students);
       setGrades(data.grades);
+      setInitialLoaded(true);
 
       if (!yearId && data.academicYears[0]) {
         setYearId(data.academicYears[0].id);
@@ -170,6 +172,7 @@ export default function AdminGrades() {
             <span>سال تحصیلی</span>
             <select value={yearId} onChange={(e) => { setYearId(e.target.value); setStudentId(""); }} className="mt-1.5 h-10 w-full rounded-lg border bg-background px-3">
               <option value="">انتخاب کنید</option>
+              {years.length === 0 && initialLoaded && <option value="" disabled>سال تحصیلی ثبت نشده است</option>}
               {years.map((year) => <option key={year.id} value={year.id}>{year.title}{year.isCurrent ? " (جاری)" : ""}</option>)}
             </select>
           </label>
