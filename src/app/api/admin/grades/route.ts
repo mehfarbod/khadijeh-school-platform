@@ -7,7 +7,7 @@ const gradeSchema = z.object({
   studentId: z.string().min(1),
   academicYearId: z.string().min(1),
   subject: z.string().trim().min(1).max(100),
-  term: z.string().trim().min(1).max(50),
+  term: z.enum(["مستمر نوبت اول", "نوبت اول", "مستمر نوبت دوم", "نوبت دوم"]),
   score: z.coerce.number().min(0).max(20),
   description: z.string().trim().max(500).optional().nullable(),
 });
