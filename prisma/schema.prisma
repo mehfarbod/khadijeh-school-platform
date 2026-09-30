@@ -37,6 +37,7 @@ model User {
   createdEducationalVideos EducationalVideo[]
   staff          Staff?
   permissions    UserPermission[]
+  enteredGrades  StudentGrade[] @relation("GradeTeacher")
 }
 
 model Student {
@@ -250,6 +251,30 @@ model TopStudent {
 
   @@index([academicYear])
   @@index([isActive])
+}
+
+model StudentGrade {
+  id             String   @id @default(cuid())
+  studentId      String
+  academicYearId String
+  subject        String
+  term           String
+  score          Decimal  @db.Decimal(5, 2)
+  teacherId      String?
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  teacher      User?        @relation("GradeTeacher", fields: [teacherId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, academicYearId, subject, term])
+  @@index([studentId])
+  @@index([academicYearId])
+  @@index([teacherId])
+  @@index([subject])
+  @@index([term])
 }
 
 model DailyAbsence {
@@ -584,6 +609,7 @@ model AcademicYear {
 
   enrollments           StudentEnrollment[]
   admissionApplications AdmissionApplication[]
+  grades                StudentGrade[]
 
   @@index([isCurrent])
 }
