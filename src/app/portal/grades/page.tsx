@@ -17,9 +17,9 @@ export default async function StudentGradesPage() {
 
   const [grades, assessments] = await Promise.all([
     prisma.studentGrade.findMany({
-    where: { studentId: student.id },
-    include: { academicYear: true },
-    orderBy: [{ academicYear: { startDate: "desc" } }, { subject: "asc" }],
+      where: { studentId: student.id },
+      include: { academicYear: true },
+      orderBy: [{ academicYear: { startDate: "desc" } }, { subject: "asc" }],
     }),
     prisma.studentAssessment.findMany({
       where: { studentId: student.id },
@@ -43,7 +43,10 @@ export default async function StudentGradesPage() {
         const row = items.filter((item) => item.subject === subject);
         return {
           subject,
-          grades: termOrder.map((term) => row.find((item) => item.term === term)?.score.toString() ?? "—"),
+          grades: termOrder.map(
+            (term) =>
+              row.find((item) => item.term === term)?.score.toString() ?? "—",
+          ),
         };
       }),
     };
@@ -51,7 +54,7 @@ export default async function StudentGradesPage() {
 
   return (
     <main className="min-h-screen bg-muted/30 px-4 py-10">
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <Link
           href="/portal"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -84,7 +87,9 @@ export default async function StudentGradesPage() {
             <section key={group.year} className="rounded-2xl border bg-background p-5 shadow-sm">
               <div className="mb-4">
                 <h2 className="font-semibold">کارنامه سال تحصیلی {group.year}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">نمرات مستمر و پایانی به تفکیک هر درس</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  نمرات پایانی و مستمر؛ ثبت مستمر اختیاری است.
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[760px] text-sm">
@@ -110,19 +115,21 @@ export default async function StudentGradesPage() {
                 </table>
               </div>
             </section>
-          ))                 </tbody>
-                </table>
-              </div>
-            </section>
           ))
         )}
+
         <section className="rounded-2xl border bg-background p-5 shadow-sm">
           <div className="mb-4">
             <h2 className="font-semibold">ارزیابی‌های هفتگی</h2>
-            <p className="mt-1 text-xs text-muted-foreground">نمرات آزمون‌ها و فعالیت‌های هفتگی ثبت‌شده توسط مدرس</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              آزمون‌ها و فعالیت‌های هفتگی ثبت‌شده توسط مدرس
+            </p>
           </div>
+
           {assessments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">هنوز ارزیابی هفتگی ثبت نشده است.</p>
+            <p className="text-sm text-muted-foreground">
+              هنوز ارزیابی هفتگی ثبت نشده است.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">
@@ -141,7 +148,11 @@ export default async function StudentGradesPage() {
                       <td className="py-3">{item.academicYear.title}</td>
                       <td className="py-3 font-medium">{item.subject}</td>
                       <td className="py-3">{item.title}</td>
-                      <td className="py-3 text-center">{item.assessmentDate ? new Intl.DateTimeFormat("fa-IR").format(item.assessmentDate) : "—"}</td>
+                      <td className="py-3 text-center">
+                        {item.assessmentDate
+                          ? new Intl.DateTimeFormat("fa-IR").format(item.assessmentDate)
+                          : "—"}
+                      </td>
                       <td className="py-3 text-center">{item.score.toString()}</td>
                     </tr>
                   ))}
