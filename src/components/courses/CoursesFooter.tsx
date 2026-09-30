@@ -1,1 +1,1 @@
-export { default } from "@/components/layout/FooterClient";
+export { default } from "@/components/layout/Footer";
