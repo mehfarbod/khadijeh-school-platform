@@ -16,13 +16,6 @@ type Video = {
   isActive: boolean;
 };
 
-const subjects = [
-  ["math", "ریاضی"],
-  ["physics", "فیزیک"],
-  ["chemistry", "شیمی"],
-  ["literature", "ادبیات"],
-];
-
 const grades = [
   ["grade-10", "پایه دهم"],
   ["grade-11", "پایه یازدهم"],
@@ -36,7 +29,7 @@ export default function AdminVideosPage() {
   const [message, setMessage] = useState("");
   const [form, setForm] = useState({
     title: "",
-    subject: "math",
+    subject: "",
     grade: "grade-10",
     duration: "",
     instructor: "",
@@ -101,7 +94,7 @@ export default function AdminVideosPage() {
         return;
       }
 
-      setForm({ title: "", subject: "math", grade: "grade-10", duration: "", instructor: "", isActive: true });
+      setForm({ title: "", subject: "", grade: "grade-10", duration: "", instructor: "", isActive: true });
       setFile(null);
       const input = document.getElementById("video-file") as HTMLInputElement | null;
       if (input) input.value = "";
@@ -174,9 +167,7 @@ export default function AdminVideosPage() {
           </label>
 
           <label className="text-xs font-medium text-[#475467]">درس
-            <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] bg-white px-3 py-2.5 text-sm">
-              {subjects.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
+            <input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="مثلاً ریاضی، فیزیک یا زبان انگلیسی" className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm outline-none focus:border-[#194342]" />
           </label>
 
           <label className="text-xs font-medium text-[#475467]">پایه تحصیلی
@@ -239,7 +230,7 @@ export default function AdminVideosPage() {
           <div className="mb-5 flex items-center justify-between"><h2 className="text-base font-bold text-[#194342]">ویرایش ویدیو</h2><button type="button" onClick={() => setEditingVideo(null)} disabled={submitting}><X className="h-5 w-5" /></button></div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-medium text-[#475467] sm:col-span-2">عنوان<input value={editingVideo.title} onChange={e => setEditingVideo({ ...editingVideo, title: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
-            <label className="text-xs font-medium text-[#475467]">درس<select value={editingVideo.subject} onChange={e => setEditingVideo({ ...editingVideo, subject: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] bg-white px-3 py-2.5 text-sm">{subjects.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
+            <label className="text-xs font-medium text-[#475467]">درس<input value={editingVideo.subject} onChange={e => setEditingVideo({ ...editingVideo, subject: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
             <label className="text-xs font-medium text-[#475467]">پایه<select value={editingVideo.grade} onChange={e => setEditingVideo({ ...editingVideo, grade: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] bg-white px-3 py-2.5 text-sm">{grades.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
             <label className="text-xs font-medium text-[#475467]">مدت<input value={editingVideo.duration} onChange={e => setEditingVideo({ ...editingVideo, duration: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
             <label className="text-xs font-medium text-[#475467]">مدرس<input value={editingVideo.instructor} onChange={e => setEditingVideo({ ...editingVideo, instructor: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#E7E2DA] px-3 py-2.5 text-sm" /></label>
