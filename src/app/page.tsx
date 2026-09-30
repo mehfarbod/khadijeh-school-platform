@@ -27,7 +27,6 @@ function isTodayBirthday(date: Date | string | null) {
 }
 
 export default async function HomePage() {
-  const queryStart = performance.now();
 
   const [settings, topStudents, birthdayStudents, manualBirthdays] =
     await Promise.all([
@@ -91,9 +90,6 @@ export default async function HomePage() {
       }),
     ]);
 
-  console.log(
-    `[Home] main Prisma queries: ${(performance.now() - queryStart).toFixed(0)}ms`,
-  );
 
   const visibility = {
     showNews: settings?.showNews ?? true,
