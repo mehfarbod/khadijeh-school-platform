@@ -73,17 +73,7 @@ export const ROLE_DEFAULT_PERMISSION_KEYS: Record<string, PermissionKey[]> = {
     "registrations.view",
     "videos.view", "videos.create", "videos.edit_own", "videos.delete_own",
   ],
-  STAFF: [
-    "students.view",
-    "staff.view",
-    "courses.view",
-    "registrations.view",
-    "admissions.view",
-    "news.view",
-    "events.view",
-    "announcements.view",
-    "messages.view",
-  ],
+  STAFF: [],
 };
 
 export type PermissionKey = (typeof PERMISSIONS)[number]["key"];
