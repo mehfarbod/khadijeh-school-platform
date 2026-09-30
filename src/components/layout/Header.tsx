@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { ChevronDown, Menu, Search, School, X } from "lucide-react";
+import { ChevronDown, GraduationCap, Menu, Search, School, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -337,7 +337,10 @@ function HeaderContent() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [loginOpen, setLoginOpen] = useState(false);
+
   const searchRef = useRef<HTMLDivElement>(null);
+  const loginRef = useRef<HTMLDivElement>(null);
 
   const isActive = (href: string, exact = false) =>
     isPathActive(currentPathname, href, exact);
@@ -349,6 +352,13 @@ function HeaderContent() {
         !searchRef.current.contains(event.target as Node)
       ) {
         setSearchOpen(false);
+      }
+
+      if (
+        loginRef.current &&
+        !loginRef.current.contains(event.target as Node)
+      ) {
+        setLoginOpen(false);
       }
     }
 
@@ -561,17 +571,71 @@ function HeaderContent() {
           </Link>
 
           {/* ورود به سامانه */}
-          <Link
-            href="/auth"
-            className={cn(
-              "flex h-10 items-center justify-center whitespace-nowrap rounded-[10px] border px-4 text-[12.5px] font-medium transition-colors",
-              isActive("/auth")
-                ? "border-[#194342] bg-[#194342] text-white"
-                : "border-[#194342] bg-transparent text-[#194342] hover:bg-[#194342] hover:text-white",
-            )}
-          >
-            ورود به سامانه
-          </Link>
+          <div ref={loginRef} className="relative">
+            <button
+              type="button"
+              aria-label="نمایش گزینه‌های ورود"
+              aria-expanded={loginOpen}
+              onClick={() => setLoginOpen((value) => !value)}
+              className={cn(
+                "flex h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] border px-4 text-[12.5px] font-medium transition-colors",
+                loginOpen || isActive("/auth") || isActive("/portal")
+                  ? "border-[#194342] bg-[#194342] text-white"
+                  : "border-[#194342] bg-transparent text-[#194342] hover:bg-[#194342] hover:text-white",
+              )}
+            >
+              ورود به سامانه
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 transition-transform duration-200",
+                  loginOpen && "rotate-180",
+                )}
+              />
+            </button>
+
+            <div
+              className={cn(
+                "absolute left-0 top-full z-50 pt-2 transition-all duration-150",
+                loginOpen
+                  ? "pointer-events-auto visible opacity-100"
+                  : "pointer-events-none invisible opacity-0",
+              )}
+            >
+              <div className="w-[220px] overflow-hidden rounded-xl border border-[#E1E8D6] bg-white p-1.5 shadow-[0_12px_30px_rgba(25,67,66,0.10)]">
+                <Link
+                  href="/portal/login"
+                  onClick={() => setLoginOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3.5 py-3 text-[12.5px] text-[#1F2933] transition-colors hover:bg-[#F1F5E8] hover:text-[#B86F5B]"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F1F5E8] text-[#194342]">
+                    <GraduationCap className="h-4 w-4" />
+                  </span>
+                  <span>
+                    <span className="block font-medium">ورود دانش‌آموزان</span>
+                    <span className="mt-0.5 block text-[10.5px] text-[#98A2B3]">
+                      ورود به پرتال دانش‌آموز
+                    </span>
+                  </span>
+                </Link>
+
+                <Link
+                  href="/auth"
+                  onClick={() => setLoginOpen(false)}
+                  className="mt-1 flex items-center gap-3 rounded-lg px-3.5 py-3 text-[12.5px] text-[#1F2933] transition-colors hover:bg-[#F1F5E8] hover:text-[#B86F5B]"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F1F5E8] text-[#194342]">
+                    <Users className="h-4 w-4" />
+                  </span>
+                  <span>
+                    <span className="block font-medium">ورود کادر آموزشی</span>
+                    <span className="mt-0.5 block text-[10.5px] text-[#98A2B3]">
+                      ورود به پنل مدیریت
+                    </span>
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
@@ -726,13 +790,58 @@ function HeaderContent() {
                 پیش‌ثبت‌نام
               </Link>
 
-              <Link
-                href="/auth"
-                onClick={closeMobileMenu}
-                className="flex h-10 items-center justify-center rounded-[10px] border border-[#194342] text-[12.5px] font-medium text-[#194342] transition-colors hover:bg-[#194342] hover:text-white"
-              >
-                ورود به سامانه
-              </Link>
+              <div className="col-span-2">
+                <button
+                  type="button"
+                  aria-label="نمایش گزینه‌های ورود"
+                  aria-expanded={openDropdown === "ورود به سامانه"}
+                  onClick={() =>
+                    setOpenDropdown(
+                      openDropdown === "ورود به سامانه"
+                        ? null
+                        : "ورود به سامانه",
+                    )
+                  }
+                  className="flex h-10 w-full items-center justify-center gap-1.5 rounded-[10px] border border-[#194342] text-[12.5px] font-medium text-[#194342] transition-colors hover:bg-[#194342] hover:text-white"
+                >
+                  ورود به سامانه
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 transition-transform duration-200",
+                      openDropdown === "ورود به سامانه" && "rotate-180",
+                    )}
+                  />
+                </button>
+
+                <div
+                  className={cn(
+                    "overflow-hidden transition-all duration-200",
+                    openDropdown === "ورود به سامانه"
+                      ? "mt-2 max-h-40 opacity-100"
+                      : "max-h-0 opacity-0",
+                  )}
+                >
+                  <div className="grid gap-1 rounded-xl border border-[#E1E8D6] bg-white p-1.5">
+                    <Link
+                      href="/portal/login"
+                      onClick={closeMobileMenu}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[12.5px] text-[#1F2933] transition-colors hover:bg-[#F1F5E8] hover:text-[#B86F5B]"
+                    >
+                      <GraduationCap className="h-4 w-4 text-[#194342]" />
+                      ورود دانش‌آموزان
+                    </Link>
+
+                    <Link
+                      href="/auth"
+                      onClick={closeMobileMenu}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[12.5px] text-[#1F2933] transition-colors hover:bg-[#F1F5E8] hover:text-[#B86F5B]"
+                    >
+                      <Users className="h-4 w-4 text-[#194342]" />
+                      ورود کادر آموزشی
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </nav>
