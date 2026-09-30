@@ -121,9 +121,16 @@ export default function AdminGrades() {
     [students],
   );
 
+  const selectedStudent = students.find((student) => student.id === studentId);
+
   const studentGrades = useMemo(
     () => grades.filter((item) => item.studentId === studentId),
     [grades, studentId],
+  );
+
+  const studentSubjects = useMemo(
+    () => Array.from(new Set(studentGrades.map((item) => item.subject))),
+    [studentGrades],
   );
 
   const loadAssessments = async () => {
@@ -373,9 +380,24 @@ export default function AdminGrades() {
 
       {studentId && (
         <section className="mt-5 rounded-xl border border-border/60 bg-card p-5">
-          <h2 className="mb-4 font-semibold">
-            نمرات {students.find((student) => student.id === studentId)?.firstName} {students.find((student) => student.id === studentId)?.lastName}
-          </h2>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-semibold">
+                نمرات {selectedStudent?.firstName} {selectedStudent?.lastName}
+              </h2>
+              {selectedStudent?.enrollments[0] && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  پایه {selectedStudent.enrollments[0].grade}
+                  {selectedStudent.enrollments[0].className ? ` · کلاس ${selectedStudent.enrollments[0].className}` : ""}
+                </p>
+              )}
+            </div>
+            {studentGrades.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {studentSubjects.length} درس · {studentGrades.length} نمره ثبت‌شده
+              </span>
+            )}
+          </div>
           {studentGrades.length === 0 ? (
             <p className="text-sm text-muted-foreground">هنوز نمره‌ای ثبت نشده است.</p>
           ) : (
