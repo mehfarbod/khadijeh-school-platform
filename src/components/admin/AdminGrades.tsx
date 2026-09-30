@@ -268,24 +268,6 @@ export default function AdminGrades() {
     }
   };
 
-  const startEdit = (item: Grade) => {
-    setEditingId(item.id);
-    setSubject(item.subject);
-    setTerm(item.term);
-    setScore(item.score);
-    setDescription(item.description || "");
-    setError("");
-    setSuccess("");
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setSubject("");
-    setScore("");
-    setDescription("");
-    setError("");
-  };
-
   return (
     <AdminLayout>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
