@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentStudent } from "@/lib/auth/student-session";
+import StudentLogoutButton from "@/components/student/StudentLogoutButton";
 
 export const metadata = {
   title: "پرتال دانش‌آموز | دبیرستان شاهد حضرت خدیجه (ص)",
@@ -23,10 +24,13 @@ export default async function StudentPortalPage() {
           <h1 className="mt-2 text-2xl font-bold">
             سلام {student.firstName} {student.lastName} 👋
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {enrollment?.grade ? "پایه " + enrollment.grade : "اطلاعات تحصیلی"}
-            {enrollment?.className ? " · کلاس " + enrollment.className : ""}
-          </p>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {enrollment?.grade ? "پایه " + enrollment.grade : "اطلاعات تحصیلی"}
+              {enrollment?.className ? " · کلاس " + enrollment.className : ""}
+            </p>
+            <StudentLogoutButton />
+          </div>
         </section>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
