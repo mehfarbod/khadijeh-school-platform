@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   CheckCircle2,
-  Link2,
   Pencil,
   Plus,
   Search,
@@ -34,13 +33,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-
-type StaffUser = {
-  id: string;
-  name: string | null;
-  email: string;
-  role: string;
-};
 
 type Staff = {
   id: string;
@@ -68,7 +60,6 @@ type StaffForm = {
   phone: string;
   email: string;
   photo: string;
-  userId: string;
   isActive: boolean;
 };
 
@@ -81,7 +72,6 @@ const emptyForm: StaffForm = {
   phone: "",
   email: "",
   photo: "",
-  userId: "",
   isActive: true,
 };
 
@@ -97,24 +87,14 @@ const CATEGORIES = Object.keys(POSITIONS_BY_CATEGORY);
 
 const isTeacherPosition = (position: string) => position.trim() === "معلم";
 
-const roleLabels: Record<string, string> = {
-  SUPER_ADMIN: "مدیر ارشد",
-  SCHOOL_ADMIN: "مدیر مدرسه",
-  CONTENT_MANAGER: "مدیر محتوا",
-  TEACHER: "معلم",
-  STAFF: "کادر",
-};
-
 export default function AdminStaff() {
   const [staff, setStaff] = useState<Staff[] | null>(null);
-  const [users, setUsers] = useState<StaffUser[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<StaffForm>(emptyForm);
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [loadingUsers, setLoadingUsers] = useState(false);
 
   const loadStaff = async () => {
     try {
@@ -129,24 +109,8 @@ export default function AdminStaff() {
     }
   };
 
-  const loadUsers = async () => {
-    setLoadingUsers(true);
-    try {
-      const response = await fetch("/api/admin/staff-users", { cache: "no-store" });
-      if (!response.ok) throw new Error("خطا در دریافت حساب‌های پنل");
-      const data: StaffUser[] = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Failed to load users:", error);
-      setUsers([]);
-      toast.error(error instanceof Error ? error.message : "خطا در دریافت حساب‌های پنل");
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
-
   useEffect(() => {
-    void Promise.all([loadStaff(), loadUsers()]);
+    void loadStaff();
   }, []);
 
   const filtered = useMemo(() => {
@@ -199,7 +163,6 @@ export default function AdminStaff() {
       phone: member.phone ?? "",
       email: member.email ?? "",
       photo: member.photo ?? "",
-      userId: member.userId ?? "",
       isActive: member.isActive,
     });
     setDialogOpen(true);
@@ -226,7 +189,6 @@ export default function AdminStaff() {
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
         photo: form.photo.trim() || null,
-        userId: form.userId || null,
         isActive: form.isActive,
       };
 
@@ -302,20 +264,19 @@ export default function AdminStaff() {
 
         <div className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[800px] text-sm">
               <thead><tr className="border-b border-border/60 bg-[#FAF8F5]">
-                {["نام و نام خانوادگی","سمت","دسته‌بندی","درس","تماس","حساب پنل","وضعیت","عملیات"].map((title) => <th key={title} className="px-5 py-3.5 text-right font-medium text-muted-foreground">{title}</th>)}
+                {["نام و نام خانوادگی","سمت","دسته‌بندی","درس","تماس","وضعیت","عملیات"].map((title) => <th key={title} className="px-5 py-3.5 text-right font-medium text-muted-foreground">{title}</th>)}
               </tr></thead>
               <tbody>
-                {!staff ? Array.from({ length: 5 }).map((_, index) => <tr key={index} className="border-b border-border/30">{Array.from({ length: 8 }).map((__, columnIndex) => <td key={columnIndex} className="px-5 py-4"><div className="h-4 animate-pulse rounded bg-muted" /></td>)}</tr>)
-                : filtered.length === 0 ? <tr><td colSpan={8} className="px-5 py-16 text-center text-sm text-muted-foreground">موردی برای نمایش پیدا نشد.</td></tr>
+                {!staff ? Array.from({ length: 5 }).map((_, index) => <tr key={index} className="border-b border-border/30">{Array.from({ length: 7 }).map((__, columnIndex) => <td key={columnIndex} className="px-5 py-4"><div className="h-4 animate-pulse rounded bg-muted" /></td>)}</tr>)
+                : filtered.length === 0 ? <tr><td colSpan={7} className="px-5 py-16 text-center text-sm text-muted-foreground">موردی برای نمایش پیدا نشد.</td></tr>
                 : filtered.map((member) => <tr key={member.id} className="border-b border-border/30 last:border-0 hover:bg-muted/20">
                   <td className="px-5 py-4"><div className="flex items-center gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#DBE7C1] text-[#194342]">{member.photo ? <img src={member.photo} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-4 w-4" />}</div><span className="font-medium">{member.firstName} {member.lastName}</span></div></td>
                   <td className="px-5 py-4">{member.position}</td>
                   <td className="px-5 py-4"><span className="rounded-full bg-[#F1F5E8] px-2.5 py-1 text-xs text-[#194342]">{member.category}</span></td>
                   <td className="px-5 py-4">{member.subject || "—"}</td>
                   <td className="px-5 py-4"><div className="space-y-0.5"><div>{member.phone || "—"}</div>{member.email && <div className="max-w-[190px] truncate text-xs text-muted-foreground">{member.email}</div>}</div></td>
-                  <td className="px-5 py-4">{member.user ? <div className="flex items-center gap-2 text-xs"><Link2 className="h-3.5 w-3.5 text-[#194342]" /><div><div className="font-medium">{member.user.name || member.user.email}</div><div className="text-muted-foreground">{roleLabels[member.user.role] ?? member.user.role}</div></div></div> : <span className="text-xs text-muted-foreground">بدون حساب</span>}</td>
                   <td className="px-5 py-4"><button type="button" onClick={() => toggleActive(member)} className="inline-flex items-center gap-1.5 text-xs font-medium">{member.isActive ? <><CheckCircle2 className="h-3.5 w-3.5 text-green-600" /><span className="text-green-700">فعال</span></> : <><XCircle className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-muted-foreground">غیرفعال</span></>}</button></td>
                   <td className="px-5 py-4"><div className="flex items-center gap-1"><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(member)} title="ویرایش"><Pencil className="h-3.5 w-3.5" /></Button><Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(member.id)} title="حذف"><Trash2 className="h-3.5 w-3.5" /></Button></div></td>
                 </tr>)}
@@ -361,7 +322,6 @@ export default function AdminStaff() {
               </div>
             </section>
 
-            <section className="rounded-xl border border-[#DBE7C1] bg-[#F1F5E8]/50 p-4"><div className="mb-3 flex items-center gap-2"><Link2 className="h-4 w-4 text-[#194342]" /><div><h2 className="text-sm font-semibold">اتصال به حساب پنل</h2><p className="text-xs text-muted-foreground">اختیاری است؛ هر عضو کادر لزوماً کاربر پنل نیست.</p></div></div><select value={form.userId} onChange={(event) => updateForm("userId", event.target.value)} disabled={loadingUsers} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"><option value="">{loadingUsers ? "در حال دریافت حساب‌ها..." : "بدون حساب پنل"}</option>{users.filter((user) => user.id === form.userId || !staff?.some((member) => member.userId === user.id)).map((user) => <option key={user.id} value={user.id}>{user.name || "بدون نام"} — {user.email} — {roleLabels[user.role] ?? user.role}</option>)}</select></section>
 
             <section><div className="flex items-center justify-between rounded-xl border border-border/60 p-4"><div><p className="text-sm font-medium">وضعیت عضو کادر</p><p className="mt-1 text-xs text-muted-foreground">عضو غیرفعال در لیست‌های عمومی نمایش داده نمی‌شود.</p></div><button type="button" onClick={() => updateForm("isActive", !form.isActive)} className={`relative h-6 w-11 rounded-full transition ${form.isActive ? "bg-[#194342]" : "bg-muted"}`} aria-pressed={form.isActive}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${form.isActive ? "right-1" : "right-6"}`} /></button></div></section>
           </div>
