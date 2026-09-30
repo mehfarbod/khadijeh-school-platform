@@ -84,6 +84,7 @@ model Student {
   birthdays           Birthday[]
   studentAccount      StudentAccount?
   studentOtps         StudentOtp[]
+  grades              StudentGrade[]
 
   @@index([isActive])
   @@index([birthday])
