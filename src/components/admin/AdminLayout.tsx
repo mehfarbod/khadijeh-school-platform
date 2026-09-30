@@ -88,6 +88,11 @@ const sidebarGroups: SidebarGroup[] = [
         icon: ClipboardPenLine,
       },
       {
+        label: "نمرات و کارنامه",
+        href: "/admin/grades",
+        icon: GraduationCap,
+      },
+      {
         label: "پیش‌ثبت‌نام مدرسه",
         href: "/admin/admission-applications",
         icon: FileText,
