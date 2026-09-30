@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyStudentOtp } from "@/lib/auth/student-otp";
 import { rateLimit } from "@/lib/security/rate-limit";
+import { createStudentSession } from "@/lib/auth/student-session";
 
 const schema = z.object({
   identifier: z.string().trim().min(1).max(255),
@@ -43,6 +44,8 @@ export async function POST(request: NextRequest) {
         { status: verification.status },
       );
     }
+
+    await createStudentSession(verification.studentId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
