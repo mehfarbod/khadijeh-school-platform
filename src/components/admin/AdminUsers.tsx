@@ -196,48 +196,6 @@ export default function AdminUsers() {
     }
   };
 
-  const savePermissions = async () => {
-    if (!selectedStaff?.user || !data?.canManagePermissions) return;
-    if (!email.trim()) {
-      toast.error("ایمیل ورود را وارد کنید.");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const accountResponse = await fetch(`/api/admin/users/${selectedStaff.user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
-          email: email.trim(),
-          role,
-          staffId: selectedStaff.id,
-          isActive,
-        }),
-      });
-      const accountResult = await accountResponse.json();
-      if (!accountResponse.ok) throw new Error(accountResult.error || "خطا در ذخیره اطلاعات دسترسی");
-
-      const permissions = Object.entries(permissionState).map(([key, allowed]) => ({ key, allowed }));
-      const permissionResponse = await fetch(`/api/admin/users/${selectedStaff.user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ permissions }),
-      });
-      const permissionResult = await permissionResponse.json();
-      if (!permissionResponse.ok) throw new Error(permissionResult.error || "خطا در ذخیره دسترسی‌ها");
-
-      toast.success("اطلاعات و دسترسی‌های کادر ذخیره شد.");
-      setAccessOpen(false);
-      await loadUsers();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "خطا در ذخیره دسترسی‌ها");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const roleDefaultKeys = selectedStaff?.user
     ? new Set(data?.rolePermissions[selectedStaff.user.role] ?? [])
     : new Set<string>();
@@ -436,7 +394,7 @@ export default function AdminUsers() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAccessOpen(false)} disabled={saving}>انصراف</Button>
-            <Button onClick={selectedStaff?.user ? savePermissions : saveAccess} disabled={saving}>
+            <Button onClick={saveAccess} disabled={saving}>
               {saving ? "در حال ذخیره..." : selectedStaff?.user ? "ذخیره تغییرات" : "فعال‌سازی دسترسی"}
             </Button>
           </DialogFooter>
