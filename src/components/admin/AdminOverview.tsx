@@ -25,6 +25,7 @@ interface OverviewStats {
   announcementCount: number;
   unreadMessages: number;
   todayBirthdays: number;
+  pendingAdmissionApplications: number;
 }
 
 interface StatCard {
@@ -256,12 +257,13 @@ export default function AdminOverview() {
               />
 
               <AttentionItem
-                href="/admin/birthdays"
-                icon={Cake}
-                label="تولدهای امروز"
-                value={stats?.todayBirthdays}
-                emptyText="امروز تولدی ثبت نشده است"
+                href="/admin/admission-applications"
+                icon={ClipboardPenLine}
+                label="پیش‌ثبت‌نام‌ها"
+                value={stats?.pendingAdmissionApplications}
+                emptyText="درخواست پیش‌ثبت‌نامی برای بررسی وجود ندارد"
                 tone="gold"
+                showCount
               />
 
               <AttentionItem
@@ -310,6 +312,7 @@ function AttentionItem({
   value,
   emptyText,
   tone,
+  showCount = false,
 }: {
   href: string;
   icon: typeof MessageSquare;
@@ -317,6 +320,7 @@ function AttentionItem({
   value: number | undefined;
   emptyText: string;
   tone: "rose" | "gold" | "green";
+  showCount?: boolean;
 }) {
   const toneClasses = {
     rose: "bg-[#F8ECE8] text-[#B86F5B]",
@@ -336,7 +340,14 @@ function AttentionItem({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold text-[#1A2332]">{label}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold text-[#1A2332]">{label}</p>
+          {showCount && value !== undefined && (
+            <span className="rounded-full bg-[#F8F2DF] px-2 py-0.5 text-[10px] font-bold text-[#A8893F]">
+              {value}
+            </span>
+          )}
+        </div>
 
         <p className="mt-1 text-[10px] text-[#98A2B3]">
           {value === undefined ? "در حال دریافت اطلاعات..." : value > 0 ? `${value} مورد برای بررسی` : emptyText}
