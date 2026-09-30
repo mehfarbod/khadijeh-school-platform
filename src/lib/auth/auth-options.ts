@@ -6,7 +6,6 @@ import { verifyStudentOtp } from "@/lib/auth/student-otp";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "admin-credentials",
       name: "Email OTP",
       credentials: {
         type: { label: "Type", type: "text" },
