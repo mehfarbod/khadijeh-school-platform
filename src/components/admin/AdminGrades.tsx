@@ -3,6 +3,10 @@
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useEffect, useMemo, useState } from "react";
 import { Check, GraduationCap, Pencil, RefreshCw, Trash2, X } from "lucide-react";
+import DatePicker from "react-multi-date-picker";
+import DateObject from "react-date-object";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 type Year = { id: string; title: string; isCurrent: boolean };
 type Student = {
@@ -55,7 +59,7 @@ export default function AdminGrades() {
   const [description, setDescription] = useState("");
   const [assessmentSubject, setAssessmentSubject] = useState("");
   const [assessmentTitle, setAssessmentTitle] = useState("");
-  const [assessmentDate, setAssessmentDate] = useState("");
+  const [assessmentDate, setAssessmentDate] = useState<DateObject | null>(null);
   const [assessmentScore, setAssessmentScore] = useState("");
   const [assessmentDescription, setAssessmentDescription] = useState("");
   const [assessmentSaving, setAssessmentSaving] = useState(false);
@@ -195,7 +199,7 @@ export default function AdminGrades() {
           subject: assessmentSubject,
           type: "هفتگی",
           title: assessmentTitle,
-          assessmentDate: assessmentDate || null,
+          assessmentDate: assessmentDate ? assessmentDate.toDate().toISOString() : null,
           score: numericScore,
           description: assessmentDescription || null,
         }),
@@ -204,7 +208,7 @@ export default function AdminGrades() {
       if (!response.ok) throw new Error(data?.error || "ثبت ارزیابی انجام نشد.");
       setSuccess("ارزیابی هفتگی با موفقیت ثبت شد.");
       setAssessmentTitle("");
-      setAssessmentDate("");
+      setAssessmentDate(null);
       setAssessmentScore("");
       setAssessmentDescription("");
       await loadAssessments();
@@ -262,6 +266,24 @@ export default function AdminGrades() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "حذف نمره انجام نشد.");
     }
+  };
+
+  const startEdit = (item: Grade) => {
+    setEditingId(item.id);
+    setSubject(item.subject);
+    setTerm(item.term);
+    setScore(item.score);
+    setDescription(item.description || "");
+    setError("");
+    setSuccess("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setSubject("");
+    setScore("");
+    setDescription("");
+    setError("");
   };
 
   return (
@@ -404,7 +426,20 @@ export default function AdminGrades() {
           <div className="grid gap-3 md:grid-cols-5">
             <label className="text-sm"><span>درس</span><input value={assessmentSubject} onChange={(e) => setAssessmentSubject(e.target.value)} placeholder="مثلاً ریاضی" className="mt-1.5 h-10 w-full rounded-lg border bg-background px-3" /></label>
             <label className="text-sm"><span>عنوان ارزیابی</span><input value={assessmentTitle} onChange={(e) => setAssessmentTitle(e.target.value)} placeholder="آزمون فصل اول" className="mt-1.5 h-10 w-full rounded-lg border bg-background px-3" /></label>
-            <label className="text-sm"><span>تاریخ</span><input value={assessmentDate} onChange={(e) => setAssessmentDate(e.target.value)} type="date" className="mt-1.5 h-10 w-full rounded-lg border bg-background px-3" /></label>
+            <label className="text-sm">
+              <span>تاریخ امتحان</span>
+              <DatePicker
+                value={assessmentDate}
+                onChange={(value) => setAssessmentDate(value instanceof DateObject ? value : null)}
+                calendar={persian}
+                locale={persian_fa}
+                calendarPosition="bottom-right"
+                format="YYYY/MM/DD"
+                inputClass="mt-1.5 h-10 w-full rounded-lg border bg-background px-3"
+                placeholder="انتخاب تاریخ"
+                containerClassName="w-full"
+              />
+            </label>
             <label className="text-sm"><span>نمره</span><input value={assessmentScore} onChange={(e) => setAssessmentScore(e.target.value)} type="number" min="0" max="20" step="0.25" inputMode="decimal" placeholder="۰ تا ۲۰" className="mt-1.5 h-10 w-full rounded-lg border bg-background px-3" /></label>
             <label className="text-sm"><span>توضیحات</span><input value={assessmentDescription} onChange={(e) => setAssessmentDescription(e.target.value)} placeholder="اختیاری" className="mt-1.5 h-10 w-full rounded-lg border bg-background px-3" /></label>
           </div>
