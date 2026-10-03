@@ -1,23 +1,19 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, UserRound } from "lucide-react";
+import { LockKeyhole, UserRound } from "lucide-react";
+
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+import StudentPortalShell from "@/components/student/StudentPortalShell";
+import StudentProfileEditForm from "@/components/student/StudentProfileEditForm";
 
 export const metadata = {
   title: "پروفایل دانش‌آموز | دبیرستان شاهد حضرت خدیجه (ص)",
 };
 
-function InfoItem({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | null;
-}) {
+function InfoItem({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="rounded-xl border bg-background p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-medium">{value || "ثبت نشده"}</p>
+    <div className="rounded-xl border border-[#E7E2DA] bg-[#FCFDF9] p-4">
+      <p className="text-[11px] text-[#98A2B3]">{label}</p>
+      <p className="mt-1 text-sm font-medium text-[#344054]">{value || "ثبت نشده"}</p>
     </div>
   );
 }
@@ -25,86 +21,75 @@ function InfoItem({
 export default async function StudentProfilePage() {
   const student = await getAuthenticatedStudent();
 
-  if (!student) {
-    redirect("/portal/login");
-  }
-
-  if (student.studentAccount?.mustChangePassword) {
-    redirect("/portal/change-password");
-  }
+  if (!student) redirect("/portal/login");
+  if (student.studentAccount?.mustChangePassword) redirect("/portal/change-password");
 
   const enrollment = student.enrollments[0];
 
   return (
-    <main className="min-h-screen bg-muted/30 px-4 py-10">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <Link
-            href="/portal"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowRight className="h-4 w-4" />
-            بازگشت به پرتال
-          </Link>
+    <StudentPortalShell title="پروفایل" description="اطلاعات شخصی، تحصیلی و اطلاعات تماس">
+      <section className="rounded-2xl border border-[#E7E2DA] bg-white p-5 shadow-[0_10px_35px_rgba(26,35,50,0.05)] sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#194342] text-[#DBE7C1]">
+            <UserRound className="h-6 w-6" strokeWidth={1.8} />
+          </div>
+          <div>
+            <p className="text-xs text-[#98A2B3]">حساب دانش‌آموزی</p>
+            <h2 className="mt-1 text-lg font-bold text-[#1A2332]">{student.firstName} {student.lastName}</h2>
+          </div>
         </div>
+      </section>
 
-        <section className="rounded-2xl border bg-background p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-              <UserRound className="h-7 w-7" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">پروفایل دانش‌آموز</p>
-              <h1 className="mt-1 text-2xl font-bold">
-                {student.firstName} {student.lastName}
-              </h1>
-            </div>
-          </div>
-        </section>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-[#1A2332]">اطلاعات هویتی</h2>
+          <p className="mt-1 text-xs text-[#667085]">این اطلاعات توسط مدرسه مدیریت می‌شوند.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <InfoItem label="نام" value={student.firstName} />
+          <InfoItem label="نام خانوادگی" value={student.lastName} />
+          <InfoItem label="کد ملی" value={student.nationalId} />
+          <InfoItem label="شماره شناسنامه" value={student.birthCertificateSerial} />
+          <InfoItem label="تاریخ تولد" value={student.birthday ? new Intl.DateTimeFormat("fa-IR").format(student.birthday) : null} />
+        </div>
+      </section>
 
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">اطلاعات شخصی</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InfoItem label="نام" value={student.firstName} />
-            <InfoItem label="نام خانوادگی" value={student.lastName} />
-            <InfoItem label="کد ملی" value={student.nationalId} />
-            <InfoItem label="شماره موبایل" value={student.mobile} />
-            <InfoItem
-              label="شماره شناسنامه"
-              value={student.birthCertificateSerial}
-            />
-            <InfoItem
-              label="تاریخ تولد"
-              value={
-                student.birthday
-                  ? new Intl.DateTimeFormat("fa-IR").format(student.birthday)
-                  : null
-              }
-            />
-          </div>
-        </section>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-[#1A2332]">اطلاعات تحصیلی</h2>
+          <p className="mt-1 text-xs text-[#667085]">پایه و کلاس توسط مدرسه تعیین می‌شود.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <InfoItem label="سال تحصیلی" value={enrollment?.academicYear.title} />
+          <InfoItem label="پایه" value={enrollment?.grade} />
+          <InfoItem label="کلاس" value={enrollment?.className} />
+        </div>
+      </section>
 
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">اطلاعات تحصیلی</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InfoItem label="سال تحصیلی" value={enrollment?.academicYear.title} />
-            <InfoItem label="پایه" value={enrollment?.grade} />
-            <InfoItem label="کلاس" value={enrollment?.className} />
-          </div>
-        </section>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-[#1A2332]">اطلاعات قابل ویرایش</h2>
+          <p className="mt-1 text-xs text-[#667085]">اطلاعات تماس خود را به‌روز نگه دارید.</p>
+        </div>
+        <StudentProfileEditForm initialValues={{
+          mobile: student.mobile,
+          fatherMobile: student.fatherMobile,
+          motherMobile: student.motherMobile,
+          address: student.address,
+          landline: student.landline,
+          email: student.email,
+        }} />
+      </section>
 
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold">اطلاعات تماس</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <InfoItem label="موبایل پدر" value={student.fatherMobile} />
-            <InfoItem label="موبایل مادر" value={student.motherMobile} />
-            <div className="sm:col-span-2">
-              <InfoItem label="آدرس" value={student.address} />
-            </div>
-            <InfoItem label="تلفن ثابت" value={student.landline} />
+      <section className="rounded-2xl border border-[#E7E2DA] bg-[#F7F8F2] p-4">
+        <div className="flex items-start gap-3">
+          <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-[#194342]" />
+          <div>
+            <p className="text-xs font-semibold text-[#344054]">اطلاعات هویتی محافظت شده‌اند</p>
+            <p className="mt-1 text-xs leading-5 text-[#667085]">برای اصلاح کد ملی، نام، تاریخ تولد یا اطلاعات تحصیلی باید با مدرسه هماهنگ شود.</p>
           </div>
-        </section>
-      </div>
-    </main>
+        </div>
+      </section>
+    </StudentPortalShell>
   );
 }
