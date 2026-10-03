@@ -23,6 +23,7 @@ import {
   X,
   MessageSquare,
   ClipboardPenLine,
+  ClipboardList,
   PlaySquare,
   FileText,
   Settings,
@@ -67,6 +68,11 @@ const sidebarGroups: SidebarGroup[] = [
         label: "دانش‌آموزان غیرفعال",
         href: "/admin/students?status=inactive",
         icon: UserRoundX,
+      },
+      {
+        label: "موارد نیازمند بررسی",
+        href: "/admin/student-review-items",
+        icon: ClipboardList,
       },
       {
         label: "کادر مدرسه",
