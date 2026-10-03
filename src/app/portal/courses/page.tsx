@@ -26,7 +26,8 @@ export default async function StudentCoursesPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  return (\n    <StudentPortalShell title="دوره‌های من" description="دوره‌های ثبت‌نام‌شده و وضعیت ثبت‌نام">
+  return (
+    <StudentPortalShell title="دوره‌های من" description="دوره‌های ثبت‌نام‌شده و وضعیت ثبت‌نام">
         <Link
           href="/portal"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -97,4 +98,6 @@ export default async function StudentCoursesPage() {
             ))}
           </div>
         )}
-    </StudentPortalShell>\n  );\n}
+    </StudentPortalShell>
+  );
+}
