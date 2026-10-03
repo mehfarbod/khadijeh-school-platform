@@ -1,4 +1,4 @@
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 const SCRYPT_COST = 32768;
 const SCRYPT_BLOCK_SIZE = 8;
@@ -83,4 +83,14 @@ export async function verifyStudentPassword(password: string, storedHash: string
 
 export async function performDummyStudentPasswordCheck(password: string) {
   await derivePasswordKey(password, DUMMY_SALT);
+}
+
+export function matchesInitialStudentPassword(
+  password: string,
+  nationalId: string,
+) {
+  const passwordDigest = createHash("sha256").update(password).digest();
+  const nationalIdDigest = createHash("sha256").update(nationalId).digest();
+
+  return timingSafeEqual(passwordDigest, nationalIdDigest);
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   hashStudentPassword,
+  matchesInitialStudentPassword,
   performDummyStudentPasswordCheck,
   verifyStudentPassword,
 } from "@/lib/auth/student-password";
@@ -39,59 +40,240 @@ export async function loginStudentWithPassword(
 
   const initialAccount = student.studentAccount;
 
-  if (!initialAccount) {
-    const initialPasswordHash = await hashStudentPassword(nationalId);
-    await prisma.studentAccount.upsert({
-      where: { studentId: student.id },
-      create: {
-        studentId: student.id,
-        passwordHash: initialPasswordHash,
-        mustChangePassword: true,
-      },
-      update: {},
-    });
-  } else if (!initialAccount.passwordHash) {
-    const initialPasswordHash = await hashStudentPassword(nationalId);
-    await prisma.studentAccount.updateMany({
-      where: {
-        studentId: student.id,
-        isActive: true,
-        passwordHash: null,
-      },
-      data: {
-        passwordHash: initialPasswordHash,
-        mustChangePassword: true,
-      },
-    });
+  if (initialAccount?.passwordHash) {
+    if (!(await verifyStudentPassword(password, initialAccount.passwordHash))) {
+      return { success: false };
+    }
+
+    return finalizeStudentLogin(
+      student.id,
+      nationalId,
+      initialAccount.passwordHash,
+    );
   }
 
-  const account = await prisma.studentAccount.findUnique({
-    where: { studentId: student.id },
-    select: {
-      isActive: true,
-      passwordHash: true,
-      mustChangePassword: true,
-      sessionVersion: true,
-    },
-  });
+  // Match the cost of an initialized password failure without persisting any
+  // state. The initial credential itself is then compared in constant time.
+  await performDummyStudentPasswordCheck(password);
+  if (!matchesInitialStudentPassword(password, nationalId)) {
+    return { success: false };
+  }
+
+  const initialPasswordHash = await hashStudentPassword(nationalId);
+  const initialization = await initializeStudentAccount(
+    student.id,
+    nationalId,
+    initialPasswordHash,
+  );
+
+  if (!initialization.success) return { success: false };
 
   if (
-    !account?.isActive ||
-    !account.passwordHash ||
-    !(await verifyStudentPassword(password, account.passwordHash))
+    !initialization.initialized &&
+    !(await verifyStudentPassword(password, initialization.passwordHash))
   ) {
     return { success: false };
   }
 
-  await prisma.studentAccount.update({
-    where: { studentId: student.id },
-    data: { lastLoginAt: new Date() },
-  });
+  return finalizeStudentLogin(
+    student.id,
+    nationalId,
+    initialization.passwordHash,
+    initialization.sessionVersion,
+  );
+}
 
-  return {
-    success: true,
-    studentId: student.id,
-    sessionVersion: account.sessionVersion,
-    mustChangePassword: account.mustChangePassword,
-  };
+type InitializedAccount = {
+  success: true;
+  initialized: boolean;
+  passwordHash: string;
+  mustChangePassword: boolean;
+  sessionVersion: number;
+};
+
+async function initializeStudentAccount(
+  studentId: string,
+  expectedNationalId: string,
+  initialPasswordHash: string,
+): Promise<InitializedAccount | { success: false }> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const [lockedStudent] = await tx.$queryRaw<
+          Array<{ nationalId: string | null; isActive: boolean }>
+        >`
+          SELECT "nationalId", "isActive"
+          FROM "Student"
+          WHERE "id" = ${studentId}
+          FOR UPDATE
+        `;
+
+        if (
+          !lockedStudent?.isActive ||
+          lockedStudent.nationalId !== expectedNationalId
+        ) {
+          return { success: false } as const;
+        }
+
+        const account = await tx.studentAccount.findUnique({
+          where: { studentId },
+          select: {
+            isActive: true,
+            passwordHash: true,
+            mustChangePassword: true,
+            sessionVersion: true,
+          },
+        });
+
+        if (account && (!account.isActive || account.passwordHash)) {
+          if (!account.isActive || !account.passwordHash) {
+            return { success: false } as const;
+          }
+
+          return {
+            success: true,
+            initialized: false,
+            passwordHash: account.passwordHash,
+            mustChangePassword: account.mustChangePassword,
+            sessionVersion: account.sessionVersion,
+          } as const;
+        }
+
+        if (!account) {
+          const createdAccount = await tx.studentAccount.create({
+            data: {
+              studentId,
+              passwordHash: initialPasswordHash,
+              mustChangePassword: true,
+            },
+            select: {
+              passwordHash: true,
+              mustChangePassword: true,
+              sessionVersion: true,
+            },
+          });
+
+          return {
+            success: true,
+            initialized: true,
+            passwordHash: createdAccount.passwordHash!,
+            mustChangePassword: createdAccount.mustChangePassword,
+            sessionVersion: createdAccount.sessionVersion,
+          } as const;
+        }
+
+        const updatedAccount = await tx.studentAccount.updateMany({
+          where: {
+            studentId,
+            isActive: true,
+            passwordHash: null,
+          },
+          data: {
+            passwordHash: initialPasswordHash,
+            mustChangePassword: true,
+          },
+        });
+
+        if (updatedAccount.count === 1) {
+          return {
+            success: true,
+            initialized: true,
+            passwordHash: initialPasswordHash,
+            mustChangePassword: true,
+            sessionVersion: account.sessionVersion,
+          } as const;
+        }
+
+        const currentAccount = await tx.studentAccount.findUnique({
+          where: { studentId },
+          select: {
+            isActive: true,
+            passwordHash: true,
+            mustChangePassword: true,
+            sessionVersion: true,
+          },
+        });
+
+        if (!currentAccount?.isActive || !currentAccount.passwordHash) {
+          return { success: false } as const;
+        }
+
+        return {
+          success: true,
+          initialized: false,
+          passwordHash: currentAccount.passwordHash,
+          mustChangePassword: currentAccount.mustChangePassword,
+          sessionVersion: currentAccount.sessionVersion,
+        } as const;
+      });
+    } catch (error) {
+      if (attempt === 0 && isUniqueConstraintError(error)) continue;
+      throw error;
+    }
+  }
+
+  return { success: false };
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
+}
+
+async function finalizeStudentLogin(
+  studentId: string,
+  expectedNationalId: string,
+  expectedPasswordHash: string,
+  expectedSessionVersion?: number,
+): Promise<StudentPasswordLoginResult> {
+  return prisma.$transaction(async (tx) => {
+    const [lockedStudent] = await tx.$queryRaw<
+      Array<{ nationalId: string | null; isActive: boolean }>
+    >`
+      SELECT "nationalId", "isActive"
+      FROM "Student"
+      WHERE "id" = ${studentId}
+      FOR UPDATE
+    `;
+
+    if (
+      !lockedStudent?.isActive ||
+      lockedStudent.nationalId !== expectedNationalId
+    ) {
+      return { success: false };
+    }
+
+    const account = await tx.studentAccount.findFirst({
+      where: {
+        studentId,
+        isActive: true,
+        passwordHash: expectedPasswordHash,
+        ...(expectedSessionVersion !== undefined
+          ? { sessionVersion: expectedSessionVersion }
+          : {}),
+      },
+      select: {
+        mustChangePassword: true,
+        sessionVersion: true,
+      },
+    });
+
+    if (!account) return { success: false };
+
+    await tx.studentAccount.update({
+      where: { studentId },
+      data: { lastLoginAt: new Date() },
+    });
+
+    return {
+      success: true,
+      studentId,
+      sessionVersion: account.sessionVersion,
+      mustChangePassword: account.mustChangePassword,
+    };
+  });
 }

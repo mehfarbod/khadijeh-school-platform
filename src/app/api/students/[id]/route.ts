@@ -60,11 +60,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       },
 
       include: {
-        studentAccount: {
-          select: {
-            mustChangePassword: true,
-          },
-        },
         enrollments: {
           orderBy: {
             academicYear: {
@@ -123,6 +118,25 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         : undefined;
 
     const student = await prisma.$transaction(async (tx) => {
+      const [lockedStudent] = await tx.$queryRaw<
+        Array<{ nationalId: string | null }>
+      >`
+        SELECT "nationalId"
+        FROM "Student"
+        WHERE "id" = ${id}
+        FOR UPDATE
+      `;
+
+      if (!lockedStudent) {
+        throw new Error("STUDENT_NOT_FOUND");
+      }
+
+      const nextNationalId =
+        data.nationalId !== undefined ? data.nationalId || null : undefined;
+      const nationalIdChanged =
+        nextNationalId !== undefined &&
+        nextNationalId !== lockedStudent.nationalId;
+
       /*
        * Update student profile.
        */
@@ -235,18 +249,19 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         },
       });
 
-      const nextNationalId =
-        data.nationalId !== undefined ? data.nationalId || null : undefined;
-      const nationalIdChanged =
-        nextNationalId !== undefined &&
-        nextNationalId !== existingStudent.nationalId;
+      const currentAccount = nationalIdChanged
+        ? await tx.studentAccount.findUnique({
+            where: { studentId: id },
+            select: { mustChangePassword: true },
+          })
+        : null;
 
-      if (nationalIdChanged && existingStudent.studentAccount) {
+      if (nationalIdChanged && currentAccount) {
         await tx.studentAccount.update({
           where: { studentId: id },
           data: {
             sessionVersion: { increment: 1 },
-            ...(existingStudent.studentAccount.mustChangePassword
+            ...(currentAccount.mustChangePassword
               ? { passwordHash: null }
               : {}),
           },
@@ -356,6 +371,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         },
         {
           status: 403,
+        },
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "STUDENT_NOT_FOUND"
+    ) {
+      return NextResponse.json(
+        {
+          error: "دانش‌آموز موردنظر یافت نشد.",
+        },
+        {
+          status: 404,
         },
       );
     }

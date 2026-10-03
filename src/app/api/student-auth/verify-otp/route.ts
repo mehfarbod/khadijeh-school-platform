@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { rateLimitStudentAuth } from "@/lib/auth/student-auth-rate-limit";
 import { studentOtpVerificationSchema } from "@/lib/auth/student-auth-validation";
-import { verifyStudentPasswordResetOtp } from "@/lib/auth/student-otp";
+import {
+  STUDENT_OTP_INVALID_MESSAGE,
+  verifyStudentPasswordResetOtp,
+} from "@/lib/auth/student-otp";
 import { createStudentPasswordResetSession } from "@/lib/auth/student-password-reset-session";
 
 export async function POST(request: NextRequest) {
@@ -38,8 +41,8 @@ export async function POST(request: NextRequest) {
 
     if (!verification.success) {
       return NextResponse.json(
-        { error: verification.error },
-        { status: verification.status },
+        { error: STUDENT_OTP_INVALID_MESSAGE },
+        { status: 400 },
       );
     }
 
@@ -49,8 +52,8 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Student password reset OTP verification error:", error);
+  } catch {
+    console.error("Student password reset OTP verification failed internally.");
     return NextResponse.json(
       { error: "خطایی در تأیید کد رخ داد." },
       { status: 500 },

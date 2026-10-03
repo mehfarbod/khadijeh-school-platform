@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { rateLimitStudentAuth } from "@/lib/auth/student-auth-rate-limit";
 import { studentNationalIdSchema } from "@/lib/auth/student-auth-validation";
-import { requestStudentPasswordResetOtp } from "@/lib/auth/student-otp";
+import {
+  requestStudentPasswordResetOtp,
+  STUDENT_OTP_REQUEST_MESSAGE,
+} from "@/lib/auth/student-otp";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,11 +36,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       await requestStudentPasswordResetOtp(result.data.nationalId),
     );
-  } catch (error) {
-    console.error("Student password reset OTP request error:", error);
+  } catch {
+    console.error("Student password reset OTP request failed internally.");
     return NextResponse.json(
-      { error: "خطایی در ارسال کد تأیید رخ داد." },
-      { status: 500 },
+      { success: true, message: STUDENT_OTP_REQUEST_MESSAGE },
+      { status: 200 },
     );
   }
 }

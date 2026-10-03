@@ -106,8 +106,8 @@ export async function POST(request: NextRequest) {
     ]);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Student password reset error:", error);
+  } catch {
+    console.error("Student password reset failed internally.");
     return NextResponse.json(
       { error: "خطایی در ثبت رمز عبور جدید رخ داد." },
       { status: 500 },

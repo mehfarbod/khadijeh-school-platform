@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Student forced password change error:", error);
+    console.error("Student forced password change failed internally.");
     return NextResponse.json(
       { error: "خطایی در تغییر رمز عبور رخ داد." },
       { status: 500 },

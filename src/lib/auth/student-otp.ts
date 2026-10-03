@@ -2,8 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { generateOtp, getOtpExpiration, hashOtp, verifyOtp } from "@/lib/auth/otp";
 import { sendSmsOtp } from "@/lib/notifications/sms";
 
-const GENERIC_MESSAGE =
+export const STUDENT_OTP_REQUEST_MESSAGE =
   "اگر کد ملی واردشده مربوط به یک حساب واجد شرایط باشد، کد تأیید ارسال خواهد شد.";
+export const STUDENT_OTP_INVALID_MESSAGE =
+  "کد تأیید نامعتبر یا منقضی شده است.";
+
+const genericRequestResult = () => ({
+  success: true as const,
+  message: STUDENT_OTP_REQUEST_MESSAGE,
+});
 
 export async function requestStudentPasswordResetOtp(nationalId: string) {
   const student = await prisma.student.findUnique({
@@ -20,13 +27,13 @@ export async function requestStudentPasswordResetOtp(nationalId: string) {
   });
 
   if (!student?.isActive || student.studentAccount?.isActive === false) {
-    return { success: true, message: GENERIC_MESSAGE };
+    return genericRequestResult();
   }
 
   const phone = student.mobile?.trim() || student.fatherMobile?.trim() || "";
 
   if (!phone) {
-    return { success: true, message: GENERIC_MESSAGE };
+    return genericRequestResult();
   }
 
   await prisma.studentAccount.upsert({
@@ -38,74 +45,93 @@ export async function requestStudentPasswordResetOtp(nationalId: string) {
   const code = generateOtp();
   const now = new Date();
 
-  await prisma.$transaction([
-    prisma.studentOtp.updateMany({
+  const otp = await prisma.$transaction(async (tx) => {
+    await tx.studentOtp.updateMany({
       where: { studentId: student.id, consumedAt: null },
       data: { consumedAt: now },
-    }),
-    prisma.studentOtp.create({
+    });
+
+    return tx.studentOtp.create({
       data: {
         studentId: student.id,
         phone,
         codeHash: hashOtp(code),
         expiresAt: getOtpExpiration(),
+        // The challenge becomes usable only after delivery succeeds. This
+        // keeps provider errors and process failures fail-closed.
+        consumedAt: now,
       },
-    }),
-  ]);
+      select: { id: true },
+    });
+  });
 
   // Provider-agnostic boundary: development logs the OTP, while production
   // deliberately fails closed until a real provider is configured here.
-  await sendSmsOtp({ to: phone, code });
+  try {
+    await sendSmsOtp({ to: phone, code });
+  } catch {
+    console.error("Student password reset OTP delivery failed.");
+    return genericRequestResult();
+  }
 
-  return { success: true, message: GENERIC_MESSAGE };
+  try {
+    const activation = await prisma.studentOtp.updateMany({
+      where: { id: otp.id, consumedAt: { not: null } },
+      data: { consumedAt: null },
+    });
+
+    if (activation.count !== 1) {
+      console.error("Student password reset OTP activation failed.");
+    }
+  } catch {
+    console.error("Student password reset OTP activation failed.");
+  }
+
+  return genericRequestResult();
 }
 
 type VerifyStudentOtpResult =
   | { success: true; studentId: string; sessionVersion: number }
-  | { success: false; error: string; status: number };
+  | { success: false };
 
 export async function verifyStudentPasswordResetOtp(
   nationalId: string,
   code: string,
 ): Promise<VerifyStudentOtpResult> {
-  const student = await prisma.student.findUnique({
-    where: { nationalId },
+  const otp = await prisma.studentOtp.findFirst({
+    where: {
+      consumedAt: null,
+      student: {
+        nationalId,
+        isActive: true,
+        studentAccount: { is: { isActive: true } },
+      },
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     select: {
       id: true,
-      isActive: true,
-      studentAccount: {
-        select: { isActive: true, sessionVersion: true },
+      codeHash: true,
+      expiresAt: true,
+      attempts: true,
+      student: {
+        select: {
+          id: true,
+          studentAccount: { select: { sessionVersion: true } },
+        },
       },
     },
   });
 
-  if (!student?.isActive || !student.studentAccount?.isActive) {
-    return { success: false, error: "کد تأیید نامعتبر است.", status: 400 };
-  }
-
-  const otp = await prisma.studentOtp.findFirst({
-    where: { studentId: student.id, consumedAt: null },
-    orderBy: { createdAt: "desc" },
-  });
-
   if (!otp) {
-    return {
-      success: false,
-      error: "کد تأیید نامعتبر یا منقضی شده است.",
-      status: 400,
-    };
+    return { success: false };
   }
 
   if (otp.expiresAt < new Date()) {
-    return { success: false, error: "کد تأیید منقضی شده است.", status: 400 };
+    return { success: false };
   }
 
   if (otp.attempts >= 5) {
-    return {
-      success: false,
-      error: "تعداد تلاش‌های مجاز به پایان رسیده است.",
-      status: 429,
-    };
+    return { success: false };
   }
 
   if (!verifyOtp(code, otp.codeHash)) {
@@ -115,14 +141,10 @@ export async function verifyStudentPasswordResetOtp(
     });
 
     if (updateResult.count === 0) {
-      return {
-        success: false,
-        error: "تعداد تلاش‌های مجاز به پایان رسیده است.",
-        status: 429,
-      };
+      return { success: false };
     }
 
-    return { success: false, error: "کد تأیید نادرست است.", status: 400 };
+    return { success: false };
   }
 
   const consumeResult = await prisma.studentOtp.updateMany({
@@ -131,16 +153,12 @@ export async function verifyStudentPasswordResetOtp(
   });
 
   if (consumeResult.count === 0) {
-    return {
-      success: false,
-      error: "کد تأیید قبلاً استفاده شده است.",
-      status: 400,
-    };
+    return { success: false };
   }
 
   return {
     success: true,
-    studentId: student.id,
-    sessionVersion: student.studentAccount.sessionVersion,
+    studentId: otp.student.id,
+    sessionVersion: otp.student.studentAccount!.sessionVersion,
   };
 }

@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
       success: true,
       mustChangePassword: login.mustChangePassword,
     });
-  } catch (error) {
-    console.error("Student password login error:", error);
+  } catch {
+    console.error("Student password login failed internally.");
     return NextResponse.json(
       { error: "خطایی در ورود به پرتال رخ داد." },
       { status: 500 },
