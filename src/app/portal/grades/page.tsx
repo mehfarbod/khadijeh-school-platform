@@ -113,9 +113,7 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
       ? (secondTermScores.reduce((sum, score) => sum + score, 0) / secondTermScores.length).toFixed(2)
       : null;
 
-  return (
-    <main className="min-h-screen bg-muted/30 px-4 py-10">
-      <div className="mx-auto max-w-5xl space-y-6">
+  return (\n    <StudentPortalShell title="نمرات و کارنامه" description="نمرات، میانگین‌ها و ارزیابی‌های ثبت‌شده">
         <Link
           href="/portal"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -289,7 +287,4 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
             </section>
           </>
         )}
-      </div>
-    </main>
-  );
-}
+    </StudentPortalShell>\n  );\n}
