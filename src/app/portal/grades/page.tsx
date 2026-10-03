@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, GraduationCap } from "lucide-react";
+import StudentPortalShell from "@/components/student/StudentPortalShell";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 
