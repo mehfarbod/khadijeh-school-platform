@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { requestStudentOtp } from "@/lib/auth/student-otp";
-import { rateLimit } from "@/lib/security/rate-limit";
 
-const schema = z.object({
-  identifier: z.string().trim().min(1).max(255),
-});
+import { rateLimitStudentAuth } from "@/lib/auth/student-auth-rate-limit";
+import { studentNationalIdSchema } from "@/lib/auth/student-auth-validation";
+import { requestStudentPasswordResetOtp } from "@/lib/auth/student-otp";
 
 export async function POST(request: NextRequest) {
   try {
-    const limit = rateLimit(request, "student-auth:otp-request", {
-      limit: 10,
-      windowMs: 15 * 60 * 1000,
-    });
+    const body: unknown = await request.json();
+    const result = studentNationalIdSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.issues[0]?.message ?? "کد ملی معتبر نیست." },
+        { status: 400 },
+      );
+    }
+
+    const limit = rateLimitStudentAuth(
+      request,
+      "student-auth:password-reset-request",
+      result.data.nationalId,
+      { ipLimit: 10, identifierLimit: 3, windowMs: 15 * 60 * 1000 },
+    );
 
     if (!limit.allowed) {
       return NextResponse.json(
@@ -21,19 +30,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const result = schema.safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: "ایمیل یا کد ملی را وارد کنید." },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json(await requestStudentOtp(result.data.identifier));
+    return NextResponse.json(
+      await requestStudentPasswordResetOtp(result.data.nationalId),
+    );
   } catch (error) {
-    console.error("Student OTP request error:", error);
+    console.error("Student password reset OTP request error:", error);
     return NextResponse.json(
       { error: "خطایی در ارسال کد تأیید رخ داد." },
       { status: 500 },

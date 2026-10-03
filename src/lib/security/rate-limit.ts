@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 type RateLimitOptions = {
   limit: number;
   windowMs: number;
+  key?: string;
 };
 
 type Bucket = {
@@ -29,7 +30,7 @@ export function rateLimit(
   options: RateLimitOptions,
 ) {
   const now = Date.now();
-  const key = `${namespace}:${getClientKey(request)}`;
+  const key = `${namespace}:${options.key ?? getClientKey(request)}`;
   const current = buckets.get(key);
 
   if (!current || current.resetAt <= now) {

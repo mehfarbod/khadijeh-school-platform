@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, UserRound } from "lucide-react";
-import { getCurrentStudent } from "@/lib/auth/student-session";
+import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 
 export const metadata = {
   title: "پروفایل دانش‌آموز | دبیرستان شاهد حضرت خدیجه (ص)",
@@ -23,10 +23,14 @@ function InfoItem({
 }
 
 export default async function StudentProfilePage() {
-  const student = await getCurrentStudent();
+  const student = await getAuthenticatedStudent();
 
   if (!student) {
     redirect("/portal/login");
+  }
+
+  if (student.studentAccount?.mustChangePassword) {
+    redirect("/portal/change-password");
   }
 
   const enrollment = student.enrollments[0];

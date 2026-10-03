@@ -60,6 +60,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       },
 
       include: {
+        studentAccount: {
+          select: {
+            mustChangePassword: true,
+          },
+        },
         enrollments: {
           orderBy: {
             academicYear: {
@@ -229,6 +234,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           }),
         },
       });
+
+      const nextNationalId =
+        data.nationalId !== undefined ? data.nationalId || null : undefined;
+      const nationalIdChanged =
+        nextNationalId !== undefined &&
+        nextNationalId !== existingStudent.nationalId;
+
+      if (nationalIdChanged && existingStudent.studentAccount) {
+        await tx.studentAccount.update({
+          where: { studentId: id },
+          data: {
+            sessionVersion: { increment: 1 },
+            ...(existingStudent.studentAccount.mustChangePassword
+              ? { passwordHash: null }
+              : {}),
+          },
+        });
+      }
 
       /*
        * Enrollment

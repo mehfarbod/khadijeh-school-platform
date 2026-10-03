@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { verifyStudentOtp } from "@/lib/auth/student-otp";
-import { rateLimit } from "@/lib/security/rate-limit";
-import { createStudentSession } from "@/lib/auth/student-session";
 
-const schema = z.object({
-  identifier: z.string().trim().min(1).max(255),
-  code: z.string().trim().regex(/^\d{6}$/, "کد تأیید باید ۶ رقم باشد."),
-});
+import { rateLimitStudentAuth } from "@/lib/auth/student-auth-rate-limit";
+import { studentOtpVerificationSchema } from "@/lib/auth/student-auth-validation";
+import { verifyStudentPasswordResetOtp } from "@/lib/auth/student-otp";
+import { createStudentPasswordResetSession } from "@/lib/auth/student-password-reset-session";
 
 export async function POST(request: NextRequest) {
   try {
-    const limit = rateLimit(request, "student-auth:otp-verify", {
-      limit: 20,
-      windowMs: 15 * 60 * 1000,
-    });
+    const body: unknown = await request.json();
+    const result = studentOtpVerificationSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.issues[0]?.message ?? "اطلاعات واردشده معتبر نیست." },
+        { status: 400 },
+      );
+    }
+
+    const limit = rateLimitStudentAuth(
+      request,
+      "student-auth:password-reset-verify",
+      result.data.nationalId,
+      { ipLimit: 20, identifierLimit: 10, windowMs: 15 * 60 * 1000 },
+    );
 
     if (!limit.allowed) {
       return NextResponse.json(
@@ -23,18 +31,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const result = schema.safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: "ایمیل یا کد تأیید معتبر نیست." },
-        { status: 400 },
-      );
-    }
-
-    const verification = await verifyStudentOtp(
-      result.data.identifier,
+    const verification = await verifyStudentPasswordResetOtp(
+      result.data.nationalId,
       result.data.code,
     );
 
@@ -45,11 +43,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await createStudentSession(verification.studentId);
+    await createStudentPasswordResetSession(
+      verification.studentId,
+      verification.sessionVersion,
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Student OTP verification error:", error);
+    console.error("Student password reset OTP verification error:", error);
     return NextResponse.json(
       { error: "خطایی در تأیید کد رخ داد." },
       { status: 500 },

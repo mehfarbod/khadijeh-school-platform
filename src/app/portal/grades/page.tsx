@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, GraduationCap } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getCurrentStudent } from "@/lib/auth/student-session";
+import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 
 export const metadata = {
   title: "نمرات و کارنامه | دبیرستان شاهد حضرت خدیجه (ص)",
@@ -13,10 +13,14 @@ type PageProps = {
 };
 
 export default async function StudentGradesPage({ searchParams }: PageProps) {
-  const student = await getCurrentStudent();
+  const student = await getAuthenticatedStudent();
 
   if (!student) {
     redirect("/portal/login");
+  }
+
+  if (student.studentAccount?.mustChangePassword) {
+    redirect("/portal/change-password");
   }
 
   const params = await searchParams;

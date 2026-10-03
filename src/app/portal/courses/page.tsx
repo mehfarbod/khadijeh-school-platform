@@ -2,17 +2,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getCurrentStudent } from "@/lib/auth/student-session";
+import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 
 export const metadata = {
   title: "دوره‌های من | دبیرستان شاهد حضرت خدیجه (ص)",
 };
 
 export default async function StudentCoursesPage() {
-  const student = await getCurrentStudent();
+  const student = await getAuthenticatedStudent();
 
   if (!student) {
     redirect("/portal/login");
+  }
+
+  if (student.studentAccount?.mustChangePassword) {
+    redirect("/portal/change-password");
   }
 
   const registrations = await prisma.courseRegistration.findMany({

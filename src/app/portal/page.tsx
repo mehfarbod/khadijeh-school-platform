@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentStudent } from "@/lib/auth/student-session";
+import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 import StudentLogoutButton from "@/components/student/StudentLogoutButton";
 
 export const metadata = {
@@ -8,10 +8,14 @@ export const metadata = {
 };
 
 export default async function StudentPortalPage() {
-  const student = await getCurrentStudent();
+  const student = await getAuthenticatedStudent();
 
   if (!student) {
     redirect("/portal/login");
+  }
+
+  if (student.studentAccount?.mustChangePassword) {
+    redirect("/portal/change-password");
   }
 
   const enrollment = student.enrollments[0];

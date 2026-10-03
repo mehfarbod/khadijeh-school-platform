@@ -8,6 +8,7 @@ const SECRET = process.env.NEXTAUTH_SECRET;
 
 type StudentSessionPayload = {
   studentId: string;
+  sessionVersion: number;
   exp: number;
 };
 
@@ -24,9 +25,10 @@ function sign(value: string) {
   return createHmac("sha256", SECRET).update(value).digest("base64url");
 }
 
-function createToken(studentId: string) {
+function createToken(studentId: string, sessionVersion: number) {
   const payload: StudentSessionPayload = {
     studentId,
+    sessionVersion,
     exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE,
   };
   const encodedPayload = encode(JSON.stringify(payload));
@@ -46,14 +48,22 @@ function verifyToken(token: string): StudentSessionPayload | null {
 
   try {
     const payload = JSON.parse(decode(encodedPayload)) as StudentSessionPayload;
-    if (!payload.studentId || typeof payload.exp !== "number" || payload.exp <= Math.floor(Date.now() / 1000)) return null;
+    if (
+      !payload.studentId ||
+      typeof payload.sessionVersion !== "number" ||
+      typeof payload.exp !== "number" ||
+      payload.exp <= Math.floor(Date.now() / 1000)
+    ) return null;
     return payload;
   } catch { return null; }
 }
 
-export async function createStudentSession(studentId: string) {
+export async function createStudentSession(
+  studentId: string,
+  sessionVersion: number,
+) {
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, createToken(studentId), {
+  cookieStore.set(COOKIE_NAME, createToken(studentId, sessionVersion), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -73,21 +83,40 @@ export async function clearStudentSession() {
   });
 }
 
-async function getStudentIdFromSession() {
+async function getStudentSessionPayload() {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
-  return verifyToken(token)?.studentId ?? null;
+  return verifyToken(token);
 }
 
-export async function getCurrentStudent() {
-  const studentId = await getStudentIdFromSession();
-  if (!studentId) return null;
+export async function getAuthenticatedStudent() {
+  const payload = await getStudentSessionPayload();
+  if (!payload) return null;
 
   return prisma.student.findFirst({
-    where: { id: studentId, isActive: true, studentAccount: { is: { isActive: true } } },
+    where: {
+      id: payload.studentId,
+      isActive: true,
+      studentAccount: {
+        is: {
+          isActive: true,
+          sessionVersion: payload.sessionVersion,
+        },
+      },
+    },
     include: {
-      studentAccount: true,
+      studentAccount: {
+        select: {
+          id: true,
+          isActive: true,
+          mustChangePassword: true,
+          sessionVersion: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
       enrollments: {
         include: { academicYear: true },
         orderBy: { createdAt: "desc" },
@@ -96,8 +125,27 @@ export async function getCurrentStudent() {
   });
 }
 
+export async function getCurrentStudent() {
+  const student = await getAuthenticatedStudent();
+
+  if (student?.studentAccount?.mustChangePassword) return null;
+
+  return student;
+}
+
 export async function requireStudent() {
   const student = await getCurrentStudent();
   if (!student) throw new Error("UNAUTHORIZED");
+  return student;
+}
+
+export async function requireStudentPasswordChange() {
+  const student = await getAuthenticatedStudent();
+
+  if (!student) throw new Error("UNAUTHORIZED");
+  if (!student.studentAccount?.mustChangePassword) {
+    throw new Error("PASSWORD_CHANGE_NOT_REQUIRED");
+  }
+
   return student;
 }

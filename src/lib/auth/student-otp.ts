@@ -3,35 +3,26 @@ import { generateOtp, getOtpExpiration, hashOtp, verifyOtp } from "@/lib/auth/ot
 import { sendSmsOtp } from "@/lib/notifications/sms";
 
 const GENERIC_MESSAGE =
-  "اگر شماره موبایل واردشده مربوط به یک حساب فعال باشد، کد تأیید ارسال خواهد شد.";
+  "اگر کد ملی واردشده مربوط به یک حساب واجد شرایط باشد، کد تأیید ارسال خواهد شد.";
 
-function normalizeDigits(value: string) {
-  return value
-    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
-}
-
-export function normalizeStudentIdentifier(value: string) {
-  return normalizeDigits(value.trim()).replace(/\s+/g, "");
-}
-
-export async function requestStudentOtp(identifier: string) {
-  const normalized = normalizeStudentIdentifier(identifier);
-
-  const students = await prisma.student.findMany({
-    where: {
+export async function requestStudentPasswordResetOtp(nationalId: string) {
+  const student = await prisma.student.findUnique({
+    where: { nationalId },
+    select: {
+      id: true,
       isActive: true,
-      OR: [{ mobile: normalized }, { fatherMobile: normalized }],
+      mobile: true,
+      fatherMobile: true,
+      studentAccount: {
+        select: { isActive: true },
+      },
     },
-    select: { id: true, mobile: true, fatherMobile: true },
-    take: 2,
   });
 
-  if (students.length !== 1) {
+  if (!student?.isActive || student.studentAccount?.isActive === false) {
     return { success: true, message: GENERIC_MESSAGE };
   }
 
-  const student = students[0];
   const phone = student.mobile?.trim() || student.fatherMobile?.trim() || "";
 
   if (!phone) {
@@ -47,55 +38,48 @@ export async function requestStudentOtp(identifier: string) {
   const code = generateOtp();
   const now = new Date();
 
-  await prisma.studentOtp.updateMany({
-    where: { studentId: student.id, consumedAt: null },
-    data: { consumedAt: now },
-  });
+  await prisma.$transaction([
+    prisma.studentOtp.updateMany({
+      where: { studentId: student.id, consumedAt: null },
+      data: { consumedAt: now },
+    }),
+    prisma.studentOtp.create({
+      data: {
+        studentId: student.id,
+        phone,
+        codeHash: hashOtp(code),
+        expiresAt: getOtpExpiration(),
+      },
+    }),
+  ]);
 
-  await prisma.studentOtp.create({
-    data: {
-      studentId: student.id,
-      phone,
-      codeHash: hashOtp(code),
-      expiresAt: getOtpExpiration(),
-    },
-  });
-
+  // Provider-agnostic boundary: development logs the OTP, while production
+  // deliberately fails closed until a real provider is configured here.
   await sendSmsOtp({ to: phone, code });
 
   return { success: true, message: GENERIC_MESSAGE };
 }
 
 type VerifyStudentOtpResult =
-  | { success: true; studentId: string }
+  | { success: true; studentId: string; sessionVersion: number }
   | { success: false; error: string; status: number };
 
-export async function verifyStudentOtp(
-  identifier: string,
-  code: string
+export async function verifyStudentPasswordResetOtp(
+  nationalId: string,
+  code: string,
 ): Promise<VerifyStudentOtpResult> {
-  const normalized = normalizeStudentIdentifier(identifier);
-
-  const students = await prisma.student.findMany({
-    where: {
+  const student = await prisma.student.findUnique({
+    where: { nationalId },
+    select: {
+      id: true,
       isActive: true,
-      OR: [{ mobile: normalized }, { fatherMobile: normalized }],
+      studentAccount: {
+        select: { isActive: true, sessionVersion: true },
+      },
     },
-    select: { id: true },
-    take: 2,
   });
 
-  if (students.length !== 1) {
-    return { success: false, error: "کد تأیید نامعتبر است.", status: 400 };
-  }
-
-  const student = students[0];
-  const account = await prisma.studentAccount.findUnique({
-    where: { studentId: student.id },
-    select: { isActive: true },
-  });
-
-  if (!account?.isActive) {
+  if (!student?.isActive || !student.studentAccount?.isActive) {
     return { success: false, error: "کد تأیید نامعتبر است.", status: 400 };
   }
 
@@ -142,7 +126,7 @@ export async function verifyStudentOtp(
   }
 
   const consumeResult = await prisma.studentOtp.updateMany({
-    where: { id: otp.id, consumedAt: null },
+    where: { id: otp.id, consumedAt: null, attempts: { lt: 5 } },
     data: { consumedAt: new Date() },
   });
 
@@ -154,10 +138,9 @@ export async function verifyStudentOtp(
     };
   }
 
-  await prisma.studentAccount.update({
-    where: { studentId: student.id },
-    data: { lastLoginAt: new Date() },
-  });
-
-  return { success: true, studentId: student.id };
+  return {
+    success: true,
+    studentId: student.id,
+    sessionVersion: student.studentAccount.sessionVersion,
+  };
 }
