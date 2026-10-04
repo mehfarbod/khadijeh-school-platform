@@ -235,6 +235,7 @@ model CourseRegistration {
   @@index([courseId])
   @@index([studentId])
   @@index([status])
+  @@unique([courseId, studentId])
 }
 
 enum AdmissionApplicationStatus {

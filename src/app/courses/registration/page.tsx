@@ -6,11 +6,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import Header from "@/components/layout/Header";
 import CoursesFooter from "@/components/courses/CoursesFooter";
+import { getStudentLoginUrl } from "@/lib/auth/student-return-to";
 
 type FormErrors = {
-  fullName?: string;
-  grade?: string;
-  phone?: string;
+  form?: string;
+};
+
+const gradeLabels: Record<string, string> = {
+  "10": "دهم",
+  "11": "یازدهم",
+  "12": "دوازدهم",
 };
 
 function CourseRegistrationContent() {
@@ -29,10 +34,13 @@ function CourseRegistrationContent() {
   } | null>(null);
   const [isCourseLoading, setIsCourseLoading] = useState(true);
   const [courseError, setCourseError] = useState("");
-
-  const [fullName, setFullName] = useState("");
-  const [grade, setGrade] = useState("");
-  const [phone, setPhone] = useState("");
+  const [student, setStudent] = useState<{
+    firstName: string;
+    lastName: string;
+    grade: string;
+  } | null>(null);
+  const [isStudentLoading, setIsStudentLoading] = useState(true);
+  const [studentError, setStudentError] = useState("");
   const [description, setDescription] = useState("");
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -73,9 +81,54 @@ function CourseRegistrationContent() {
     return () => { cancelled = true; };
   }, [courseSlug, router]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let redirecting = false;
+
+    async function loadStudent() {
+      if (!courseSlug) return;
+
+      try {
+        setIsStudentLoading(true);
+        setStudentError("");
+        const response = await fetch(
+          "/api/student-portal/course-registration-context",
+          { cache: "no-store" },
+        );
+        const data = await response.json();
+
+        if (response.status === 401) {
+          const returnTo = `/courses/registration?course=${encodeURIComponent(courseSlug)}`;
+          redirecting = true;
+          router.replace(getStudentLoginUrl(returnTo));
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(data?.error || "اطلاعات دانش‌آموز دریافت نشد.");
+        }
+
+        if (!cancelled) setStudent(data);
+      } catch (error) {
+        if (!cancelled) {
+          setStudentError(
+            error instanceof Error
+              ? error.message
+              : "اطلاعات دانش‌آموز دریافت نشد.",
+          );
+        }
+      } finally {
+        if (!cancelled && !redirecting) setIsStudentLoading(false);
+      }
+    }
+
+    loadStudent();
+    return () => { cancelled = true; };
+  }, [courseSlug, router]);
+
   if (!courseSlug) return null;
 
-  if (isCourseLoading) {
+  if (isCourseLoading || isStudentLoading) {
     return (
       <>
         <Header />
@@ -102,65 +155,36 @@ function CourseRegistrationContent() {
     );
   }
 
-  function validateForm() {
-    const newErrors: FormErrors = {};
-
-    if (!fullName.trim()) {
-      newErrors.fullName = "نام و نام خانوادگی را وارد کنید.";
-    } else if (fullName.trim().length < 3) {
-      newErrors.fullName = "نام واردشده معتبر نیست.";
-    }
-
-    if (!grade) {
-      newErrors.grade = "پایه تحصیلی را انتخاب کنید.";
-    }
-
-    const normalizedPhone = phone
-      .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-      .replace(/\s/g, "")
-      .replace(/-/g, "");
-
-    if (!normalizedPhone) {
-      newErrors.phone = "شماره تماس را وارد کنید.";
-    } else if (!/^09\d{9}$/.test(normalizedPhone)) {
-      newErrors.phone = "شماره موبایل باید به شکل ۰۹۱۲۱۲۳۴۵۶۷ وارد شود.";
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
+  if (studentError || !student) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-[500px] bg-[#FAF8F3] px-5 py-20 text-center" dir="rtl">
+          <p className="text-sm text-red-600">
+            {studentError || "اطلاعات دانش‌آموز دریافت نشد."}
+          </p>
+          <Link href="/portal/profile" className="mt-6 inline-flex rounded-[10px] bg-[#194342] px-5 py-2.5 text-sm text-white">
+            مشاهده پروفایل دانش‌آموزی
+          </Link>
+        </main>
+        <CoursesFooter />
+      </>
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsSubmitted(false);
-
-    const isValid = validateForm();
-
-    if (!isValid) {
-      return;
-    }
-
+    setErrors({});
     setIsSubmitting(true);
 
     try {
-      const nameParts = fullName.trim().split(/\s+/);
-      const studentFirstName = nameParts.shift() || "";
-      const studentLastName = nameParts.join(" ") || studentFirstName;
-      const normalizedPhone = phone
-        .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-        .replace(/[\s-]/g, "");
-
       const response = await fetch("/api/course-registrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           courseSlug,
-          studentFirstName,
-          studentLastName,
-          grade,
-          phone: normalizedPhone,
           notes: description.trim() || null,
         }),
       });
@@ -169,14 +193,11 @@ function CourseRegistrationContent() {
       if (!response.ok) throw new Error(data?.error || "ثبت درخواست ثبت‌نام انجام نشد.");
 
       setIsSubmitted(true);
-      setFullName("");
-      setGrade("");
-      setPhone("");
       setDescription("");
       setErrors({});
     } catch (error) {
       setErrors({
-        fullName: error instanceof Error ? error.message : "ثبت درخواست ثبت‌نام انجام نشد.",
+        form: error instanceof Error ? error.message : "ثبت درخواست ثبت‌نام انجام نشد.",
       });
     } finally {
       setIsSubmitting(false);
@@ -230,7 +251,7 @@ function CourseRegistrationContent() {
                   </h2>
 
                   <p className="mt-2 text-[12.5px] leading-6 text-[#667085]">
-                    اطلاعات دانش‌آموز را وارد کنید تا درخواست ثبت‌نام بررسی شود.
+                    اطلاعات هویتی شما از حساب دانش‌آموزی تأیید شده است.
                   </p>
                 </div>
 
@@ -260,131 +281,19 @@ function CourseRegistrationContent() {
                     </div>
                   </div>
 
-                  {/* Student Name */}
-                  <div>
-                    <label
-                      htmlFor="fullName"
-                      className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                    >
-                      نام و نام خانوادگی دانش‌آموز
-                    </label>
-
-                    <input
-                      id="fullName"
-                      name="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={(event) => {
-                        setFullName(event.target.value);
-
-                        if (errors.fullName) {
-                          setErrors((current) => ({
-                            ...current,
-                            fullName: undefined,
-                          }));
-                        }
-                      }}
-                      placeholder="نام و نام خانوادگی"
-                      className={`h-11 w-full rounded-[10px] border bg-white px-4 text-[13px] text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] ${
-                        errors.fullName
-                          ? "border-red-400 focus:border-red-500"
-                          : "border-[#DBE7C1] focus:border-[#194342]"
-                      }`}
-                    />
-
-                    {errors.fullName && (
-                      <p className="mt-1.5 text-[11.5px] text-red-500">
-                        {errors.fullName}
+                  <div className="grid gap-3 rounded-[12px] border border-[#DBE7C1] bg-[#FCFDF9] p-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-[11px] text-[#98A2B3]">دانش‌آموز</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#194342]">
+                        {student.firstName} {student.lastName}
                       </p>
-                    )}
-                  </div>
-
-                  {/* Grade */}
-                  <div>
-                    <label
-                      htmlFor="grade"
-                      className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                    >
-                      پایه تحصیلی
-                    </label>
-
-                    <select
-                      id="grade"
-                      name="grade"
-                      value={grade}
-                      onChange={(event) => {
-                        setGrade(event.target.value);
-
-                        if (errors.grade) {
-                          setErrors((current) => ({
-                            ...current,
-                            grade: undefined,
-                          }));
-                        }
-                      }}
-                      className={`h-11 w-full rounded-[10px] border bg-white px-4 text-[13px] outline-none transition-colors ${
-                        errors.grade
-                          ? "border-red-400 text-[#667085] focus:border-red-500"
-                          : "border-[#DBE7C1] text-[#667085] focus:border-[#194342]"
-                      }`}
-                    >
-                      <option value="" disabled>
-                        پایه تحصیلی را انتخاب کنید
-                      </option>
-
-                      <option value="10">پایه دهم</option>
-
-                      <option value="11">پایه یازدهم</option>
-
-                      <option value="12">پایه دوازدهم</option>
-                    </select>
-
-                    {errors.grade && (
-                      <p className="mt-1.5 text-[11.5px] text-red-500">
-                        {errors.grade}
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-[#98A2B3]">پایه تحصیلی</p>
+                      <p className="mt-1 text-[13px] font-medium text-[#194342]">
+                        پایه {gradeLabels[student.grade] ?? student.grade}
                       </p>
-                    )}
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="mb-2 block text-[12.5px] font-medium text-[#1F2933]"
-                    >
-                      شماره تماس
-                    </label>
-
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      inputMode="tel"
-                      value={phone}
-                      onChange={(event) => {
-                        setPhone(event.target.value);
-
-                        if (errors.phone) {
-                          setErrors((current) => ({
-                            ...current,
-                            phone: undefined,
-                          }));
-                        }
-                      }}
-                      placeholder="۰۹۱۲۱۲۳۴۵۶۷"
-                      dir="ltr"
-                      className={`h-11 w-full rounded-[10px] border bg-white px-4 text-[13px] text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] ${
-                        errors.phone
-                          ? "border-red-400 focus:border-red-500"
-                          : "border-[#DBE7C1] focus:border-[#194342]"
-                      }`}
-                    />
-
-                    {errors.phone && (
-                      <p className="mt-1.5 text-[11.5px] text-red-500">
-                        {errors.phone}
-                      </p>
-                    )}
+                    </div>
                   </div>
 
                   {/* Description */}
@@ -409,6 +318,12 @@ function CourseRegistrationContent() {
                       className="w-full resize-none rounded-[10px] border border-[#DBE7C1] bg-white px-4 py-3 text-[13px] leading-7 text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#194342]"
                     />
                   </div>
+
+                  {errors.form && (
+                    <p className="rounded-[10px] border border-red-200 bg-red-50 px-4 py-3 text-[11.5px] leading-6 text-red-600">
+                      {errors.form}
+                    </p>
+                  )}
 
                   {/* Submit */}
                   <button
@@ -456,10 +371,16 @@ function CourseRegistrationContent() {
                   پس از بررسی اطلاعات، مدرسه با شما تماس خواهد گرفت.
                 </p>
 
-                <div className="mt-7 flex justify-center">
+                <div className="mt-7 flex flex-wrap justify-center gap-3">
+                  <Link
+                    href="/portal/courses"
+                    className="flex h-10 items-center justify-center rounded-[10px] bg-[#194342] px-6 text-[12.5px] font-medium text-white transition-colors hover:bg-[#143837]"
+                  >
+                    مشاهده دوره‌های من
+                  </Link>
                   <Link
                     href="/courses"
-                    className="flex h-10 items-center justify-center rounded-[10px] bg-[#194342] px-6 text-[12.5px] font-medium text-white transition-colors hover:bg-[#143837]"
+                    className="flex h-10 items-center justify-center rounded-[10px] border border-[#DBE7C1] px-6 text-[12.5px] font-medium text-[#194342] transition-colors hover:bg-[#F1F5E8]"
                   >
                     بازگشت به دوره‌ها
                   </Link>

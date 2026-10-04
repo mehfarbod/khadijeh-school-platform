@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { hasPermission, requirePermission } from "@/lib/auth/authorization";
-import { rateLimit } from "@/lib/security/rate-limit";
+import { z } from "zod";
 
-const normalizeDigits = (value: string) =>
-  value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/auth/authorization";
+import { requireStudent } from "@/lib/auth/student-session";
+import { rateLimit } from "@/lib/security/rate-limit";
+import { getCurrentStudentGrade } from "@/lib/student-current-grade";
+
+const publicRegistrationSchema = z
+  .object({
+    courseSlug: z.string().trim().min(1).max(200),
+    notes: z.string().trim().max(2000).nullable().optional(),
+  })
+  .strict();
 
 export async function GET(request: Request) {
   try {
@@ -55,36 +63,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const student = await requireStudent();
+    const parsed = publicRegistrationSchema.safeParse(await request.json());
 
-    const courseSlug = typeof body.courseSlug === "string" ? body.courseSlug.trim() : "";
-    const studentFirstName =
-      typeof body.studentFirstName === "string" ? body.studentFirstName.trim() : "";
-    const studentLastName =
-      typeof body.studentLastName === "string" ? body.studentLastName.trim() : "";
-    const grade = typeof body.grade === "string" ? body.grade.trim() : "";
-    const phone =
-      typeof body.phone === "string"
-        ? normalizeDigits(body.phone).replace(/[\s-]/g, "")
-        : "";
-    const notes =
-      typeof body.notes === "string" && body.notes.trim()
-        ? body.notes.trim()
-        : null;
-
-    if (!courseSlug || !studentFirstName || !studentLastName || !grade || !phone) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "اطلاعات ضروری ثبت‌نام کامل نیست." },
+        { error: "اطلاعات درخواست ثبت‌نام معتبر نیست." },
         { status: 400 },
       );
     }
 
-    if (!/^09\d{9}$/.test(phone)) {
+    const grade = getCurrentStudentGrade(student.enrollments);
+    if (!grade) {
       return NextResponse.json(
-        { error: "شماره تلفن همراه معتبر نیست." },
-        { status: 400 },
+        { error: "ثبت‌نام تحصیلی فعالی برای سال جاری پیدا نشد." },
+        { status: 422 },
       );
     }
+
+    const { courseSlug, notes } = parsed.data;
 
     const course = await prisma.course.findUnique({
       where: { slug: courseSlug },
@@ -93,6 +90,7 @@ export async function POST(request: Request) {
         title: true,
         isActive: true,
         status: true,
+        gradeLevel: true,
         capacity: true,
         registrationDeadline: true,
         _count: {
@@ -108,6 +106,17 @@ export async function POST(request: Request) {
     if (course.status !== "active") {
       return NextResponse.json(
         { error: "ثبت‌نام این دوره در حال حاضر فعال نیست." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      course.gradeLevel &&
+      course.gradeLevel !== "all" &&
+      course.gradeLevel !== grade
+    ) {
+      return NextResponse.json(
+        { error: "این دوره برای پایه تحصیلی شما ارائه نشده است." },
         { status: 400 },
       );
     }
@@ -129,15 +138,30 @@ export async function POST(request: Request) {
       );
     }
 
+    const existingRegistration = await prisma.courseRegistration.findFirst({
+      where: { courseId: course.id, studentId: student.id },
+      select: { id: true },
+    });
+
+    if (existingRegistration) {
+      return NextResponse.json(
+        { error: "شما قبلاً برای این دوره ثبت‌نام کرده‌اید." },
+        { status: 409 },
+      );
+    }
+
     const registration = await prisma.courseRegistration.create({
       data: {
         courseId: course.id,
-        studentFirstName,
-        studentLastName,
+        studentId: student.id,
+        studentFirstName: student.firstName,
+        studentLastName: student.lastName,
         grade,
-        notes,
+        notes: notes || null,
       },
-      include: {
+      select: {
+        id: true,
+        status: true,
         course: {
           select: {
             id: true,
@@ -150,6 +174,20 @@ export async function POST(request: Request) {
 
     return NextResponse.json(registration, { status: 201 });
   } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json(
+        { error: "برای ثبت‌نام در دوره، ابتدا وارد حساب دانش‌آموزی خود شوید." },
+        { status: 401 },
+      );
+    }
+
+    if (isUniqueConstraintError(error)) {
+      return NextResponse.json(
+        { error: "شما قبلاً برای این دوره ثبت‌نام کرده‌اید." },
+        { status: 409 },
+      );
+    }
+
     console.error("POST /api/course-registrations error:", error);
 
     return NextResponse.json(
@@ -157,6 +195,15 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
 }
 
 export async function PATCH(request: Request) {
