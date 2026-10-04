@@ -1,8 +1,26 @@
 import Link from "next/link";
-import { ArrowRight, Home, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
+  Home,
+  UserRound,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import StudentLogoutButton from "@/components/student/StudentLogoutButton";
+
+const navigationItems = [
+  { href: "/portal/grades", label: "نمرات و کارنامه", icon: GraduationCap },
+  { href: "/portal/courses", label: "دوره‌های من", icon: BookOpen },
+  {
+    href: "/portal/review-items",
+    label: "موارد نیازمند بررسی",
+    icon: ClipboardList,
+  },
+  { href: "/portal/profile", label: "پروفایل", icon: UserRound },
+];
 
 export default function StudentPortalShell({
   children,
@@ -36,16 +54,29 @@ export default function StudentPortalShell({
             </div>
 
             <div className="flex items-center gap-1.5">
-              <Link
-                href="/portal/profile"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium text-[#667085] transition-colors hover:bg-[#F1F5E8] hover:text-[#194342]"
-              >
-                <UserRound className="h-3.5 w-3.5" strokeWidth={1.8} />
-                پروفایل
-              </Link>
               <StudentLogoutButton />
             </div>
           </div>
+
+          <nav
+            aria-label="بخش‌های پرتال دانش‌آموز"
+            className="grid grid-cols-2 gap-2 border-t border-[#EEEAE3] p-3 sm:grid-cols-4"
+          >
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-center text-xs font-semibold text-[#667085] transition-colors hover:bg-[#F1F5E8] hover:text-[#194342]"
+                >
+                  <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </header>
 
         {children}

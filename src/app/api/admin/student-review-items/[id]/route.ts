@@ -1,32 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { studentReviewItemSchema } from "@/lib/validation/student-review-item";
 
 type Context = { params: Promise<{ id: string }> };
-
-const itemSchema = z.object({
-  studentId: z.string().trim().min(1),
-  type: z.enum(["ABSENCE", "DISCIPLINE", "GENERAL"]),
-  title: z.string().trim().min(1).max(200),
-  description: z.string().trim().max(3000).nullable().optional(),
-  occurredAt: z.string().datetime().nullable().optional(),
-  status: z.enum(["OPEN", "REVIEWED", "RESOLVED"]),
-  isVisible: z.boolean(),
-});
 
 export async function PATCH(request: NextRequest, context: Context) {
   try {
     await requirePermission("students.edit");
     const { id } = await context.params;
-    const result = itemSchema.safeParse(await request.json());
+    const result = studentReviewItemSchema.safeParse(await request.json());
 
     if (!result.success) {
       return NextResponse.json({ error: "اطلاعات واردشده معتبر نیست." }, { status: 400 });
     }
 
     const data = result.data;
+    const student = await prisma.student.findUnique({
+      where: { id: data.studentId },
+      select: { id: true },
+    });
+
+    if (!student) {
+      return NextResponse.json(
+        { error: "دانش‌آموز موردنظر پیدا نشد." },
+        { status: 404 },
+      );
+    }
+
     const item = await prisma.studentReviewItem.update({
       where: { id },
       data: {
@@ -48,6 +50,9 @@ export async function PATCH(request: NextRequest, context: Context) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "شما مجوز مدیریت این موارد را ندارید." }, { status: 403 });
     }
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ error: "مورد درخواستی پیدا نشد." }, { status: 404 });
+    }
     return NextResponse.json({ error: "خطا در ویرایش مورد." }, { status: 500 });
   }
 }
@@ -65,6 +70,18 @@ export async function DELETE(_request: NextRequest, context: Context) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "شما مجوز مدیریت این موارد را ندارید." }, { status: 403 });
     }
+    if (isPrismaNotFoundError(error)) {
+      return NextResponse.json({ error: "مورد درخواستی پیدا نشد." }, { status: 404 });
+    }
     return NextResponse.json({ error: "خطا در حذف مورد." }, { status: 500 });
   }
+}
+
+function isPrismaNotFoundError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2025"
+  );
 }

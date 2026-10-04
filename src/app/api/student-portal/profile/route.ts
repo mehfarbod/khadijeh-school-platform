@@ -5,14 +5,32 @@ import { requireStudent } from "@/lib/auth/student-session";
 import { iranianMobileSchema } from "@/lib/validation/student";
 import { prisma } from "@/lib/prisma";
 
-const profileSchema = z.object({
-  mobile: iranianMobileSchema.nullable().optional(),
-  fatherMobile: iranianMobileSchema.nullable().optional(),
-  motherMobile: iranianMobileSchema.nullable().optional(),
-  address: z.string().trim().max(1000, "آدرس بیش از حد طولانی است.").nullable().optional(),
-  landline: z.string().trim().max(30, "شماره تلفن ثابت بیش از حد طولانی است.").nullable().optional(),
-  email: z.string().trim().email("ایمیل واردشده معتبر نیست.").max(254).nullable().optional(),
-});
+const profileSchema = z
+  .object({
+    mobile: iranianMobileSchema.nullable().optional(),
+    fatherMobile: iranianMobileSchema.nullable().optional(),
+    motherMobile: iranianMobileSchema.nullable().optional(),
+    address: z
+      .string()
+      .trim()
+      .max(1000, "آدرس بیش از حد طولانی است.")
+      .nullable()
+      .optional(),
+    landline: z
+      .string()
+      .trim()
+      .max(30, "شماره تلفن ثابت بیش از حد طولانی است.")
+      .nullable()
+      .optional(),
+    email: z
+      .string()
+      .trim()
+      .email("ایمیل واردشده معتبر نیست.")
+      .max(254)
+      .nullable()
+      .optional(),
+  })
+  .strict();
 
 export async function PATCH(request: NextRequest) {
   try {

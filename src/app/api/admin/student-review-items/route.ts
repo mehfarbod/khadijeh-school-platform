@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
-
-const itemSchema = z.object({
-  studentId: z.string().trim().min(1, "انتخاب دانش‌آموز الزامی است."),
-  type: z.enum(["ABSENCE", "DISCIPLINE", "GENERAL"]),
-  title: z.string().trim().min(1, "عنوان الزامی است.").max(200),
-  description: z.string().trim().max(3000).nullable().optional(),
-  occurredAt: z.string().datetime().nullable().optional(),
-  status: z.enum(["OPEN", "REVIEWED", "RESOLVED"]).default("OPEN"),
-  isVisible: z.boolean().default(true),
-});
+import { studentReviewItemSchema } from "@/lib/validation/student-review-item";
 
 export async function GET() {
   try {
@@ -43,7 +33,7 @@ export async function POST(request: NextRequest) {
   try {
     await requirePermission("students.edit");
 
-    const result = itemSchema.safeParse(await request.json());
+    const result = studentReviewItemSchema.safeParse(await request.json());
 
     if (!result.success) {
       return NextResponse.json(

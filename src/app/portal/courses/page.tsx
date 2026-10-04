@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, BookOpen } from "lucide-react";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
@@ -28,26 +26,6 @@ export default async function StudentCoursesPage() {
 
   return (
     <StudentPortalShell title="دوره‌های من" description="دوره‌های ثبت‌نام‌شده و وضعیت ثبت‌نام">
-        <Link
-          href="/portal"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowRight className="h-4 w-4" />
-          بازگشت به پرتال
-        </Link>
-
-        <section className="rounded-2xl border bg-background p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <BookOpen className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">پرتال دانش‌آموز</p>
-              <h1 className="mt-1 text-2xl font-bold">دوره‌های من</h1>
-            </div>
-          </div>
-        </section>
-
         {registrations.length === 0 ? (
           <section className="rounded-2xl border bg-background p-8 text-center shadow-sm">
             <p className="font-medium">هنوز در دوره‌ای ثبت‌نام نکرده‌اید.</p>

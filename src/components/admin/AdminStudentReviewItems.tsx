@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Pencil, Plus, Trash2, Eye, EyeOff, ClipboardList } from "lucide-react";
+import { Pencil, Plus, Trash2, Eye, EyeOff, ClipboardList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -63,6 +63,22 @@ export default function AdminStudentReviewItems() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(emptyForm);
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<ReviewItem["type"] | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<ReviewItem["status"] | "ALL">("ALL");
+
+  const normalizedQuery = query.trim().toLocaleLowerCase("fa");
+  const filteredItems = items.filter((item) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      `${item.student.firstName} ${item.student.lastName} ${item.title}`
+        .toLocaleLowerCase("fa")
+        .includes(normalizedQuery);
+    const matchesType = typeFilter === "ALL" || item.type === typeFilter;
+    const matchesStatus = statusFilter === "ALL" || item.status === statusFilter;
+
+    return matchesQuery && matchesType && matchesStatus;
+  });
 
   async function load() {
     try {
@@ -184,6 +200,41 @@ export default function AdminStudentReviewItems() {
         </Button>
       </div>
 
+      <div className="mb-4 grid gap-3 rounded-xl border border-[#E7E2DA] bg-white p-4 sm:grid-cols-[minmax(0,1fr)_180px_180px]">
+        <label className="relative block">
+          <span className="sr-only">جست‌وجوی موارد</span>
+          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#98A2B3]" />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="جست‌وجوی دانش‌آموز یا عنوان..."
+            className="pr-9"
+          />
+        </label>
+        <select
+          value={typeFilter}
+          onChange={(event) => setTypeFilter(event.target.value as typeof typeFilter)}
+          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          aria-label="فیلتر نوع مورد"
+        >
+          <option value="ALL">همه انواع</option>
+          <option value="ABSENCE">غیبت</option>
+          <option value="DISCIPLINE">انضباطی</option>
+          <option value="GENERAL">سایر موارد</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}
+          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          aria-label="فیلتر وضعیت"
+        >
+          <option value="ALL">همه وضعیت‌ها</option>
+          <option value="OPEN">نیازمند پیگیری</option>
+          <option value="REVIEWED">بررسی شده</option>
+          <option value="RESOLVED">مختومه</option>
+        </select>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-[#E7E2DA] bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -192,6 +243,7 @@ export default function AdminStudentReviewItems() {
                 <th className="px-4 py-3 text-right font-medium text-[#667085]">دانش‌آموز</th>
                 <th className="px-4 py-3 text-right font-medium text-[#667085]">نوع</th>
                 <th className="px-4 py-3 text-right font-medium text-[#667085]">عنوان</th>
+                <th className="px-4 py-3 text-right font-medium text-[#667085]">تاریخ</th>
                 <th className="px-4 py-3 text-right font-medium text-[#667085]">وضعیت</th>
                 <th className="px-4 py-3 text-right font-medium text-[#667085]">نمایش</th>
                 <th className="px-4 py-3 text-right font-medium text-[#667085]">عملیات</th>
@@ -199,20 +251,27 @@ export default function AdminStudentReviewItems() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="px-4 py-10 text-center text-[#98A2B3]">در حال دریافت...</td></tr>
-              ) : items.length === 0 ? (
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-[#98A2B3]">در حال دریافت...</td></tr>
+              ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-14 text-center">
+                  <td colSpan={7} className="px-4 py-14 text-center">
                     <ClipboardList className="mx-auto h-8 w-8 text-[#98A2B3]" />
-                    <p className="mt-3 text-sm text-[#667085]">هنوز موردی ثبت نشده است.</p>
+                    <p className="mt-3 text-sm text-[#667085]">
+                      {items.length === 0 ? "هنوز موردی ثبت نشده است." : "موردی مطابق فیلترهای انتخاب‌شده پیدا نشد."}
+                    </p>
                   </td>
                 </tr>
               ) : (
-                items.map((item) => (
+                filteredItems.map((item) => (
                   <tr key={item.id} className="border-b border-[#EEEAE3] last:border-0">
                     <td className="px-4 py-3 font-medium">{item.student.firstName} {item.student.lastName}</td>
                     <td className="px-4 py-3">{typeLabels[item.type]}</td>
                     <td className="max-w-[280px] px-4 py-3">{item.title}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-xs text-[#667085]">
+                      {item.occurredAt
+                        ? new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(new Date(item.occurredAt))
+                        : "ثبت نشده"}
+                    </td>
                     <td className="px-4 py-3">{statusLabels[item.status]}</td>
                     <td className="px-4 py-3">
                       {item.isVisible ? <Eye className="h-4 w-4 text-[#27745A]" /> : <EyeOff className="h-4 w-4 text-[#98A2B3]" />}

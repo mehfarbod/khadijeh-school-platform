@@ -12,6 +12,14 @@ export async function GET() {
         studentId: student.id,
         isVisible: true,
       },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        description: true,
+        occurredAt: true,
+        status: true,
+      },
       orderBy: [
         { occurredAt: "desc" },
         { createdAt: "desc" },
