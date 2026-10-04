@@ -2,15 +2,30 @@
 
 import AdminLayout from "@/components/admin/AdminLayout";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import JalaliDatePicker from "@/components/ui/JalaliDatePicker";
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Pencil, Plus, Trash2, Eye, EyeOff, ClipboardList, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Pencil, Plus, Trash2, Eye, EyeOff, ClipboardList, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { gregorianToJalali, jalaliToGregorian } from "@/lib/date/jalali";
+import { cn } from "@/lib/utils";
+
 type Student = { id: string; firstName: string; lastName: string };
+type StudentWithEnrollment = Student & {
+  enrollments: { grade: string; className: string | null }[];
+};
 type ReviewItem = {
   id: string;
   studentId: string;
@@ -20,7 +35,14 @@ type ReviewItem = {
   occurredAt: string | null;
   status: "OPEN" | "REVIEWED" | "RESOLVED";
   isVisible: boolean;
-  student: Student;
+  student: StudentWithEnrollment;
+};
+
+type SelectionData = {
+  grades: string[];
+  classes: string[];
+  students: Student[];
+  error?: string;
 };
 
 type Form = {
@@ -55,9 +77,27 @@ const statusLabels = {
   RESOLVED: "مختومه",
 };
 
+const gradeLabels: Record<string, string> = {
+  "10": "دهم",
+  "11": "یازدهم",
+  "12": "دوازدهم",
+};
+
+const normalizedGradeValues: Record<string, string> = {
+  دهم: "10",
+  یازدهم: "11",
+  دوازدهم: "12",
+};
+
 export default function AdminStudentReviewItems() {
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [grades, setGrades] = useState<string[]>([]);
+  const [classes, setClasses] = useState<string[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectionLoading, setSelectionLoading] = useState(false);
+  const [studentPickerOpen, setStudentPickerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -79,28 +119,23 @@ export default function AdminStudentReviewItems() {
 
     return matchesQuery && matchesType && matchesStatus;
   });
+  const selectedStudent = students.find((student) => student.id === form.studentId);
 
   async function load() {
     try {
-      const [itemsResponse, studentsResponse] = await Promise.all([
+      const [itemsResponse, selectionResponse] = await Promise.all([
         fetch("/api/admin/student-review-items", { cache: "no-store" }),
-        fetch("/api/students?activeOnly=true", { cache: "no-store" }),
+        fetch("/api/admin/student-review-items/selection", { cache: "no-store" }),
       ]);
 
       const itemsData = await itemsResponse.json();
-      const studentsData = await studentsResponse.json();
+      const selectionData: SelectionData = await selectionResponse.json();
 
       if (!itemsResponse.ok) throw new Error(itemsData.error || "خطا در دریافت موارد");
-      if (!studentsResponse.ok) throw new Error(studentsData.error || "خطا در دریافت دانش‌آموزان");
+      if (!selectionResponse.ok) throw new Error(selectionData.error || "خطا در دریافت پایه‌ها");
 
       setItems(itemsData);
-      setStudents(
-        studentsData.map((student: Student) => ({
-          id: student.id,
-          firstName: student.firstName,
-          lastName: student.lastName,
-        })),
-      );
+      setGrades(selectionData.grades);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در دریافت اطلاعات");
     } finally {
@@ -112,23 +147,82 @@ export default function AdminStudentReviewItems() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!dialogOpen || !selectedGrade) {
+      setClasses([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    setSelectionLoading(true);
+    fetch(`/api/admin/student-review-items/selection?grade=${encodeURIComponent(selectedGrade)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data: SelectionData = await response.json();
+        if (!response.ok) throw new Error(data.error || "خطا در دریافت کلاس‌ها");
+        setClasses(data.classes);
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name !== "AbortError") toast.error(error.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setSelectionLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [dialogOpen, selectedGrade]);
+
+  useEffect(() => {
+    if (!dialogOpen || !selectedGrade || !selectedClass) {
+      setStudents([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    setSelectionLoading(true);
+    const params = new URLSearchParams({ grade: selectedGrade, className: selectedClass });
+    fetch(`/api/admin/student-review-items/selection?${params.toString()}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data: SelectionData = await response.json();
+        if (!response.ok) throw new Error(data.error || "خطا در دریافت دانش‌آموزان");
+        setStudents(data.students);
+      })
+      .catch((error) => {
+        if (error instanceof Error && error.name !== "AbortError") toast.error(error.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setSelectionLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [dialogOpen, selectedGrade, selectedClass]);
+
   function openCreate() {
     setEditId(null);
-    setForm({
-      ...emptyForm,
-      studentId: students[0]?.id ?? "",
-    });
+    setSelectedGrade("");
+    setSelectedClass("");
+    setStudents([]);
+    setForm(emptyForm);
     setDialogOpen(true);
   }
 
   function openEdit(item: ReviewItem) {
+    const enrollment = item.student.enrollments[0];
     setEditId(item.id);
+    setSelectedGrade(enrollment ? (normalizedGradeValues[enrollment.grade] ?? enrollment.grade) : "");
+    setSelectedClass(enrollment?.className ?? "");
+    setStudents([]);
     setForm({
       studentId: item.studentId,
       type: item.type,
       title: item.title,
       description: item.description ?? "",
-      occurredAt: item.occurredAt ? new Date(item.occurredAt).toISOString().slice(0, 16) : "",
+      occurredAt: item.occurredAt ? gregorianToJalali(item.occurredAt) : "",
       status: item.status,
       isVisible: item.isVisible,
     });
@@ -141,9 +235,17 @@ export default function AdminStudentReviewItems() {
       return;
     }
 
+    let normalizedOccurredAt: string | null = null;
+    try {
+      normalizedOccurredAt = form.occurredAt ? jalaliToGregorian(form.occurredAt) : null;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تاریخ شمسی معتبر نیست.");
+      return;
+    }
+
     const payload = {
       ...form,
-      occurredAt: form.occurredAt ? new Date(form.occurredAt).toISOString() : null,
+      occurredAt: normalizedOccurredAt,
       description: form.description || null,
     };
 
@@ -295,27 +397,97 @@ export default function AdminStudentReviewItems() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-xl" dir="rtl">
+        <DialogContent className="max-w-2xl" dir="rtl">
           <DialogHeader>
             <DialogTitle>{editId ? "ویرایش مورد" : "ثبت مورد نیازمند بررسی"}</DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-2 sm:grid-cols-2">
             <label>
-              <Label className="text-xs">دانش‌آموز</Label>
+              <Label className="text-xs">۱. پایه</Label>
               <select
-                value={form.studentId}
-                onChange={(event) => setForm({ ...form, studentId: event.target.value })}
+                value={selectedGrade}
+                onChange={(event) => {
+                  setSelectedGrade(event.target.value);
+                  setSelectedClass("");
+                  setStudents([]);
+                  setForm((current) => ({ ...current, studentId: "" }));
+                }}
                 className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
               >
-                <option value="">انتخاب دانش‌آموز</option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.firstName} {student.lastName}
+                <option value="">انتخاب پایه</option>
+                {grades.map((grade) => (
+                  <option key={grade} value={grade}>
+                    {gradeLabels[grade] ?? grade}
                   </option>
                 ))}
               </select>
             </label>
+
+            <label>
+              <Label className="text-xs">۲. کلاس</Label>
+              <select
+                value={selectedClass}
+                onChange={(event) => {
+                  setSelectedClass(event.target.value);
+                  setStudents([]);
+                  setForm((current) => ({ ...current, studentId: "" }));
+                }}
+                disabled={!selectedGrade || selectionLoading}
+                className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">{selectedGrade ? "انتخاب کلاس" : "ابتدا پایه را انتخاب کنید"}</option>
+                {classes.map((className) => (
+                  <option key={className} value={className}>{className}</option>
+                ))}
+              </select>
+            </label>
+
+            <div className="sm:col-span-2">
+              <Label className="text-xs">۳. دانش‌آموز</Label>
+              <Popover open={studentPickerOpen} onOpenChange={setStudentPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={studentPickerOpen}
+                    disabled={!selectedClass || selectionLoading}
+                    className="mt-1 w-full justify-between font-normal"
+                  >
+                    <span className={cn("truncate", !selectedStudent && "text-muted-foreground")}>
+                      {selectedStudent
+                        ? `${selectedStudent.firstName} ${selectedStudent.lastName}`
+                        : selectedClass
+                          ? "جست‌وجو و انتخاب دانش‌آموز"
+                          : "ابتدا کلاس را انتخاب کنید"}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="z-[60] w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="جست‌وجوی نام دانش‌آموز..." />
+                    <CommandList>
+                      <CommandEmpty>دانش‌آموزی در این کلاس پیدا نشد.</CommandEmpty>
+                      {students.map((student) => (
+                        <CommandItem
+                          key={student.id}
+                          value={`${student.firstName} ${student.lastName} ${student.id}`}
+                          onSelect={() => {
+                            setForm((current) => ({ ...current, studentId: student.id }));
+                            setStudentPickerOpen(false);
+                          }}
+                        >
+                          <Check className={cn("h-4 w-4", form.studentId === student.id ? "opacity-100" : "opacity-0")} />
+                          {student.firstName} {student.lastName}
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <label>
               <Label className="text-xs">نوع مورد</Label>
@@ -336,8 +508,15 @@ export default function AdminStudentReviewItems() {
             </label>
 
             <label>
-              <Label className="text-xs">تاریخ</Label>
-              <Input type="datetime-local" value={form.occurredAt} onChange={(event) => setForm({ ...form, occurredAt: event.target.value })} className="mt-1" dir="ltr" />
+              <Label className="text-xs">تاریخ (شمسی)</Label>
+              <div className="mt-1 [&_.rmdp-container]:w-full">
+                <JalaliDatePicker
+                  value={form.occurredAt}
+                  onChange={(value) => setForm({ ...form, occurredAt: value })}
+                  placeholder="انتخاب تاریخ"
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                />
+              </div>
             </label>
 
             <label>

@@ -5,6 +5,7 @@ import {
   ClipboardList,
   GraduationCap,
   Home,
+  ExternalLink,
   UserRound,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -53,14 +54,11 @@ export default function StudentPortalShell({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <StudentLogoutButton />
-            </div>
           </div>
 
           <nav
             aria-label="بخش‌های پرتال دانش‌آموز"
-            className="grid grid-cols-2 gap-2 border-t border-[#EEEAE3] p-3 sm:grid-cols-4"
+            className="grid grid-cols-2 gap-2 border-t border-[#EEEAE3] p-3 sm:grid-cols-3 lg:grid-cols-6"
           >
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -76,6 +74,14 @@ export default function StudentPortalShell({
                 </Link>
               );
             })}
+            <Link
+              href="/"
+              className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-center text-xs font-semibold text-[#194342] transition-colors hover:bg-[#F1F5E8]"
+            >
+              <ExternalLink className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+              <span>مشاهده سایت</span>
+            </Link>
+            <StudentLogoutButton />
           </nav>
         </header>
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 
 export default function StudentLogoutButton() {
   const router = useRouter();
@@ -23,9 +24,10 @@ export default function StudentLogoutButton() {
       type="button"
       onClick={logout}
       disabled={loading}
-      className="rounded-lg border px-4 py-2 text-sm text-muted-foreground transition hover:bg-muted disabled:opacity-50"
+      className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-center text-xs font-semibold text-[#A45F4D] transition-colors hover:bg-[#FDF0EC] disabled:cursor-not-allowed disabled:opacity-50"
     >
-      {loading ? "در حال خروج..." : "خروج از پرتال"}
+      <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+      <span>{loading ? "در حال خروج..." : "خروج از پرتال"}</span>
     </button>
   );
 }

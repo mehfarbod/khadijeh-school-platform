@@ -8,10 +8,24 @@ export async function GET() {
   try {
     await requirePermission("students.edit");
 
+    const academicYear = await prisma.academicYear.findFirst({
+      select: { id: true },
+      orderBy: [{ isCurrent: "desc" }, { startDate: "desc" }, { title: "desc" }],
+    });
+
     const items = await prisma.studentReviewItem.findMany({
       include: {
         student: {
-          select: { id: true, firstName: true, lastName: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            enrollments: {
+              where: academicYear ? { academicYearId: academicYear.id } : { id: "" },
+              select: { grade: true, className: true },
+              take: 1,
+            },
+          },
         },
       },
       orderBy: [{ isVisible: "desc" }, { occurredAt: "desc" }, { createdAt: "desc" }],
