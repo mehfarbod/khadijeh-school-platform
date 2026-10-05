@@ -87,6 +87,7 @@ model Student {
   studentOtps         StudentOtp[]
   grades              StudentGrade[]
   assessments         StudentAssessment[]
+  reviewItems          StudentReviewItem[]
 
   @@index([isActive])
   @@index([birthday])
@@ -234,6 +235,7 @@ model CourseRegistration {
   @@index([courseId])
   @@index([studentId])
   @@index([status])
+  @@unique([courseId, studentId])
 }
 
 enum AdmissionApplicationStatus {
@@ -306,6 +308,26 @@ model StudentAssessment {
   @@index([subject])
   @@index([assessmentDate])
   @@index([teacherId])
+}
+
+model StudentReviewItem {
+  id          String   @id @default(cuid())
+  studentId   String
+  type        String   @default("GENERAL")
+  title       String
+  description String?
+  occurredAt  DateTime?
+  status      String   @default("OPEN")
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([status])
+  @@index([occurredAt])
+  @@index([isVisible])
 }
 
 model DailyAbsence {

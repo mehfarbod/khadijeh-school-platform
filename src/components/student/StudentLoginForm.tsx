@@ -8,8 +8,9 @@ import { ArrowLeft, ArrowRight, GraduationCap, Loader2, LogIn } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getStudentPasswordChangeUrl } from "@/lib/auth/student-return-to";
 
-export default function StudentLoginForm() {
+export default function StudentLoginForm({ returnTo = "/portal" }: { returnTo?: string }) {
   const router = useRouter();
   const [nationalId, setNationalId] = useState("");
   const [password, setPassword] = useState("");
@@ -37,7 +38,9 @@ export default function StudentLoginForm() {
       }
 
       router.replace(
-        data.mustChangePassword ? "/portal/change-password" : "/portal",
+        data.mustChangePassword
+          ? getStudentPasswordChangeUrl(returnTo)
+          : returnTo,
       );
       router.refresh();
     } catch (caughtError) {
@@ -69,7 +72,9 @@ export default function StudentLoginForm() {
             </div>
             <CardTitle className="text-xl font-bold text-[#194342]">ورود دانش‌آموزان</CardTitle>
             <CardDescription className="mt-2 text-xs leading-6 text-[#667085]">
-              با کد ملی و رمز عبور وارد شوید. در نخستین ورود، رمز اولیه همان کد ملی شماست.
+              {returnTo.startsWith("/courses/registration")
+                ? "برای ثبت‌نام در دوره، ابتدا وارد حساب دانش‌آموزی خود شوید."
+                : "با کد ملی و رمز عبور وارد شوید. در نخستین ورود، رمز اولیه همان کد ملی شماست."}
             </CardDescription>
           </CardHeader>
 

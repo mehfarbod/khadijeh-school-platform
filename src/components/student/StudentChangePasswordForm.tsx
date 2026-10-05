@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import StudentLogoutButton from "@/components/student/StudentLogoutButton";
 
-export default function StudentChangePasswordForm() {
+export default function StudentChangePasswordForm({ returnTo = "/portal" }: { returnTo?: string }) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -32,7 +32,7 @@ export default function StudentChangePasswordForm() {
         throw new Error(data.error ?? "تغییر رمز عبور انجام نشد.");
       }
 
-      router.replace("/portal");
+      router.replace(returnTo);
       router.refresh();
     } catch (caughtError) {
       setError(
