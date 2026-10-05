@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import StudentPasswordField from "@/components/student/StudentPasswordField";
 
 type Step = "national-id" | "otp" | "password" | "success";
 
@@ -116,8 +117,8 @@ export default function StudentForgotPasswordPage() {
 
             {step === "password" && (
               <form onSubmit={resetPassword} className="space-y-4" noValidate>
-                <PasswordField id="recovery-password" label="رمز عبور جدید" value={password} onChange={setPassword} disabled={loading} />
-                <PasswordField id="recovery-password-confirm" label="تکرار رمز عبور جدید" value={confirmPassword} onChange={setConfirmPassword} disabled={loading} />
+                <StudentPasswordField id="recovery-password" label="رمز عبور جدید" value={password} onChange={setPassword} autoComplete="new-password" disabled={loading} errorId={error ? "forgot-password-error" : undefined} />
+                <StudentPasswordField id="recovery-password-confirm" label="تکرار رمز عبور جدید" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" disabled={loading} errorId={error ? "forgot-password-error" : undefined} />
                 <p className="text-[11px] leading-5 text-[#667085]">رمز عبور باید حداقل ۸ نویسه باشد و با کد ملی شما یکسان نباشد.</p>
                 <ErrorMessage error={error} />
                 <SubmitButton loading={loading}>ثبت رمز عبور جدید</SubmitButton>
@@ -148,12 +149,8 @@ function Field({ label, id, children }: { label: string; id: string; children: R
   return <div><label htmlFor={id} className="mb-1.5 block text-xs font-medium text-[#344054]">{label}</label>{children}</div>;
 }
 
-function PasswordField({ id, label, value, onChange, disabled }: { id: string; label: string; value: string; onChange: (value: string) => void; disabled: boolean }) {
-  return <Field id={id} label={label}><Input id={id} type="password" value={value} onChange={(event) => onChange(event.target.value)} autoComplete="new-password" disabled={disabled} dir="ltr" className="h-11 border-[#D5DECB] bg-[#FCFDF9]" /></Field>;
-}
-
 function ErrorMessage({ error }: { error: string | null }) {
-  return error ? <p className="text-xs leading-5 text-destructive">{error}</p> : null;
+  return error ? <p id="forgot-password-error" role="alert" className="text-xs leading-5 text-destructive">{error}</p> : null;
 }
 
 function SubmitButton({ loading, disabled = false, children }: { loading: boolean; disabled?: boolean; children: React.ReactNode }) {

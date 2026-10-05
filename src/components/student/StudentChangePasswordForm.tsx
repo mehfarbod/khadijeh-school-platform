@@ -6,8 +6,8 @@ import { KeyRound, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import StudentLogoutButton from "@/components/student/StudentLogoutButton";
+import StudentPasswordField from "@/components/student/StudentPasswordField";
 
 export default function StudentChangePasswordForm({ returnTo = "/portal" }: { returnTo?: string }) {
   const router = useRouter();
@@ -62,13 +62,13 @@ export default function StudentChangePasswordForm({ returnTo = "/portal" }: { re
 
           <form onSubmit={changePassword} noValidate>
             <CardContent className="space-y-4 px-6 pb-7">
-              <PasswordField id="new-password" label="رمز عبور جدید" value={password} onChange={setPassword} autoComplete="new-password" disabled={loading} />
-              <PasswordField id="confirm-password" label="تکرار رمز عبور جدید" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" disabled={loading} />
+              <StudentPasswordField id="new-password" label="رمز عبور جدید" value={password} onChange={setPassword} autoComplete="new-password" disabled={loading} errorId={error ? "change-password-error" : undefined} />
+              <StudentPasswordField id="confirm-password" label="تکرار رمز عبور جدید" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" disabled={loading} errorId={error ? "change-password-error" : undefined} />
 
               <p className="text-[11px] leading-5 text-[#667085]">
                 رمز عبور باید حداقل ۸ نویسه باشد و با کد ملی شما یکسان نباشد.
               </p>
-              {error && <p className="text-xs leading-5 text-destructive">{error}</p>}
+              {error && <p id="change-password-error" role="alert" className="text-xs leading-5 text-destructive">{error}</p>}
 
               <Button type="submit" className="h-11 w-full bg-[#B86F5B] text-white hover:bg-[#A45F4D]" disabled={loading}>
                 {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
@@ -83,37 +83,5 @@ export default function StudentChangePasswordForm({ returnTo = "/portal" }: { re
         </Card>
       </div>
     </main>
-  );
-}
-
-function PasswordField({
-  id,
-  label,
-  value,
-  onChange,
-  autoComplete,
-  disabled,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  autoComplete: string;
-  disabled: boolean;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-[#344054]">{label}</label>
-      <Input
-        id={id}
-        type="password"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        autoComplete={autoComplete}
-        disabled={disabled}
-        dir="ltr"
-        className="h-11 border-[#D5DECB] bg-[#FCFDF9]"
-      />
-    </div>
   );
 }

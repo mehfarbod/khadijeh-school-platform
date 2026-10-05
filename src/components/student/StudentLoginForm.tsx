@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getStudentPasswordChangeUrl } from "@/lib/auth/student-return-to";
+import StudentPasswordField from "@/components/student/StudentPasswordField";
 
 export default function StudentLoginForm({ returnTo = "/portal" }: { returnTo?: string }) {
   const router = useRouter();
@@ -97,23 +98,17 @@ export default function StudentLoginForm({ returnTo = "/portal" }: { returnTo?: 
                 />
               </div>
 
-              <div>
-                <label htmlFor="student-password" className="mb-1.5 block text-xs font-medium text-[#344054]">
-                  رمز عبور
-                </label>
-                <Input
-                  id="student-password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={loading}
-                  autoComplete="current-password"
-                  dir="ltr"
-                  className="h-11 border-[#D5DECB] bg-[#FCFDF9]"
-                />
-              </div>
+              <StudentPasswordField
+                id="student-password"
+                label="رمز عبور"
+                value={password}
+                onChange={setPassword}
+                autoComplete="current-password"
+                disabled={loading}
+                errorId={error ? "student-login-error" : undefined}
+              />
 
-              {error && <p className="text-xs leading-5 text-destructive">{error}</p>}
+              {error && <p id="student-login-error" role="alert" className="text-xs leading-5 text-destructive">{error}</p>}
 
               <Button type="submit" className="h-11 w-full bg-[#B86F5B] text-white hover:bg-[#A45F4D]" disabled={loading}>
                 {loading ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <LogIn className="ml-2 h-4 w-4" />}
