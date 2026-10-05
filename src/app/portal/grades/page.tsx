@@ -163,24 +163,24 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
           </section>
         ) : (
           <>
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border bg-background p-5 shadow-sm">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+              <div className="rounded-2xl border bg-background p-5 shadow-sm lg:col-span-2">
                 <p className="text-sm text-muted-foreground">تعداد نمرات</p>
                 <p className="mt-2 text-2xl font-bold">{grades.length}</p>
               </div>
-              <div className="rounded-2xl border bg-background p-5 shadow-sm">
+              <div className="rounded-2xl border bg-background p-5 shadow-sm lg:col-span-2">
                 <p className="text-sm text-muted-foreground">تعداد درس‌ها</p>
                 <p className="mt-2 text-2xl font-bold">{rows.length}</p>
               </div>
-              <div className="rounded-2xl border bg-background p-5 shadow-sm">
-                <p className="text-sm text-muted-foreground">میانگین نمرات ثبت‌شده</p>
+              <div className="rounded-2xl border bg-background p-5 shadow-sm lg:col-span-2">
+                <p className="text-sm text-muted-foreground">میانگین نمرات ثبت‌شده تا این لحظه</p>
                 <p className="mt-2 text-2xl font-bold">{average ?? "—"}</p>
               </div>
-              <div className="rounded-2xl border bg-background p-5 shadow-sm">
+              <div className="rounded-2xl border bg-background p-5 shadow-sm lg:col-span-3">
                 <p className="text-sm text-muted-foreground">میانگین نوبت اول</p>
                 <p className="mt-2 text-2xl font-bold">{firstTermAverage ?? "—"}</p>
               </div>
-              <div className="rounded-2xl border bg-background p-5 shadow-sm">
+              <div className="rounded-2xl border bg-background p-5 shadow-sm lg:col-span-3">
                 <p className="text-sm text-muted-foreground">میانگین نوبت دوم</p>
                 <p className="mt-2 text-2xl font-bold">{secondTermAverage ?? "—"}</p>
               </div>
@@ -190,7 +190,7 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
               <div className="mb-4">
                 <h2 className="font-semibold">کارنامه سال تحصیلی {selectedYear.title}</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  نمرات ثبت‌شده هر درس و میانگین نمرات موجود در این سال تحصیلی.
+                  نمرات ثبت‌شده هر درس و میانگین نمرات موجود تا این لحظه در سال تحصیلی.
                 </p>
               </div>
 
@@ -199,30 +199,37 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                   هنوز نمره‌ای برای این سال تحصیلی ثبت نشده است.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                  <p className="mb-3 text-xs text-muted-foreground sm:hidden">
+                    برای مشاهده همه ستون‌ها، جدول را به چپ و راست بکشید.
+                  </p>
+                  <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="جدول کارنامه">
                   <table className="w-full min-w-[760px] text-sm">
+                    <caption className="sr-only">کارنامه سال تحصیلی {selectedYear.title}</caption>
                     <thead>
                       <tr className="border-b text-right text-muted-foreground">
-                        <th className="pb-3 font-medium">درس</th>
-                        <th className="pb-3 text-center font-medium">مستمر نوبت اول</th>
-                        <th className="pb-3 text-center font-medium">نوبت اول</th>
-                        <th className="pb-3 text-center font-medium">مستمر نوبت دوم</th>
-                        <th className="pb-3 text-center font-medium">نوبت دوم</th>
-                        <th className="pb-3 text-center font-medium">میانگین درس</th>
+                        <th scope="col" className="pb-3 font-medium">درس</th>
+                        <th scope="col" className="pb-3 text-center font-medium">مستمر نوبت اول</th>
+                        <th scope="col" className="pb-3 text-center font-medium">نوبت اول</th>
+                        <th scope="col" className="pb-3 text-center font-medium">مستمر نوبت دوم</th>
+                        <th scope="col" className="pb-3 text-center font-medium">نوبت دوم</th>
+                        <th scope="col" className="pb-3 text-center font-medium">میانگین درس</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((row) => (
                         <tr key={row.subject} className="border-b last:border-0">
-                          <td className="py-3 font-medium">{row.subject}</td>
+                          <th scope="row" className="py-3 text-right font-medium">{row.subject}</th>
                           {row.grades.map((score, index) => (
                             <td key={index} className="py-3 text-center">{score}</td>
                           ))}
+                          <td className="py-3 text-center">{row.subjectAverage}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
+                  </div>
+                </>
               )}
             </section>
 
@@ -239,20 +246,25 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                   هنوز ارزیابی هفتگی برای این سال تحصیلی ثبت نشده است.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                  <p className="mb-3 text-xs text-muted-foreground sm:hidden">
+                    برای مشاهده همه ستون‌ها، جدول را به چپ و راست بکشید.
+                  </p>
+                  <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="جدول ارزیابی‌های هفتگی">
                   <table className="w-full min-w-[720px] text-sm">
+                    <caption className="sr-only">ارزیابی‌های هفتگی</caption>
                     <thead>
                       <tr className="border-b text-right text-muted-foreground">
-                        <th className="pb-3 font-medium">درس</th>
-                        <th className="pb-3 font-medium">عنوان</th>
-                        <th className="pb-3 text-center font-medium">تاریخ</th>
-                        <th className="pb-3 text-center font-medium">نمره</th>
+                        <th scope="col" className="pb-3 font-medium">درس</th>
+                        <th scope="col" className="pb-3 font-medium">عنوان</th>
+                        <th scope="col" className="pb-3 text-center font-medium">تاریخ</th>
+                        <th scope="col" className="pb-3 text-center font-medium">نمره</th>
                       </tr>
                     </thead>
                     <tbody>
                       {assessments.map((item) => (
                         <tr key={item.id} className="border-b last:border-0">
-                          <td className="py-3 font-medium">{item.subject}</td>
+                          <th scope="row" className="py-3 text-right font-medium">{item.subject}</th>
                           <td className="py-3">{item.title}</td>
                           <td className="py-3 text-center">
                             {item.assessmentDate
@@ -264,7 +276,8 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                  </div>
+                </>
               )}
             </section>
           </>
