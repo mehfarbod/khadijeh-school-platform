@@ -8,6 +8,7 @@ import {
   studentProfileSchema,
   studentEnrollmentSchema,
 } from "@/lib/validation/student";
+import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
 
 type RouteContext = {
   params: Promise<{
@@ -61,6 +62,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
       include: {
         enrollments: {
+          include: {
+            academicYear: {
+              select: { isCurrent: true },
+            },
+          },
           orderBy: {
             academicYear: {
               title: "desc",
@@ -281,16 +287,30 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         data.className !== undefined;
 
       if (enrollmentChanged) {
+        const currentEnrollment = getCurrentStudentEnrollment(
+          existingStudent.enrollments,
+        );
         const academicYearId =
-          data.academicYearId ?? existingStudent.enrollments[0]?.academicYearId;
+          data.academicYearId ?? currentEnrollment?.academicYearId;
 
         if (!academicYearId) {
-          throw new Error("STUDENT_ENROLLMENT_NOT_FOUND");
+          throw new Error("CURRENT_STUDENT_ENROLLMENT_NOT_FOUND");
         }
 
         const existingEnrollment = existingStudent.enrollments.find(
           (enrollment) => enrollment.academicYearId === academicYearId,
         );
+
+        if (!existingEnrollment && data.grade === undefined) {
+          throw new Error("STUDENT_ENROLLMENT_GRADE_REQUIRED");
+        }
+
+        const grade =
+          data.grade ?? existingEnrollment?.grade ?? currentEnrollment?.grade;
+
+        if (!grade) {
+          throw new Error("STUDENT_ENROLLMENT_GRADE_REQUIRED");
+        }
 
         await tx.studentEnrollment.upsert({
           where: {
@@ -314,11 +334,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             studentId: id,
             academicYearId,
 
-            grade:
-              data.grade ??
-              existingEnrollment?.grade ??
-              existingStudent.enrollments[0]?.grade ??
-              "10",
+            grade,
 
             className: data.className ?? existingEnrollment?.className ?? null,
           },
@@ -391,11 +407,25 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     if (
       error instanceof Error &&
-      error.message === "STUDENT_ENROLLMENT_NOT_FOUND"
+      error.message === "CURRENT_STUDENT_ENROLLMENT_NOT_FOUND"
     ) {
       return NextResponse.json(
         {
-          error: "سابقه تحصیلی این دانش‌آموز پیدا نشد.",
+          error: "ثبت‌نام تحصیلی دانش‌آموز برای سال تحصیلی جاری پیدا نشد.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "STUDENT_ENROLLMENT_GRADE_REQUIRED"
+    ) {
+      return NextResponse.json(
+        {
+          error: "برای ایجاد ثبت‌نام تحصیلی در سال جدید، پایه تحصیلی الزامی است.",
         },
         {
           status: 400,

@@ -374,10 +374,8 @@ export default function AdminStudents() {
   }, [students, selectedYearId, selectedGrade]);
 
   const getCurrentEnrollment = (student: Student) => {
-    return (
-      student.enrollments.find(
-        (enrollment) => enrollment.academicYearId === selectedYearId,
-      ) ?? student.enrollments[0]
+    return student.enrollments.find(
+      (enrollment) => enrollment.academicYearId === selectedYearId,
     );
   };
 

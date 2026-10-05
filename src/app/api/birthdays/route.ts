@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
 
 const createBirthdaySchema = z.object({
   firstName: z.string().trim().min(1, "نام الزامی است.").max(100),
@@ -31,8 +32,11 @@ export async function GET(request: NextRequest) {
         },
         include: {
           enrollments: {
-            orderBy: { academicYear: { title: "desc" } },
-            take: 1,
+            where: { academicYear: { isCurrent: true } },
+            select: {
+              grade: true,
+              academicYear: { select: { isCurrent: true } },
+            },
           },
         },
         orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
@@ -45,16 +49,20 @@ export async function GET(request: NextRequest) {
 
     const studentBirthdays = students
       .filter((student) => !activeOnly || isTodayBirthday(student.birthday))
-      .map((student) => ({
-        id: student.id,
-        type: "student" as const,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        grade: student.enrollments[0]?.grade ?? "—",
-        birthday: student.birthday,
-        photo: student.photo,
-        isVisible: student.isBirthdayVisible,
-      }));
+      .map((student) => {
+        const enrollment = getCurrentStudentEnrollment(student.enrollments);
+
+        return {
+          id: student.id,
+          type: "student" as const,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          grade: enrollment?.grade ?? "—",
+          birthday: student.birthday,
+          photo: student.photo,
+          isVisible: student.isBirthdayVisible,
+        };
+      });
 
     const manualBirthdays = manual
       .filter((item) => !activeOnly || isTodayBirthday(

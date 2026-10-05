@@ -13,6 +13,7 @@ import AnnouncementTicker from "@/components/sections/AnnouncementTicker";
 import LatestNews from "@/components/sections/LatestNews";
 import ContactSection from "@/components/sections/ContactSection";
 import Reveal from "@/components/ui/Reveal";
+import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
 
 function isTodayBirthday(date: Date | string | null) {
   if (!date) return false;
@@ -70,10 +71,12 @@ export default async function HomePage() {
           lastName: true,
           birthday: true,
           enrollments: {
-            orderBy: { academicYear: { title: "desc" } },
-            take: 1,
+            where: { academicYear: { isCurrent: true } },
             select: {
               grade: true,
+              academicYear: {
+                select: { isCurrent: true },
+              },
             },
           },
         },
@@ -102,12 +105,16 @@ export default async function HomePage() {
   const birthdays = [
     ...birthdayStudents
       .filter((student) => isTodayBirthday(student.birthday))
-      .map((student) => ({
-        id: student.id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        grade: student.enrollments[0]?.grade ?? "—",
-      })),
+      .map((student) => {
+        const enrollment = getCurrentStudentEnrollment(student.enrollments);
+
+        return {
+          id: student.id,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          grade: enrollment?.grade ?? "—",
+        };
+      }),
     ...manualBirthdays
       .filter((item) => isTodayBirthday(item.birthday))
       .map((item) => ({

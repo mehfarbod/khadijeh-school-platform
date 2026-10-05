@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { LockKeyhole, UserRound } from "lucide-react";
 
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 import StudentProfileEditForm from "@/components/student/StudentProfileEditForm";
 
@@ -28,7 +29,7 @@ export default async function StudentProfilePage() {
   if (!student) redirect("/portal/login");
   if (student.studentAccount?.mustChangePassword) redirect("/portal/change-password");
 
-  const enrollment = student.enrollments[0];
+  const enrollment = getCurrentStudentEnrollment(student.enrollments);
 
   return (
     <StudentPortalShell title="پروفایل" description="اطلاعات شخصی، تحصیلی و اطلاعات تماس">

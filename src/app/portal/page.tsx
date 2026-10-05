@@ -4,6 +4,7 @@ import { BookOpen, ClipboardList, GraduationCap, UserRound, ArrowLeft } from "lu
 
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 
 export const metadata = {
@@ -23,7 +24,7 @@ export default async function StudentPortalPage() {
   if (!student) redirect("/portal/login");
   if (student.studentAccount?.mustChangePassword) redirect("/portal/change-password");
 
-  const enrollment = student.enrollments[0];
+  const enrollment = getCurrentStudentEnrollment(student.enrollments);
   const reviewCount = await prisma.studentReviewItem.count({
     where: { studentId: student.id, isVisible: true, status: "OPEN" },
   });

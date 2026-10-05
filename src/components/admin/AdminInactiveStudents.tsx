@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,11 +122,7 @@ export default function AdminInactiveStudents() {
   }, [students, search]);
 
   const getCurrentEnrollment = (student: Student) => {
-    if (!student.enrollments.length) {
-      return null;
-    }
-
-    return student.enrollments[0];
+    return getCurrentStudentEnrollment(student.enrollments);
   };
 
   const handleReactivate = async () => {
