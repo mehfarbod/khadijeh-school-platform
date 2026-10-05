@@ -1,7 +1,15 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+
+const registrationStatusLabels = {
+  PENDING: "در انتظار بررسی",
+  APPROVED: "تأیید شده",
+  REJECTED: "رد شده",
+  CANCELLED: "لغو شده",
+} as const;
 
 export const metadata = {
   title: "دوره‌های من | دبیرستان شاهد حضرت خدیجه (ص)",
@@ -20,7 +28,19 @@ export default async function StudentCoursesPage() {
 
   const registrations = await prisma.courseRegistration.findMany({
     where: { studentId: student.id },
-    include: { course: true },
+    select: {
+      id: true,
+      status: true,
+      grade: true,
+      course: {
+        select: {
+          title: true,
+          instructor: true,
+          schedule: true,
+          duration: true,
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -32,6 +52,12 @@ export default async function StudentCoursesPage() {
             <p className="mt-2 text-sm text-muted-foreground">
               دوره‌های ثبت‌نام‌شده شما در این بخش نمایش داده می‌شوند.
             </p>
+            <Link
+              href="/courses"
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#194342] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#123332] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2"
+            >
+              مشاهده دوره‌ها
+            </Link>
           </section>
         ) : (
           <div className="grid gap-4">
@@ -48,13 +74,7 @@ export default async function StudentCoursesPage() {
                     </p>
                   </div>
                   <span className="w-fit rounded-full bg-muted px-3 py-1 text-xs">
-                    {registration.status === "PENDING"
-                      ? "در انتظار بررسی"
-                      : registration.status === "APPROVED"
-                        ? "تأیید شده"
-                        : registration.status === "REJECTED"
-                          ? "رد شده"
-                          : String(registration.status)}
+                    {registrationStatusLabels[registration.status]}
                   </span>
                 </div>
 

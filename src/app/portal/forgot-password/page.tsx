@@ -97,7 +97,6 @@ export default function StudentForgotPasswordPage() {
                 </Field>
                 <ErrorMessage error={error} />
                 <SubmitButton loading={loading}>ارسال کد تأیید</SubmitButton>
-                <p className="text-center text-[10.5px] leading-5 text-[#98A2B3]">در محیط توسعه، کد تأیید فقط در ترمینال برنامه نمایش داده می‌شود.</p>
               </form>
             )}
 
