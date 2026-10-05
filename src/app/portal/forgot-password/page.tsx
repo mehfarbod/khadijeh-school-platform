@@ -70,7 +70,7 @@ export default function StudentForgotPasswordPage() {
     <main className="min-h-screen bg-[#F7F8F2] px-4 py-8 sm:px-6" dir="rtl">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
         <div className="mb-6 text-center">
-          <Link href="/portal/login" className="inline-flex items-center gap-2 text-xs font-medium text-[#667085] hover:text-[#194342]">
+          <Link href="/portal/login" className="inline-flex items-center gap-2 text-xs font-medium text-[#667085] hover:text-[#194342] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2">
             <ArrowRight className="h-3.5 w-3.5" />
             بازگشت به ورود
           </Link>
@@ -94,7 +94,7 @@ export default function StudentForgotPasswordPage() {
             {step === "national-id" && (
               <form onSubmit={requestOtp} className="space-y-4" noValidate>
                 <Field label="کد ملی" id="recovery-national-id">
-                  <Input id="recovery-national-id" value={nationalId} onChange={(event) => setNationalId(event.target.value)} inputMode="numeric" autoComplete="username" dir="ltr" disabled={loading} className="h-11 border-[#D5DECB] bg-[#FCFDF9] text-center" />
+                  <Input id="recovery-national-id" value={nationalId} onChange={(event) => setNationalId(event.target.value)} inputMode="numeric" autoComplete="username" dir="ltr" disabled={loading} aria-invalid={error ? true : undefined} aria-describedby={error ? "forgot-password-error" : undefined} className="h-11 border-[#D5DECB] bg-[#FCFDF9] text-center" />
                 </Field>
                 <ErrorMessage error={error} />
                 <SubmitButton loading={loading}>ارسال کد تأیید</SubmitButton>
@@ -105,7 +105,7 @@ export default function StudentForgotPasswordPage() {
               <form onSubmit={verifyOtp} className="space-y-5" noValidate>
                 <div className="rounded-xl border border-[#E1E8D6] bg-[#F1F5E8] px-3 py-2.5 text-center text-xs text-[#194342]" dir="ltr">{nationalId}</div>
                 <div className="flex justify-center" dir="ltr">
-                  <InputOTP value={otp} onChange={setOtp} maxLength={6} disabled={loading} dir="ltr">
+                  <InputOTP value={otp} onChange={setOtp} maxLength={6} disabled={loading} dir="ltr" aria-label="کد تأیید شش رقمی" aria-invalid={error ? true : undefined} aria-describedby={error ? "forgot-password-error" : undefined}>
                     <InputOTPGroup>{Array.from({ length: 6 }).map((_, index) => <InputOTPSlot key={index} index={index} />)}</InputOTPGroup>
                   </InputOTP>
                 </div>

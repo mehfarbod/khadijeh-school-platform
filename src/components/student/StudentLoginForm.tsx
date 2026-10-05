@@ -59,7 +59,7 @@ export default function StudentLoginForm({ returnTo = "/portal" }: { returnTo?: 
     <main className="min-h-screen bg-[#F7F8F2] px-4 py-8 sm:px-6" dir="rtl">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
         <div className="mb-6 text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-medium text-[#667085] transition-colors hover:text-[#194342]">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-medium text-[#667085] transition-colors hover:text-[#194342] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2">
             <ArrowRight className="h-3.5 w-3.5" />
             بازگشت به سایت
           </Link>
@@ -94,6 +94,8 @@ export default function StudentLoginForm({ returnTo = "/portal" }: { returnTo?: 
                   autoComplete="username"
                   dir="ltr"
                   inputMode="numeric"
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? "student-login-error" : undefined}
                   className="h-11 border-[#D5DECB] bg-[#FCFDF9] text-center"
                 />
               </div>
@@ -115,7 +117,7 @@ export default function StudentLoginForm({ returnTo = "/portal" }: { returnTo?: 
                 ورود
               </Button>
 
-              <Link href="/portal/forgot-password" className="flex items-center justify-center gap-1 text-xs font-medium text-[#B86F5B] hover:text-[#A45F4D]">
+              <Link href="/portal/forgot-password" className="flex items-center justify-center gap-1 text-xs font-medium text-[#B86F5B] hover:text-[#A45F4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2">
                 رمز عبورم را فراموش کرده‌ام
                 <ArrowLeft className="h-3.5 w-3.5" />
               </Link>

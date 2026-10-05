@@ -141,7 +141,7 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                     <Link
                       key={year.id}
                       href={`/portal/grades?year=${year.id}`}
-                      className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      className={`rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2 ${
                         selectedYear.id === year.id
                           ? "border-primary bg-primary text-primary-foreground"
                           : "bg-background hover:bg-muted"

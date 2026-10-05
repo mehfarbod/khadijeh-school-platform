@@ -46,7 +46,7 @@ export default async function StudentPortalPage() {
                   {enrollment?.className ? ` · کلاس ${enrollment.className}` : ""}
                 </p>
               </div>
-              <Link href="/portal/profile" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#D5DECB] bg-[#FCFDF9] px-4 text-xs font-semibold text-[#194342] transition-colors hover:bg-[#F1F5E8]">
+              <Link href="/portal/profile" className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#D5DECB] bg-[#FCFDF9] px-4 text-xs font-semibold text-[#194342] transition-colors hover:bg-[#F1F5E8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2">
                 <UserRound className="h-4 w-4" />
                 مشاهده پروفایل
               </Link>
@@ -77,7 +77,7 @@ export default async function StudentPortalPage() {
               const reviewBadge = section.href === "/portal/review-items" && reviewCount > 0;
 
               return (
-                <Link key={section.href} href={section.href} className="group rounded-2xl border border-[#E7E2DA] bg-white p-5 shadow-[0_8px_25px_rgba(26,35,50,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#D5DECB] hover:shadow-[0_14px_35px_rgba(26,35,50,0.07)]">
+                <Link key={section.href} href={section.href} className="group rounded-2xl border border-[#E7E2DA] bg-white p-5 shadow-[0_8px_25px_rgba(26,35,50,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#D5DECB] hover:shadow-[0_14px_35px_rgba(26,35,50,0.07)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#194342] focus-visible:ring-offset-2">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F1F5E8] text-[#194342] transition-colors group-hover:bg-[#DBE7C1]">
                       <Icon className="h-5 w-5" strokeWidth={1.8} />
