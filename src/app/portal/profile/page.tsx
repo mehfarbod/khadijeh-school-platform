@@ -18,6 +18,10 @@ function InfoItem({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+function maskNationalId(nationalId: string | null) {
+  return nationalId ? `••••••${nationalId.slice(-4)}` : null;
+}
+
 export default async function StudentProfilePage() {
   const student = await getAuthenticatedStudent();
 
@@ -48,8 +52,7 @@ export default async function StudentProfilePage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <InfoItem label="نام" value={student.firstName} />
           <InfoItem label="نام خانوادگی" value={student.lastName} />
-          <InfoItem label="کد ملی" value={student.nationalId} />
-          <InfoItem label="شماره شناسنامه" value={student.birthCertificateSerial} />
+          <InfoItem label="کد ملی" value={maskNationalId(student.nationalId)} />
           <InfoItem label="تاریخ تولد" value={student.birthday ? new Intl.DateTimeFormat("fa-IR").format(student.birthday) : null} />
         </div>
       </section>
