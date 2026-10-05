@@ -24,7 +24,7 @@ export default function StudentLogoutButton() {
       type="button"
       onClick={logout}
       disabled={loading}
-      className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-center text-xs font-semibold text-[#A45F4D] transition-colors hover:bg-[#FDF0EC] disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 text-center text-xs font-semibold text-[#A45F4D] transition-colors hover:bg-[#FDF0EC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A45F4D] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.8} />
       <span>{loading ? "در حال خروج..." : "خروج از پرتال"}</span>

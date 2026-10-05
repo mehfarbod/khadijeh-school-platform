@@ -4,6 +4,7 @@ import { BookOpen, ClipboardList, GraduationCap, UserRound, ArrowLeft } from "lu
 
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+import StudentPortalShell from "@/components/student/StudentPortalShell";
 
 export const metadata = {
   title: "پرتال دانش‌آموز | دبیرستان شاهد حضرت خدیجه (ص)",
@@ -28,8 +29,11 @@ export default async function StudentPortalPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#FAF8F5] px-4 py-6 sm:px-6 sm:py-8" dir="rtl">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
+    <StudentPortalShell
+      title="پرتال دانش‌آموز"
+      description="دسترسی به اطلاعات آموزشی و پرتال دانش‌آموزی"
+      showDashboardLink={false}
+    >
         <section className="overflow-hidden rounded-2xl border border-[#E7E2DA] bg-white shadow-[0_12px_40px_rgba(26,35,50,0.06)]">
           <div className="h-1.5 bg-[#194342]" />
           <div className="px-5 py-6 sm:px-7 sm:py-7">
@@ -92,7 +96,6 @@ export default async function StudentPortalPage() {
             })}
           </div>
         </section>
-      </div>
-    </main>
+    </StudentPortalShell>
   );
 }
