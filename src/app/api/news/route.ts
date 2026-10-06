@@ -72,6 +72,10 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
     const featured = searchParams.get("featured") === "true";
 
+    if (!activeOnly) {
+      await requirePermission("news.view");
+    }
+
     const news = await prisma.news.findMany({
       where: {
         ...(activeOnly ? { isActive: true } : {}),
@@ -86,6 +90,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(news);
   } catch (error) {
     console.error("GET /api/news error:", error);
+
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    }
+
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return NextResponse.json({ error: "شما مجوز مشاهده اخبار را ندارید." }, { status: 403 });
+    }
 
     return NextResponse.json(
       { error: "خطا در دریافت اخبار" },

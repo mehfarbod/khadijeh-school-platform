@@ -30,6 +30,7 @@ export async function GET() {
       announcementCount,
       unreadMessages,
       pendingAdmissionApplications,
+      pendingCourseRegistrations,
       birthdays,
     ] = await Promise.all([
       prisma.student.count({
@@ -58,6 +59,9 @@ export async function GET() {
         where: { isRead: false },
       }),
       prisma.admissionApplication.count({
+        where: { status: "PENDING" },
+      }),
+      prisma.courseRegistration.count({
         where: { status: "PENDING" },
       }),
       prisma.birthday.findMany({
@@ -93,6 +97,7 @@ export async function GET() {
       announcementCount,
       unreadMessages,
       pendingAdmissionApplications,
+      pendingCourseRegistrations,
       todayBirthdays,
     });
   } catch (error) {

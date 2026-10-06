@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, requirePermission } from "@/lib/auth/authorization";
-import { PERMISSIONS, ROLE_DEFAULT_PERMISSION_KEYS } from "@/lib/auth/permissions";
 
 const roleLabels: Record<string, string> = {
   SUPER_ADMIN: "مدیر ارشد",
@@ -11,53 +10,9 @@ const roleLabels: Record<string, string> = {
   STAFF: "کادر",
 };
 
-async function syncPermissionCatalog() {
-  await prisma.$transaction(
-    PERMISSIONS.map((permission) =>
-      prisma.permission.upsert({
-        where: { key: permission.key },
-        update: { name: permission.name, group: permission.group },
-        create: permission,
-      }),
-    ),
-  );
-}
-
-async function syncRoleDefaults() {
-  const permissions = await prisma.permission.findMany({
-    select: { id: true, key: true },
-  });
-
-  const operations = Object.entries(ROLE_DEFAULT_PERMISSION_KEYS).flatMap(
-    ([role, keys]) => {
-      const roleValue = role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF";
-      const rolePermissions = keys
-        .map((key) => permissions.find((permission) => permission.key === key))
-        .filter((permission): permission is { id: string; key: string } => Boolean(permission));
-
-      return [
-        prisma.rolePermission.deleteMany({ where: { role: roleValue } }),
-        ...rolePermissions.map((permission) =>
-          prisma.rolePermission.create({
-            data: {
-              role: roleValue,
-              permissionId: permission.id,
-            },
-          }),
-        ),
-      ];
-    },
-  );
-
-  if (operations.length) await prisma.$transaction(operations);
-}
-
 export async function GET() {
   try {
     const session = await requirePermission("users.view");
-
-    await syncPermissionCatalog();
-    await syncRoleDefaults();
 
     const [users, permissions, rolePermissions, staff] = await Promise.all([
       prisma.user.findMany({

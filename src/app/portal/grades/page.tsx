@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+import { getPersianGradeName } from "@/lib/persian";
 
 export const metadata = {
   title: "نمرات و کارنامه | دبیرستان شاهد حضرت خدیجه (ص)",
@@ -124,7 +125,7 @@ export default async function StudentGradesPage({ searchParams }: PageProps) {
                 </div>
                 {enrollment && (
                   <div className="text-sm">
-                    <span className="text-muted-foreground">پایه:</span> {enrollment.grade}
+                    <span className="text-muted-foreground">پایه:</span> {getPersianGradeName(enrollment.grade)}
                     {enrollment.className ? (
                       <>
                         <span className="mx-2 text-muted-foreground">·</span>

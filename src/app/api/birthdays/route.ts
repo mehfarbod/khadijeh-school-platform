@@ -23,6 +23,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get("activeOnly") !== "false";
 
+    if (!activeOnly) {
+      await requirePermission("birthdays.manage");
+    }
+
     const [students, manual] = await Promise.all([
       prisma.student.findMany({
         where: {
@@ -30,7 +34,13 @@ export async function GET(request: NextRequest) {
           isBirthdayVisible: true,
           birthday: { not: null },
         },
-        include: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          birthday: true,
+          photo: true,
+          isBirthdayVisible: true,
           enrollments: {
             where: { academicYear: { isCurrent: true } },
             select: {
@@ -52,6 +62,16 @@ export async function GET(request: NextRequest) {
       .map((student) => {
         const enrollment = getCurrentStudentEnrollment(student.enrollments);
 
+        if (activeOnly) {
+          return {
+            id: student.id,
+            type: "student" as const,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            grade: enrollment?.grade ?? "—",
+          };
+        }
+
         return {
           id: student.id,
           type: "student" as const,
@@ -68,20 +88,36 @@ export async function GET(request: NextRequest) {
       .filter((item) => !activeOnly || isTodayBirthday(
         item.birthday ? new Date(item.birthday) : null,
       ))
-      .map((item) => ({
-        id: item.id,
-        type: "manual" as const,
-        firstName: item.firstName,
-        lastName: "",
-        grade: item.grade,
-        birthday: item.birthday,
-        photo: item.photo,
-        isVisible: item.isVisible,
-      }));
+      .map((item) => {
+        if (activeOnly) {
+          return {
+            id: item.id,
+            type: "manual" as const,
+            firstName: item.firstName,
+            lastName: "",
+            grade: item.grade,
+          };
+        }
+
+        return {
+          id: item.id,
+          type: "manual" as const,
+          firstName: item.firstName,
+          lastName: "",
+          grade: item.grade,
+          birthday: item.birthday,
+          photo: item.photo,
+          isVisible: item.isVisible,
+        };
+      });
 
     return NextResponse.json([...studentBirthdays, ...manualBirthdays]);
   } catch (error) {
     console.error("GET /api/birthdays error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED")
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN")
+      return NextResponse.json({ error: "شما مجوز مدیریت تولدها را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت تولدها" }, { status: 500 });
   }
 }

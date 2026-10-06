@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   try {
     const params = new URL(request.url).searchParams;
     const activeOnly = params.get("activeOnly") !== "false";
+    if (!activeOnly) await requirePermission("programs.manage");
     const program = await getProgram();
     if (!program) return NextResponse.json({ error: "بخش انجمن اولیا و مربیان یافت نشد." }, { status: 404 });
 
@@ -34,6 +35,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ program, meetings });
   } catch (error) {
     console.error("GET /api/programs/parents-meetings error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مدیریت برنامه‌های آموزشی را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت جلسات انجمن." }, { status: 500 });
   }
 }

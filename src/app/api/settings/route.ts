@@ -45,19 +45,13 @@ export async function GET() {
   try {
     await requirePermission("settings.manage");
 
-    const settings = await prisma.schoolSettings.upsert({
+    const settings = await prisma.schoolSettings.findUnique({
       where: { id: SETTINGS_ID },
-      update: {},
-      create: {
-        id: SETTINGS_ID,
-        schoolName: "دبیرستان شاهد حضرت خدیجه (س)",
-        heroTitle: "دبیرستان دخترانه شاهد حضرت خدیجه (س)",
-        heroDescription: "محیطی امن، پویا و الهام‌بخش برای رشد علمی، اخلاقی و خلاقانه دانش‌آموزان؛ جایی برای یادگیری، تجربه و ساختن آینده‌ای روشن.",
-        footerTitle: "شاهد حضرت خدیجه (س)",
-        footerDescription: "دبیرستان دخترانه شاهد حضرت خدیجه (س) با هدف پرورش استعدادهای علمی و مهارتی دانش‌آموزان.",
-        schoolStatusEnabled: false,
-      },
     });
+
+    if (!settings) {
+      return NextResponse.json({ error: "تنظیمات مدرسه یافت نشد." }, { status: 404 });
+    }
 
     return NextResponse.json(settings);
   } catch (error) {

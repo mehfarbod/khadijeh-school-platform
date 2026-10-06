@@ -5,9 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Bell,
   BookOpen,
-  Cake,
   CalendarDays,
   ClipboardPenLine,
   FileText,
@@ -21,11 +19,9 @@ interface OverviewStats {
   studentCount: number;
   staffCount: number;
   courseCount: number;
-  eventCount: number;
-  announcementCount: number;
   unreadMessages: number;
-  todayBirthdays: number;
   pendingAdmissionApplications: number;
+  pendingCourseRegistrations: number;
 }
 
 interface StatCard {
@@ -89,14 +85,14 @@ export default function AdminOverview() {
 
   const statCards: StatCard[] = [
     {
-      label: "دانش‌آموز فعال",
+      label: "دانش‌آموزان",
       value: stats?.studentCount,
       icon: Users,
       href: "/admin/students",
       iconClass: "bg-[#F1F5E8] text-[#194342]",
     },
     {
-      label: "کادر مدرسه",
+      label: "کادر",
       value: stats?.staffCount,
       icon: GraduationCap,
       href: "/admin/staff",
@@ -110,17 +106,17 @@ export default function AdminOverview() {
       iconClass: "bg-[#F8F2DF] text-[#A8893F]",
     },
     {
-      label: "رویداد",
-      value: stats?.eventCount,
-      icon: CalendarDays,
-      href: "/admin/events",
+      label: "پیش‌ثبت‌نام‌ها",
+      value: stats?.pendingAdmissionApplications,
+      icon: ClipboardPenLine,
+      href: "/admin/admission-applications",
       iconClass: "bg-[#EEF3F5] text-[#536B78]",
     },
     {
-      label: "اطلاعیه",
-      value: stats?.announcementCount,
-      icon: Bell,
-      href: "/admin/announcements",
+      label: "ثبت‌نام دوره‌ها",
+      value: stats?.pendingCourseRegistrations,
+      icon: FileText,
+      href: "/admin/registrations",
       iconClass: "bg-[#F1F5E8] text-[#194342]",
     },
     {
@@ -129,13 +125,6 @@ export default function AdminOverview() {
       icon: MessageSquare,
       href: "/admin/messages",
       iconClass: "bg-[#F8ECE8] text-[#B86F5B]",
-    },
-    {
-      label: "تولد امروز",
-      value: stats?.todayBirthdays,
-      icon: Cake,
-      href: "/admin/birthdays",
-      iconClass: "bg-[#F8F2DF] text-[#A8893F]",
     },
   ];
 
@@ -267,12 +256,13 @@ export default function AdminOverview() {
               />
 
               <AttentionItem
-                href="/admin/announcements"
-                icon={Bell}
-                label="اطلاعیه‌های مدرسه"
-                value={stats?.announcementCount}
-                emptyText="اطلاعیه‌ای ثبت نشده است"
+                href="/admin/registrations"
+                icon={FileText}
+                label="ثبت‌نام دوره‌ها"
+                value={stats?.pendingCourseRegistrations}
+                emptyText="درخواست ثبت‌نام دوره‌ای برای بررسی وجود ندارد"
                 tone="green"
+                showCount
               />
             </div>
           </div>

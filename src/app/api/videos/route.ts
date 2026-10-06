@@ -45,6 +45,10 @@ export async function GET(request: NextRequest) {
     const grade = searchParams.get("grade");
     const subject = searchParams.get("subject");
 
+    if (!activeOnly) {
+      await requirePermission("videos.view");
+    }
+
     const where = {
       ...(activeOnly ? { isActive: true } : {}),
       ...(grade ? { grade } : {}),
@@ -65,6 +69,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(videos);
   } catch (error) {
     console.error("GET /api/videos error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مشاهده ویدیوها را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت ویدیوها." }, { status: 500 });
   }
 }

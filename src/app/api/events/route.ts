@@ -62,6 +62,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get("activeOnly") !== "false";
 
+    if (!activeOnly) {
+      await requirePermission("events.view");
+    }
+
     const events = await prisma.event.findMany({
       where: activeOnly ? { isActive: true } : undefined,
       orderBy: {
@@ -72,6 +76,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(events);
   } catch (error) {
     console.error("GET /api/events error:", error);
+
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    }
+
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return NextResponse.json({ error: "شما مجوز مشاهده رویدادها را ندارید." }, { status: 403 });
+    }
 
     return NextResponse.json(
       { error: "خطا در دریافت رویدادها" },

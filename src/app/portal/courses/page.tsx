@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
+import { getPersianGradeName } from "@/lib/persian";
 
 const registrationStatusLabels = {
   PENDING: "در انتظار بررسی",
@@ -89,7 +90,7 @@ export default async function StudentCoursesPage() {
                   </div>
                   <div>
                     <span className="text-muted-foreground">پایه:</span>{" "}
-                    {registration.grade || "ثبت نشده"}
+                    {getPersianGradeName(registration.grade) || "ثبت نشده"}
                   </div>
                 </div>
               </article>

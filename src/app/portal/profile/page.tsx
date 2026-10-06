@@ -3,6 +3,7 @@ import { LockKeyhole, UserRound } from "lucide-react";
 
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
+import { getPersianGradeName } from "@/lib/persian";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 import StudentProfileEditForm from "@/components/student/StudentProfileEditForm";
 
@@ -65,7 +66,7 @@ export default async function StudentProfilePage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <InfoItem label="سال تحصیلی" value={enrollment?.academicYear.title} />
-          <InfoItem label="پایه" value={enrollment?.grade} />
+          <InfoItem label="پایه" value={getPersianGradeName(enrollment?.grade)} />
           <InfoItem label="کلاس" value={enrollment?.className} />
         </div>
       </section>

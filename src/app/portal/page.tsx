@@ -5,6 +5,7 @@ import { BookOpen, ClipboardList, GraduationCap, UserRound, ArrowLeft } from "lu
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedStudent } from "@/lib/auth/student-session";
 import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
+import { formatPersianGrade } from "@/lib/persian";
 import StudentPortalShell from "@/components/student/StudentPortalShell";
 
 export const metadata = {
@@ -43,7 +44,7 @@ export default async function StudentPortalPage() {
                 <p className="text-xs font-medium text-[#98A2B3]">پرتال دانش‌آموز</p>
                 <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#1A2332]">سلام {student.firstName} {student.lastName}</h1>
                 <p className="mt-2 text-sm text-[#667085]">
-                  {enrollment?.grade ? `پایه ${enrollment.grade}` : "اطلاعات تحصیلی"}
+                  {formatPersianGrade(enrollment?.grade) ?? "اطلاعات تحصیلی"}
                   {enrollment?.className ? ` · کلاس ${enrollment.className}` : ""}
                 </p>
               </div>

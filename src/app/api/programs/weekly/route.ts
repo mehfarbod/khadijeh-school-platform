@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     const activeOnly = params.get("activeOnly") !== "false";
     const className = params.get("className");
 
+    if (!activeOnly) await requirePermission("programs.manage");
+
     const program = await prisma.educationalProgram.findUnique({
       where: { type: "weekly" },
       include: {
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ program, schedule });
   } catch (error) {
     console.error("GET /api/programs/weekly error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مدیریت برنامه‌های آموزشی را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت برنامه هفتگی." }, { status: 500 });
   }
 }

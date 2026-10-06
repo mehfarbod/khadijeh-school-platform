@@ -49,7 +49,22 @@ export function formatJalaliDateShort(dateStr: string): string {
 
 // School grade labels
 export const GRADE_LABELS: Record<string, string> = {
+  "10": "پایه دهم",
+  "11": "پایه یازدهم",
+  "12": "پایه دوازدهم",
   "دهم": "پایه دهم",
   "یازدهم": "پایه یازدهم",
   "دوازدهم": "پایه دوازدهم",
 };
+
+export function getPersianGradeName(grade: string | null | undefined) {
+  if (!grade) return null;
+
+  return GRADE_LABELS[grade]?.replace(/^پایه\s+/, "") ?? grade;
+}
+
+export function formatPersianGrade(grade: string | null | undefined) {
+  if (!grade) return null;
+
+  return GRADE_LABELS[grade] ?? `پایه ${grade}`;
+}

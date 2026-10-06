@@ -78,6 +78,10 @@ export async function GET(request: NextRequest) {
     const activeOnly = searchParams.get("activeOnly") !== "false";
     const slug = searchParams.get("slug");
 
+    if (!activeOnly) {
+      await requirePermission("courses.view");
+    }
+
     const course = slug
       ? await prisma.course.findUnique({
           where: { slug },
@@ -101,6 +105,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(courses.map(serialize));
   } catch (error) {
     console.error("GET /api/courses error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مشاهده دوره‌ها را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت دوره‌ها." }, { status: 500 });
   }
 }
