@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { hasPermission, requirePermission } from "@/lib/auth/authorization";
 
 const ROLES = ["SUPER_ADMIN", "SCHOOL_ADMIN", "CONTENT_MANAGER", "TEACHER", "STAFF"] as const;
 type Role = (typeof ROLES)[number];
@@ -16,7 +16,26 @@ export async function PATCH(
   try {
     const session = await requirePermission("users.edit");
     const { id } = await params;
-    const body = await request.json();
+    const body: unknown = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "اطلاعات ویرایش معتبر نیست." }, { status: 400 });
+    }
+
+    const payload = body as Record<string, unknown>;
+    const permissionsProvided = Object.hasOwn(payload, "permissions");
+    if (permissionsProvided && !Array.isArray(payload.permissions)) {
+      return NextResponse.json({ error: "فهرست دسترسی‌ها معتبر نیست." }, { status: 400 });
+    }
+
+    if (
+      permissionsProvided &&
+      !(await hasPermission(session.user.id, "users.manage_permissions"))
+    ) {
+      return NextResponse.json(
+        { error: "شما مجوز مدیریت دسترسی‌های کاربران را ندارید." },
+        { status: 403 },
+      );
+    }
 
     const target = await prisma.user.findUnique({
       where: { id },
@@ -27,15 +46,19 @@ export async function PATCH(
       return NextResponse.json({ error: "کاربر پیدا نشد." }, { status: 404 });
     }
 
-    const currentRole = session.user.role as string;
-    if (target.role === "SUPER_ADMIN" && currentRole !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "فقط مدیر ارشد می‌تواند حساب مدیر ارشد را ویرایش کند." }, { status: 403 });
+    if (target.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "اطلاعات و دسترسی‌های مدیر ارشد از این بخش قابل تغییر نیست." },
+        { status: 403 },
+      );
     }
 
-    const name = body.name === undefined ? target.name : typeof body.name === "string" ? body.name.trim() : null;
-    const email = body.email === undefined ? target.email : typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    const role = body.role === undefined ? target.role : body.role;
-    const isActive = body.isActive === undefined ? target.isActive : Boolean(body.isActive);
+    const currentRole = session.user.role as string;
+
+    const name = payload.name === undefined ? target.name : typeof payload.name === "string" ? payload.name.trim() : null;
+    const email = payload.email === undefined ? target.email : typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
+    const role = payload.role === undefined ? target.role : payload.role;
+    const isActive = payload.isActive === undefined ? target.isActive : Boolean(payload.isActive);
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "ایمیل معتبر وارد کنید." }, { status: 400 });
@@ -53,9 +76,6 @@ export async function PATCH(
       if (!isActive) {
         return NextResponse.json({ error: "نمی‌توانید حسابی را که با آن وارد شده‌اید غیرفعال کنید." }, { status: 400 });
       }
-      if (role !== "SUPER_ADMIN" && target.role === "SUPER_ADMIN") {
-        return NextResponse.json({ error: "نمی‌توانید نقش حساب فعلی را از مدیر ارشد پایین‌تر بیاورید." }, { status: 400 });
-      }
     }
 
     const emailOwner = await prisma.user.findFirst({
@@ -66,7 +86,7 @@ export async function PATCH(
       return NextResponse.json({ error: "این ایمیل قبلاً برای کاربر دیگری ثبت شده است." }, { status: 409 });
     }
 
-    const staffId = body.staffId === undefined ? undefined : body.staffId === null || body.staffId === "" ? null : String(body.staffId);
+    const staffId = payload.staffId === undefined ? undefined : payload.staffId === null || payload.staffId === "" ? null : String(payload.staffId);
 
     if (staffId) {
       const staff = await prisma.staff.findUnique({
@@ -102,12 +122,8 @@ export async function PATCH(
         }
       }
 
-      if (Array.isArray(body.permissions)) {
-        if (currentRole !== "SUPER_ADMIN" && target.role === "SUPER_ADMIN") {
-          throw new Error("FORBIDDEN_SUPER_ADMIN");
-        }
-
-        const permissionItems = body.permissions.filter(
+      if (permissionsProvided && Array.isArray(payload.permissions)) {
+        const permissionItems = payload.permissions.filter(
           (item: unknown): item is { key: string; allowed: boolean | null } =>
             typeof item === "object" &&
             item !== null &&
@@ -121,6 +137,10 @@ export async function PATCH(
           where: { key: { in: keys } },
           select: { id: true, key: true },
         });
+
+        if (permissions.length !== keys.length) {
+          throw new Error("INVALID_PERMISSION");
+        }
 
         await Promise.all(
           permissionItems.map(async (item: { key: string; allowed: boolean | null }) => {
@@ -157,10 +177,18 @@ export async function PATCH(
     const message = error instanceof Error ? error.message : "";
     const status =
       message === "UNAUTHORIZED" ? 401 :
-      message === "FORBIDDEN" || message === "FORBIDDEN_SUPER_ADMIN" ? 403 : 500;
+      message === "FORBIDDEN" ? 403 :
+      message === "INVALID_PERMISSION" ? 400 : 500;
 
     return NextResponse.json(
-      { error: status === 403 ? "شما مجوز ویرایش این کاربر را ندارید." : "خطا در ویرایش کاربر." },
+      {
+        error:
+          status === 403
+            ? "شما مجوز ویرایش این کاربر را ندارید."
+            : status === 400
+              ? "فهرست دسترسی‌های ارسالی معتبر نیست."
+              : "خطا در ویرایش کاربر.",
+      },
       { status },
     );
   }

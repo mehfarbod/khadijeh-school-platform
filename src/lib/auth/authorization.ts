@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-options";
+import { getAuthenticatedAdmin } from "@/lib/auth/admin-session";
 import { prisma } from "@/lib/prisma";
 
 export type UserRole =
@@ -10,7 +11,21 @@ export type UserRole =
   | "STAFF";
 
 export async function getCurrentSession() {
-  return getServerSession(authOptions);
+  const nextAuthSession = await getServerSession(authOptions);
+  if (nextAuthSession?.user?.id) return nextAuthSession;
+
+  const admin = await getAuthenticatedAdmin();
+  if (!admin) return null;
+
+  return {
+    user: {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+      accountType: "admin",
+    },
+  };
 }
 
 export async function requireRole(allowedRoles: UserRole[]) {
@@ -22,10 +37,10 @@ export async function requireRole(allowedRoles: UserRole[]) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true, isActive: true },
+    select: { role: true, isActive: true, mustChangePassword: true },
   });
 
-  if (!user || !user.isActive) {
+  if (!user || !user.isActive || user.mustChangePassword) {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -53,6 +68,7 @@ export async function hasPermission(
     select: {
       role: true,
       isActive: true,
+      mustChangePassword: true,
       permissions: {
         where: {
           permission: {
@@ -66,7 +82,7 @@ export async function hasPermission(
     },
   });
 
-  if (!user || !user.isActive) {
+  if (!user || !user.isActive || user.mustChangePassword) {
     return false;
   }
 

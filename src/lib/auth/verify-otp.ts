@@ -96,7 +96,7 @@ export async function verifyEmailOtp(
     },
   });
 
-  if (!user || !user.isActive) {
+  if (!user || !user.isActive || !user.email) {
     return {
       success: false,
       error: "کد تأیید نامعتبر است.",

@@ -6,17 +6,21 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
 export default function RequireAuth({ children }: { children: ReactNode }) {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, mustChangePassword } = useAuth();
   const router = useRouter();
   const pathname = usePathname() ?? "/";
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push(`/auth?returnTo=${encodeURIComponent(pathname)}`);
-    }
-  }, [isLoading, isAuthenticated, router, pathname]);
+    if (isLoading) return;
 
-  if (isLoading || !isAuthenticated) {
+    if (mustChangePassword) {
+      router.replace("/auth/change-password");
+    } else if (!isAuthenticated) {
+      router.replace(`/auth?returnTo=${encodeURIComponent(pathname)}`);
+    }
+  }, [isLoading, isAuthenticated, mustChangePassword, router, pathname]);
+
+  if (isLoading || !isAuthenticated || mustChangePassword) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />

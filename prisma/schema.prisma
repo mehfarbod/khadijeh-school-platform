@@ -23,22 +23,26 @@ enum CourseRegistrationStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String?
-  email        String   @unique
-  passwordHash String?
-  image        String?
-  role         UserRole @default(CONTENT_MANAGER)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  name               String?
+  email              String?  @unique
+  passwordHash       String?
+  mustChangePassword Boolean  @default(false)
+  sessionVersion     Int      @default(0)
+  lastLoginAt        DateTime?
+  image              String?
+  role               UserRole @default(CONTENT_MANAGER)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  createdCourses Course[] @relation("CourseCreatedBy")
+  createdCourses           Course[] @relation("CourseCreatedBy")
   createdEducationalVideos EducationalVideo[]
-  staff          Staff?
-  permissions    UserPermission[]
-  enteredGrades  StudentGrade[] @relation("GradeTeacher")
-  enteredAssessments StudentAssessment[] @relation("AssessmentTeacher")
+  staff                    Staff?
+  permissions              UserPermission[]
+  adminPasswordResetOtps   AdminPasswordResetOtp[]
+  enteredGrades            StudentGrade[] @relation("GradeTeacher")
+  enteredAssessments       StudentAssessment[] @relation("AssessmentTeacher")
 }
 
 model Student {
@@ -128,6 +132,7 @@ model StudentOtp {
 
 model Staff {
   id        String   @id @default(cuid())
+  nationalId String? @unique
   firstName String
   lastName  String
   position  String
@@ -147,6 +152,23 @@ model Staff {
 
   @@index([category])
   @@index([isActive])
+}
+
+model AdminPasswordResetOtp {
+  id         String    @id @default(cuid())
+  userId     String
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, consumedAt, createdAt])
+  @@index([phone])
+  @@index([expiresAt])
 }
 
 model Permission {

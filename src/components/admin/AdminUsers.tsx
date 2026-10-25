@@ -30,7 +30,7 @@ type Permission = {
 type AccessUser = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   role: string;
   roleLabel: string;
   isActive: boolean;
@@ -48,7 +48,7 @@ type StaffMember = {
   user: {
     id: string;
     name: string | null;
-    email: string;
+    email: string | null;
     role: string;
     isActive: boolean;
     permissions: { permission: Permission; allowed: boolean }[];
@@ -87,16 +87,18 @@ export default function AdminUsers() {
   const [role, setRole] = useState("STAFF");
   const [isActive, setIsActive] = useState(true);
 
-  const loadUsers = async () => {
+  const loadUsers = async (): Promise<UsersResponse | null> => {
     try {
       setLoading(true);
       const response = await fetch("/api/admin/users", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "خطا در دریافت کاربران و دسترسی‌ها");
       setData(result);
+      return result as UsersResponse;
     } catch (error) {
       console.error("Failed to load users:", error);
       toast.error(error instanceof Error ? error.message : "خطا در دریافت کاربران و دسترسی‌ها");
+      return null;
     } finally {
       setLoading(false);
     }
@@ -132,14 +134,14 @@ export default function AdminUsers() {
     return [...groups.entries()];
   }, [data?.permissions]);
 
-  const openAccess = (member: StaffMember) => {
+  const openAccess = (member: StaffMember, sourceData = data) => {
     setSelectedStaff(member);
     setEmail(member.user?.email ?? member.email ?? "");
     setRole(member.user?.role ?? (member.position === "معلم" ? "TEACHER" : "STAFF"));
     setIsActive(member.user?.isActive ?? true);
 
     const state: Record<string, boolean | null> = {};
-    for (const permission of data?.permissions ?? []) state[permission.key] = null;
+    for (const permission of sourceData?.permissions ?? []) state[permission.key] = null;
     for (const override of member.user?.permissions ?? []) {
       state[override.permission.key] = override.allowed;
     }
@@ -149,6 +151,10 @@ export default function AdminUsers() {
 
   const saveAccess = async () => {
     if (!selectedStaff) return;
+    if (selectedStaff.user?.role === "SUPER_ADMIN") {
+      toast.error("دسترسی‌های مدیر ارشد از این بخش قابل تغییر نیست.");
+      return;
+    }
     if (!email.trim()) {
       toast.error("ایمیل ورود را وارد کنید.");
       return;
@@ -156,13 +162,27 @@ export default function AdminUsers() {
 
     setSaving(true);
     try {
-      const payload = {
+      const payload: {
+        name: string;
+        email: string;
+        role: string;
+        staffId: string;
+        isActive: boolean;
+        permissions?: { key: string; allowed: boolean | null }[];
+      } = {
         name: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
         email: email.trim(),
         role,
         staffId: selectedStaff.id,
         isActive,
       };
+
+      if (selectedStaff.user && data?.canManagePermissions) {
+        payload.permissions = Object.entries(permissionState).map(([key, allowed]) => ({
+          key,
+          allowed,
+        }));
+      }
 
       const response = await fetch(
         selectedStaff.user ? `/api/admin/users/${selectedStaff.user.id}` : "/api/admin/users",
@@ -175,20 +195,16 @@ export default function AdminUsers() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "خطا در ذخیره دسترسی");
 
-      if (selectedStaff.user && data?.canManagePermissions) {
-        const permissions = Object.entries(permissionState).map(([key, allowed]) => ({ key, allowed }));
-        const permissionResponse = await fetch(`/api/admin/users/${selectedStaff.user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ permissions }),
-        });
-        const permissionResult = await permissionResponse.json();
-        if (!permissionResponse.ok) throw new Error(permissionResult.error || "خطا در ذخیره دسترسی‌ها");
+      const refreshed = await loadUsers();
+      if (!refreshed) {
+        throw new Error("تغییرات ذخیره شد، اما بارگذاری اطلاعات جدید انجام نشد. لطفاً صفحه را تازه‌سازی کنید.");
       }
 
-      toast.success(selectedStaff.user ? "دسترسی کادر به‌روزرسانی شد." : "دسترسی ورود برای کادر فعال شد.");
-      setAccessOpen(false);
-      await loadUsers();
+      const refreshedStaff = refreshed.staff.find((member) => member.id === selectedStaff.id);
+      if (refreshedStaff) openAccess(refreshedStaff, refreshed);
+      else setAccessOpen(false);
+
+      toast.success(selectedStaff.user ? "دسترسی‌های اختصاصی کاربر با موفقیت ذخیره شد." : "دسترسی ورود برای کادر فعال شد.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در ذخیره دسترسی");
     } finally {
@@ -196,8 +212,10 @@ export default function AdminUsers() {
     }
   };
 
+  const isSuperAdminTarget = selectedStaff?.user?.role === "SUPER_ADMIN";
+  const canManageIndividualPermissions = Boolean(data?.canManagePermissions);
   const roleDefaultKeys = selectedStaff?.user
-    ? new Set(data?.rolePermissions[selectedStaff.user.role] ?? [])
+    ? new Set(data?.rolePermissions[role] ?? [])
     : new Set<string>();
 
   return (
@@ -273,7 +291,7 @@ export default function AdminUsers() {
                           ) : <span className="text-xs text-muted-foreground">بدون دسترسی</span>}
                         </td>
                         <td className="px-5 py-4">
-                          {hasAccess ? <span dir="ltr" className="text-xs">{member.user!.email}</span> : <span className="text-xs text-muted-foreground">—</span>}
+                          {hasAccess && member.user!.email ? <span dir="ltr" className="text-xs">{member.user!.email}</span> : <span className="text-xs text-muted-foreground">—</span>}
                         </td>
                         <td className="px-5 py-4">
                           {hasAccess ? (
@@ -306,7 +324,7 @@ export default function AdminUsers() {
         <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>
-              {selectedStaff?.user ? "مدیریت دسترسی" : "فعال‌سازی دسترسی سامانه"}
+              {selectedStaff?.user ? "مدیریت دسترسی کاربران" : "فعال‌سازی دسترسی سامانه"}
             </DialogTitle>
           </DialogHeader>
 
@@ -320,11 +338,11 @@ export default function AdminUsers() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium">ایمیل ورود</label>
-                  <Input value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1.5" dir="ltr" type="email" placeholder="example@school.ir" />
+                  <Input value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1.5" dir="ltr" type="email" placeholder="example@school.ir" disabled={saving || isSuperAdminTarget} />
                 </div>
                 <div>
                   <label className="text-sm font-medium">نقش</label>
-                  <select value={role} onChange={(event) => setRole(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
+                  <select value={role} onChange={(event) => setRole(event.target.value)} disabled={saving || isSuperAdminTarget} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60">
                     {ROLES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
                 </div>
@@ -335,25 +353,36 @@ export default function AdminUsers() {
                   <p className="text-sm font-medium">دسترسی ورود</p>
                   <p className="mt-1 text-xs text-muted-foreground">در حالت غیرفعال، این کادر نمی‌تواند وارد سامانه شود.</p>
                 </div>
-                <button type="button" onClick={() => setIsActive((value) => !value)} className={`relative h-6 w-11 rounded-full transition ${isActive ? "bg-[#194342]" : "bg-muted"}`} aria-pressed={isActive}>
+                <button type="button" onClick={() => setIsActive((value) => !value)} className={`relative h-6 w-11 rounded-full transition disabled:cursor-not-allowed disabled:opacity-60 ${isActive ? "bg-[#194342]" : "bg-muted"}`} aria-pressed={isActive} disabled={saving || isSuperAdminTarget}>
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${isActive ? "right-1" : "right-6"}`} />
                 </button>
               </div>
 
-              {selectedStaff.user && (
+              {selectedStaff.user && isSuperAdminTarget && (
+                <div className="rounded-xl border border-[#DBE7C1] bg-[#F1F5E8]/50 p-4 text-sm text-[#194342]">
+                  مدیر ارشد همیشه دسترسی کامل دارد و دسترسی‌های او از این بخش قابل تغییر نیست.
+                </div>
+              )}
+
+              {selectedStaff.user && !isSuperAdminTarget && (
                 <div className="rounded-xl border border-[#DBE7C1] bg-[#F1F5E8]/50 p-4 text-sm">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-[#194342]" />
                     <div>
-                      <p className="font-medium">دسترسی‌های اختصاصی</p>
-                      <p className="mt-1 text-xs text-muted-foreground">اگر تغییری ندهید، دسترسی‌های پیش‌فرض نقش استفاده می‌شوند.</p>
+                      <p className="font-medium">دسترسی اختصاصی این کاربر</p>
+                      <p className="mt-1 text-xs text-muted-foreground">دسترسی اختصاصی کاربر می‌تواند دسترسی پیش‌فرض نقش را برای همین کاربر تغییر دهد.</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {selectedStaff.user && (
+              {selectedStaff.user && !isSuperAdminTarget && (
                 <div className="space-y-4">
+                  {!canManageIndividualPermissions && (
+                    <p className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-xs leading-5 text-muted-foreground">
+                      شما مجوز مدیریت دسترسی‌های اختصاصی کاربران را ندارید.
+                    </p>
+                  )}
                   {groupedPermissions.map(([group, permissions]) => (
                     <section key={group} className="overflow-hidden rounded-xl border border-border/60">
                       <div className="border-b border-border/60 bg-[#FAF8F5] px-4 py-3"><h3 className="text-sm font-semibold">{group}</h3></div>
@@ -361,13 +390,16 @@ export default function AdminUsers() {
                         {permissions.map((permission) => {
                           const value = permissionState[permission.key] ?? null;
                           const inherited = roleDefaultKeys.has(permission.key);
+                          const effective = value === null ? inherited : value;
                           return (
                             <div key={permission.key} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <p className="text-sm font-medium">{permission.name}</p>
-                                <p className="mt-0.5 text-[11px] text-muted-foreground">
-                                  {value === null ? (inherited ? "پیش‌فرض نقش: فعال" : "پیش‌فرض نقش: غیرفعال") : value ? "دسترسی اختصاصی: فعال" : "دسترسی اختصاصی: مسدود"}
-                                </p>
+                                <div className="mt-1 space-y-0.5 text-[11px] text-muted-foreground">
+                                  <p>دسترسی پیش‌فرض نقش: {inherited ? "مجاز" : "غیرمجاز"}</p>
+                                  <p>دسترسی اختصاصی این کاربر: {value === null ? "دریافت از نقش" : value ? "مجاز" : "غیرمجاز"}</p>
+                                  <p className="font-medium text-[#194342]">دسترسی مؤثر: {effective ? "مجاز" : "غیرمجاز"}</p>
+                                </div>
                               </div>
                               <select
                                 value={value === null ? "inherit" : value ? "allow" : "deny"}
@@ -375,11 +407,12 @@ export default function AdminUsers() {
                                   const next = event.target.value;
                                   setPermissionState((current) => ({ ...current, [permission.key]: next === "inherit" ? null : next === "allow" }));
                                 }}
-                                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm sm:w-40"
+                                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:w-40"
+                                disabled={saving || !canManageIndividualPermissions}
                               >
-                                <option value="inherit">پیش‌فرض نقش</option>
-                                <option value="allow">اجازه دارد</option>
-                                <option value="deny">اجازه ندارد</option>
+                                <option value="inherit">دریافت از نقش</option>
+                                <option value="allow">مجاز</option>
+                                <option value="deny">غیرمجاز</option>
                               </select>
                             </div>
                           );
@@ -394,7 +427,7 @@ export default function AdminUsers() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setAccessOpen(false)} disabled={saving}>انصراف</Button>
-            <Button onClick={saveAccess} disabled={saving}>
+            <Button onClick={saveAccess} disabled={saving || isSuperAdminTarget}>
               {saving ? "در حال ذخیره..." : selectedStaff?.user ? "ذخیره تغییرات" : "فعال‌سازی دسترسی"}
             </Button>
           </DialogFooter>
