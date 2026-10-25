@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { iranianNationalIdSchema } from "@/lib/validation/student";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 const updateStaffSchema = z.object({
+  nationalId: z.preprocess(
+    (value) => value === "" ? undefined : value,
+    iranianNationalIdSchema.optional(),
+  ),
+
   firstName: z
     .string()
     .trim()
@@ -79,8 +85,6 @@ const updateStaffSchema = z.object({
     .nullable()
     .optional(),
 
-  userId: z.string().trim().min(1).nullable().optional(),
-
   isActive: z.boolean().optional(),
 });
 
@@ -111,6 +115,9 @@ export async function PATCH(
     const staff = await prisma.staff.update({
       where: { id },
       data: {
+        ...(data.nationalId !== undefined && {
+          nationalId: data.nationalId,
+        }),
         ...(data.firstName !== undefined && {
           firstName: data.firstName,
         }),
@@ -141,9 +148,6 @@ export async function PATCH(
         ...(data.email !== undefined && {
           email: data.email || null,
         }),
-        ...(data.userId !== undefined && {
-          userId: data.userId || null,
-        }),
         ...(data.isActive !== undefined && {
           isActive: data.isActive,
         }),
@@ -153,6 +157,13 @@ export async function PATCH(
     return NextResponse.json(staff);
   } catch (error) {
     console.error("PATCH /api/staff/[id] error:", error);
+
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "این کد ملی یا ایمیل قبلاً ثبت شده است." },
+        { status: 409 }
+      );
+    }
 
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json(

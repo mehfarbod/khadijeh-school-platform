@@ -56,12 +56,16 @@ export async function PATCH(
     const currentRole = session.user.role as string;
 
     const name = payload.name === undefined ? target.name : typeof payload.name === "string" ? payload.name.trim() : null;
-    const email = payload.email === undefined ? target.email : typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
+    const email = payload.email === undefined
+      ? target.email
+      : typeof payload.email === "string" && payload.email.trim()
+        ? payload.email.trim().toLowerCase()
+        : null;
     const role = payload.role === undefined ? target.role : payload.role;
     const isActive = payload.isActive === undefined ? target.isActive : Boolean(payload.isActive);
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "ایمیل معتبر وارد کنید." }, { status: 400 });
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "ایمیل معتبر نیست." }, { status: 400 });
     }
 
     if (!isRole(role)) {
@@ -78,12 +82,14 @@ export async function PATCH(
       }
     }
 
-    const emailOwner = await prisma.user.findFirst({
-      where: { email, NOT: { id } },
-      select: { id: true },
-    });
-    if (emailOwner) {
-      return NextResponse.json({ error: "این ایمیل قبلاً برای کاربر دیگری ثبت شده است." }, { status: 409 });
+    if (email) {
+      const emailOwner = await prisma.user.findFirst({
+        where: { email, NOT: { id } },
+        select: { id: true },
+      });
+      if (emailOwner) {
+        return NextResponse.json({ error: "این ایمیل قبلاً برای کاربر دیگری ثبت شده است." }, { status: 409 });
+      }
     }
 
     const staffId = payload.staffId === undefined ? undefined : payload.staffId === null || payload.staffId === "" ? null : String(payload.staffId);
