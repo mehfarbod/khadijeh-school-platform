@@ -209,7 +209,9 @@ export default function AdminUsers() {
       if (refreshedStaff) openAccess(refreshedStaff, refreshed);
       else setAccessOpen(false);
 
-      toast.success(selectedStaff.user ? "دسترسی‌های اختصاصی کاربر با موفقیت ذخیره شد." : "دسترسی ورود برای کادر فعال شد.");
+      toast.success(selectedStaff.user
+        ? "دسترسی‌های کاربر با موفقیت ذخیره شد."
+        : "دسترسی ورود فعال شد؛ رمز اولیه کد ملی است و در اولین ورود باید تغییر کند.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در ذخیره دسترسی");
     } finally {
