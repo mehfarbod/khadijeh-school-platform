@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
+import { hashStudentPassword } from "@/lib/auth/student-password";
+import { iranianNationalIdSchema } from "@/lib/validation/student";
 
 const createStaffSchema = z.object({
+  nationalId: iranianNationalIdSchema,
+
   firstName: z
     .string()
     .trim()
@@ -71,8 +75,6 @@ const createStaffSchema = z.object({
     .nullable()
     .optional(),
 
-  userId: z.string().trim().min(1).nullable().optional(),
-
   isActive: z.boolean().optional(),
 });
 
@@ -121,6 +123,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requirePermission("staff.create");
+    await requirePermission("users.create");
 
     const body = await request.json();
 
@@ -137,9 +140,12 @@ export async function POST(request: NextRequest) {
     }
 
     const data = result.data;
+    const passwordHash = await hashStudentPassword(data.nationalId);
+    const isActive = data.isActive ?? true;
 
     const staff = await prisma.staff.create({
       data: {
+        nationalId: data.nationalId,
         firstName: data.firstName,
         lastName: data.lastName,
         position: data.position,
@@ -150,14 +156,33 @@ export async function POST(request: NextRequest) {
         photo: data.photo || null,
         phone: data.phone || null,
         email: data.email || null,
-        userId: data.userId || null,
-        isActive: data.isActive ?? true,
+        isActive,
+        user: {
+          create: {
+            name: `${data.firstName} ${data.lastName}`,
+            email: data.email || null,
+            passwordHash,
+            mustChangePassword: true,
+            role: "STAFF",
+            isActive,
+          },
+        },
+      },
+      include: {
+        user: { select: { id: true, role: true, isActive: true } },
       },
     });
 
     return NextResponse.json(staff, { status: 201 });
   } catch (error) {
     console.error("POST /api/staff error:", error);
+
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "این کد ملی یا ایمیل قبلاً ثبت شده است." },
+        { status: 409 }
+      );
+    }
 
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json(
