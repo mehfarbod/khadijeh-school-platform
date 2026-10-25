@@ -44,6 +44,7 @@ type StaffMember = {
   position: string;
   category: string;
   email: string | null;
+  nationalId: string | null;
   userId: string | null;
   user: {
     id: string;
@@ -118,6 +119,7 @@ export default function AdminUsers() {
         member.position,
         member.category,
         member.email ?? "",
+        member.nationalId ?? "",
         member.user?.email ?? "",
         member.user ? data?.roleLabels[member.user.role] ?? member.user.role : "",
       ].join(" ").toLowerCase().includes(query),
@@ -155,8 +157,9 @@ export default function AdminUsers() {
       toast.error("دسترسی‌های مدیر ارشد از این بخش قابل تغییر نیست.");
       return;
     }
-    if (!email.trim()) {
-      toast.error("ایمیل ورود را وارد کنید.");
+    const nationalId = selectedStaff.nationalId?.trim();
+    if (!nationalId) {
+      toast.error("ابتدا کد ملی معتبر را در اطلاعات کادر ثبت کنید.");
       return;
     }
 
@@ -164,14 +167,16 @@ export default function AdminUsers() {
     try {
       const payload: {
         name: string;
-        email: string;
+        email: string | null;
+        nationalId: string;
         role: string;
         staffId: string;
         isActive: boolean;
         permissions?: { key: string; allowed: boolean | null }[];
       } = {
         name: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
-        email: email.trim(),
+        email: email.trim() || null,
+        nationalId,
         role,
         staffId: selectedStaff.id,
         isActive,
@@ -249,7 +254,7 @@ export default function AdminUsers() {
             <table className="w-full min-w-[820px] text-sm">
               <thead>
                 <tr className="border-b border-border/60 bg-[#FAF8F5]">
-                  {["عضو کادر", "سمت", "نقش", "ایمیل ورود", "وضعیت دسترسی", "عملیات"].map((title) => (
+                  {["عضو کادر", "سمت", "نقش", "کد ملی ورود", "وضعیت دسترسی", "عملیات"].map((title) => (
                     <th key={title} className="px-5 py-3.5 text-right font-medium text-muted-foreground">{title}</th>
                   ))}
                 </tr>
@@ -291,7 +296,7 @@ export default function AdminUsers() {
                           ) : <span className="text-xs text-muted-foreground">بدون دسترسی</span>}
                         </td>
                         <td className="px-5 py-4">
-                          {hasAccess && member.user!.email ? <span dir="ltr" className="text-xs">{member.user!.email}</span> : <span className="text-xs text-muted-foreground">—</span>}
+                          {member.nationalId ? <span dir="ltr" className="text-xs">{member.nationalId}</span> : <span className="text-xs text-muted-foreground">ثبت نشده</span>}
                         </td>
                         <td className="px-5 py-4">
                           {hasAccess ? (
@@ -333,11 +338,12 @@ export default function AdminUsers() {
               <div className="rounded-xl bg-[#FAF8F5] p-4">
                 <p className="font-semibold">{selectedStaff.firstName} {selectedStaff.lastName}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{selectedStaff.position} — {selectedStaff.category}</p>
+                <p className="mt-1 text-xs text-muted-foreground">کد ملی ورود: <span dir="ltr">{selectedStaff.nationalId || "ثبت نشده"}</span></p>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium">ایمیل ورود</label>
+                  <label className="text-sm font-medium">ایمیل (اختیاری)</label>
                   <Input value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1.5" dir="ltr" type="email" placeholder="example@school.ir" disabled={saving || isSuperAdminTarget} />
                 </div>
                 <div>
@@ -357,6 +363,10 @@ export default function AdminUsers() {
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${isActive ? "right-1" : "right-6"}`} />
                 </button>
               </div>
+
+              {!selectedStaff.user && (
+                <p className="rounded-xl border border-border/60 bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">رمز اولیه حساب برابر کد ملی است و کاربر باید در اولین ورود آن را تغییر دهد.</p>
+              )}
 
               {selectedStaff.user && isSuperAdminTarget && (
                 <div className="rounded-xl border border-[#DBE7C1] bg-[#F1F5E8]/50 p-4 text-sm text-[#194342]">
