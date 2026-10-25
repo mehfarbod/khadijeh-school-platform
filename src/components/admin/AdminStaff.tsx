@@ -179,10 +179,6 @@ export default function AdminStaff() {
       toast.error("کد ملی برای ساخت حساب ورود الزامی است.");
       return;
     }
-    if (form.nationalId.trim() && !/^\\d{10}$/.test(form.nationalId.trim())) {
-      toast.error("کد ملی باید ۱۰ رقم باشد.");
-      return;
-    }
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       toast.error("فرمت ایمیل معتبر نیست.");
       return;
