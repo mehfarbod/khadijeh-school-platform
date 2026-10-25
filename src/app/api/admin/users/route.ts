@@ -44,7 +44,7 @@ export async function GET() {
       }),
       prisma.staff.findMany({
         orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
-        select: {          id: true,          firstName: true,          lastName: true,          position: true,          category: true,          email: true,          userId: true,          user: { select: { id: true, name: true, email: true, role: true, isActive: true, permissions: { include: { permission: { select: { key: true, name: true, group: true } } } } } },        },
+        select: {          id: true,          nationalId: true,          firstName: true,          lastName: true,          position: true,          category: true,          email: true,          userId: true,          user: { select: { id: true, name: true, email: true, role: true, isActive: true, permissions: { include: { permission: { select: { key: true, name: true, group: true } } } } } },        },
       }),
     ]);
 
