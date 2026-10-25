@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
             email: data.email || null,
             passwordHash,
             mustChangePassword: true,
-            role: "STAFF",
+            role: data.position === "معلم" ? "TEACHER" : "STAFF",
             isActive,
           },
         },
