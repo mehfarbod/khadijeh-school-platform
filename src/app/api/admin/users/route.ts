@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, requirePermission } from "@/lib/auth/authorization";
+import { hashStudentPassword } from "@/lib/auth/student-password";
+import { iranianNationalIdSchema } from "@/lib/validation/student";
 
 const roleLabels: Record<string, string> = {
   SUPER_ADMIN: "مدیر ارشد",
@@ -97,12 +99,14 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const name = typeof body.name === "string" ? body.name.trim() : "";
-    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const emailValue = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const email = emailValue || null;
     const role = typeof body.role === "string" ? body.role : "STAFF";
     const staffId = body.staffId === undefined || body.staffId === null || body.staffId === "" ? null : String(body.staffId);
+    const isActive = typeof body.isActive === "boolean" ? body.isActive : true;
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "ایمیل معتبر وارد کنید." }, { status: 400 });
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "ایمیل معتبر نیست." }, { status: 400 });
     }
 
     if (!["SUPER_ADMIN", "SCHOOL_ADMIN", "CONTENT_MANAGER", "TEACHER", "STAFF"].includes(role)) {
@@ -113,37 +117,59 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "فقط مدیر ارشد می‌تواند مدیر ارشد دیگری ایجاد کند." }, { status: 403 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return NextResponse.json({ error: "کاربری با این ایمیل از قبل وجود دارد." }, { status: 409 });
+    if (!staffId) {
+      return NextResponse.json({ error: "برای ساخت حساب ورود باید عضو کادر مشخص شود." }, { status: 400 });
     }
 
-    if (staffId) {
-      const staff = await prisma.staff.findUnique({
-        where: { id: staffId },
-        select: { id: true, userId: true },
-      });
-      if (!staff) {
-        return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
-      }
-      if (staff.userId) {
-        return NextResponse.json({ error: "این عضو کادر به کاربر دیگری متصل است." }, { status: 409 });
+    const staff = await prisma.staff.findUnique({
+      where: { id: staffId },
+      select: { id: true, firstName: true, lastName: true, nationalId: true, userId: true },
+    });
+    if (!staff) {
+      return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
+    }
+    if (staff.userId) {
+      return NextResponse.json({ error: "این عضو کادر از قبل حساب ورود دارد." }, { status: 409 });
+    }
+
+    const validatedNationalId = iranianNationalIdSchema.safeParse(staff.nationalId ?? "");
+    if (!validatedNationalId.success) {
+      return NextResponse.json({ error: "ابتدا کد ملی معتبر را در اطلاعات کادر ثبت کنید." }, { status: 400 });
+    }
+    if (body.nationalId !== undefined) {
+      const requestedNationalId = iranianNationalIdSchema.safeParse(body.nationalId);
+      if (!requestedNationalId.success || requestedNationalId.data !== validatedNationalId.data) {
+        return NextResponse.json({ error: "کد ملی با اطلاعات عضو کادر مطابقت ندارد." }, { status: 400 });
       }
     }
 
+    if (email) {
+      const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+      if (existing) {
+        return NextResponse.json({ error: "این ایمیل قبلاً برای کاربر دیگری ثبت شده است." }, { status: 409 });
+      }
+    }
+
+    const passwordHash = await hashStudentPassword(validatedNationalId.data);
     const user = await prisma.user.create({
       data: {
-        name: name || null,
+        name: name || `${staff.firstName} ${staff.lastName}`,
         email,
         role: role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF",
-        staff: staffId ? { connect: { id: staffId } } : undefined,
+        passwordHash,
+        mustChangePassword: true,
+        isActive,
+        staff: { connect: { id: staffId } },
       },
-      select: { id: true, name: true, email: true, role: true, isActive: true },
+      select: { id: true, name: true, email: true, role: true, isActive: true, mustChangePassword: true },
     });
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error("POST /api/admin/users error:", error);
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+      return NextResponse.json({ error: "کد ملی یا ایمیل قبلاً ثبت شده است." }, { status: 409 });
+    }
     const status =
       error instanceof Error && error.message === "UNAUTHORIZED" ? 401 :
       error instanceof Error && error.message === "FORBIDDEN" ? 403 : 500;
