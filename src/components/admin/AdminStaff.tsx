@@ -46,6 +46,7 @@ type Staff = {
   photo: string | null;
   phone: string | null;
   email: string | null;
+  nationalId: string | null;
   isActive: boolean;
 };
 
@@ -55,6 +56,7 @@ type StaffForm = {
   position: string;
   category: string;
   subject: string;
+  nationalId: string;
   phone: string;
   email: string;
   photo: string;
@@ -67,6 +69,7 @@ const emptyForm: StaffForm = {
   position: "",
   category: "",
   subject: "",
+  nationalId: "",
   phone: "",
   email: "",
   photo: "",
@@ -115,7 +118,7 @@ export default function AdminStaff() {
     const query = search.trim().toLowerCase();
     if (!query) return staff ?? [];
     return staff?.filter((member) =>
-      [member.firstName, member.lastName, member.position, member.category, member.subject ?? "", member.phone ?? "", member.email ?? ""]
+      [member.firstName, member.lastName, member.position, member.category, member.subject ?? "", member.nationalId ?? "", member.phone ?? "", member.email ?? ""]
         .join(" ").toLowerCase().includes(query)
     ) ?? [];
   }, [search, staff]);
@@ -158,6 +161,7 @@ export default function AdminStaff() {
       position: member.position,
       category: member.category,
       subject: member.subject ?? "",
+      nationalId: member.nationalId ?? "",
       phone: member.phone ?? "",
       email: member.email ?? "",
       photo: member.photo ?? "",
@@ -169,6 +173,14 @@ export default function AdminStaff() {
   const handleSubmit = async () => {
     if (!form.firstName.trim() || !form.lastName.trim() || !form.position.trim() || !form.category.trim()) {
       toast.error("نام، نام خانوادگی، سمت و دسته‌بندی الزامی است.");
+      return;
+    }
+    if (!editId && !form.nationalId.trim()) {
+      toast.error("کد ملی برای ساخت حساب ورود الزامی است.");
+      return;
+    }
+    if (form.nationalId.trim() && !/^\\d{10}$/.test(form.nationalId.trim())) {
+      toast.error("کد ملی باید ۱۰ رقم باشد.");
       return;
     }
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -183,6 +195,7 @@ export default function AdminStaff() {
         lastName: form.lastName.trim(),
         position: form.position.trim(),
         category: form.category,
+        nationalId: form.nationalId.trim() || undefined,
         subject: teacher && form.subject.trim() ? form.subject.trim() : null,
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
@@ -198,7 +211,9 @@ export default function AdminStaff() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "خطا در ذخیره اطلاعات");
 
-      toast.success(editId ? "اطلاعات کادر ویرایش شد" : "عضو جدید به کادر اضافه شد");
+      toast.success(editId
+        ? "اطلاعات کادر ویرایش شد"
+        : "عضو و حساب ورود ساخته شد؛ رمز اولیه کد ملی است و در اولین ورود باید تغییر کند.");
       setDialogOpen(false);
       await loadStaff();
     } catch (error) {
@@ -293,6 +308,11 @@ export default function AdminStaff() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div><Label>نام</Label><Input value={form.firstName} onChange={(event) => updateForm("firstName", event.target.value)} className="mt-1.5" placeholder="مثلاً مریم" /></div>
                 <div><Label>نام خانوادگی</Label><Input value={form.lastName} onChange={(event) => updateForm("lastName", event.target.value)} className="mt-1.5" placeholder="مثلاً احمدی" /></div>
+                <div className="sm:col-span-2">
+                  <Label>کد ملی (شناسه ورود)</Label>
+                  <Input value={form.nationalId} onChange={(event) => updateForm("nationalId", event.target.value)} className="mt-1.5" placeholder="کد ملی ۱۰ رقمی" inputMode="numeric" dir="ltr" />
+                  <p className="mt-1 text-xs text-muted-foreground">برای عضو جدید الزامی است. حساب ورود خودکار ساخته می‌شود و رمز اولیه کد ملی است؛ در اولین ورود باید تغییر کند.</p>
+                </div>
                 <div>
                   <Label>دسته‌بندی</Label>
                   <select value={form.category} onChange={(event) => handleCategoryChange(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring">
