@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     const existingTargetEnrollment = await prisma.studentEnrollment.findUnique({
       where: { studentId_academicYearId: { studentId, academicYearId: targetAcademicYearId } },
-      select: { id: true, grade: true, className: true },
+      select: { id: true },
     });
 
     if (existingTargetEnrollment) {
@@ -73,23 +73,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const enrollment = await prisma.studentEnrollment.create({
-      data: {
-        studentId,
-        academicYearId: targetAcademicYearId,
-        grade: targetGrade,
-        classId: targetClass.id,
-        className: targetClass.name,
-      },
-      include: { academicYear: true, class: true },
-    });
+    try {
+      const enrollment = await prisma.studentEnrollment.create({
+        data: {
+          studentId,
+          academicYearId: targetAcademicYearId,
+          grade: targetGrade,
+          classId: targetClass.id,
+          className: targetClass.name,
+        },
+        include: { academicYear: true, class: true },
+      });
 
-    return NextResponse.json({
-      success: true,
-      enrollment,
-      source: { academicYearId: sourceYear.id, title: sourceYear.title },
-      target: { academicYearId: targetYear.id, title: targetYear.title, grade: targetGrade, className: targetClass.name },
-    }, { status: 201 });
+      return NextResponse.json({
+        success: true,
+        enrollment,
+        source: { academicYearId: sourceYear.id, title: sourceYear.title },
+        target: { academicYearId: targetYear.id, title: targetYear.title, grade: targetGrade, className: targetClass.name },
+      }, { status: 201 });
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+        return NextResponse.json(
+          { error: "این دانش‌آموز برای سال تحصیلی مقصد قبلاً ثبت‌نام شده است." },
+          { status: 409 },
+        );
+      }
+      throw error;
+    }
   } catch (error) {
     console.error("POST /api/admin/student-academic-transfer error:", error);
 
