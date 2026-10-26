@@ -30,6 +30,7 @@ import {
   UserCog,
   UserRoundX,
   School,
+  ArrowUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AdminSearch from "@/components/admin/AdminSearch";
@@ -54,6 +55,7 @@ const sidebarGroups: SidebarGroup[] = [
       { label: "دانش‌آموزان", href: "/admin/students", icon: Users },
       { label: "دانش‌آموزان غیرفعال", href: "/admin/students?status=inactive", icon: UserRoundX },
       { label: "کلاس‌ها", href: "/admin/classes", icon: School },
+      { label: "ارتقا و انتقال تحصیلی", href: "/admin/students/academic-transfer", icon: ArrowUpDown },
       { label: "موارد نیازمند بررسی", href: "/admin/student-review-items", icon: ClipboardList },
       { label: "کادر مدرسه", href: "/admin/staff", icon: GraduationCap },
     ],
