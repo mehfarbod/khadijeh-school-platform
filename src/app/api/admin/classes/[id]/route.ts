@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth/authorization";
 
@@ -30,17 +29,40 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     const existing = await prisma.class.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, academicYearId: true, grade: true, name: true },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "کلاس موردنظر یافت نشد." }, { status: 404 });
     }
 
+    const nextGrade = parsed.data.grade ?? existing.grade;
+    const nextName = parsed.data.name ?? existing.name;
+
     try {
-      const updated = await prisma.class.update({
-        where: { id },
-        data: parsed.data,
+      const updated = await prisma.$transaction(async (tx) => {
+        const updatedClass = await tx.class.update({
+          where: { id },
+          data: parsed.data,
+        });
+
+        // Class is the canonical source for grade/name. Keep legacy enrollment
+        // fields synchronized so old screens and reports cannot drift from it.
+        if (parsed.data.grade !== undefined || parsed.data.name !== undefined) {
+          await tx.studentEnrollment.updateMany({
+            where: { classId: id },
+            data: {
+              grade: nextGrade,
+              className: nextName,
+            },
+          });
+        }
+
+        return updatedClass;
+      });
+
+      const result = await prisma.class.findUnique({
+        where: { id: updated.id },
         include: {
           academicYear: true,
           _count: {
@@ -63,7 +85,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         },
       });
 
-      return NextResponse.json(updated);
+      return NextResponse.json(result);
     } catch (error) {
       if (
         typeof error === "object" &&
