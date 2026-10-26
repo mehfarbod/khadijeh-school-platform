@@ -18,10 +18,34 @@ export async function GET(request: NextRequest) {
     const academicYearId = params.get("academicYearId") || undefined;
     const classIds = session.user.role === "TEACHER" ? await getTeacherClassIds(session.user.id, academicYearId) : null;
 
+    const teacherSubjectScope = session.user.role === "TEACHER"
+      ? await prisma.teacherClassAssignment.findMany({
+          where: {
+            teacherId: session.user.id,
+            class: { isActive: true, ...(academicYearId ? { academicYearId } : {}) },
+          },
+          select: { classId: true, subject: true },
+        })
+      : [];
+
     const assessments = await prisma.studentAssessment.findMany({
       where: {
         ...(studentId ? { studentId } : {}), ...(academicYearId ? { academicYearId } : {}),
-        ...(classIds ? { student: { enrollments: { some: { academicYearId: academicYearId ?? undefined, classId: { in: classIds } } } } } : {}),
+        ...(classIds
+          ? {
+              OR: teacherSubjectScope.map((assignment) => ({
+                ...(assignment.subject?.trim() ? { subject: assignment.subject.trim() } : {}),
+                student: {
+                  enrollments: {
+                    some: {
+                      ...(academicYearId ? { academicYearId } : {}),
+                      classId: assignment.classId,
+                    },
+                  },
+                },
+              })),
+            }
+          : {}),
       },
       orderBy: [{ assessmentDate: "desc" }, { createdAt: "desc" }],
     });
