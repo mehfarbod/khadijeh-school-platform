@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
 
 const assignmentSchema = z.object({
   teacherId: z.string().trim().min(1, "معلم الزامی است."),
@@ -15,6 +15,7 @@ type RouteContext = {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const { id: classId } = await context.params;
@@ -61,8 +62,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const subject = parsed.data.subject?.trim() || null;
 
-    // Prisma/PostgreSQL unique constraints allow multiple NULL values. Check
-    // explicitly so an unrestricted teacher assignment cannot be duplicated.
     const duplicate = await prisma.teacherClassAssignment.findFirst({
       where: { classId, teacherId: teacher.id, subject },
       select: { id: true },
@@ -131,6 +130,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const { id: classId } = await context.params;
