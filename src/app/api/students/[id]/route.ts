@@ -187,12 +187,22 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         let classId: string | null | undefined = undefined;
 
         if (data.classId !== undefined || data.className !== undefined) {
+          if (data.classId === null && !data.className?.trim()) {
+            throw new Error("STUDENT_CLASS_REQUIRED");
+          }
+
           classId = await resolveClassId({
             classId: data.classId,
             className: data.className,
             academicYearId,
             grade,
           });
+
+          if (!classId) throw new Error("STUDENT_CLASS_REQUIRED");
+        }
+
+        if (!existingEnrollment && classId === undefined) {
+          throw new Error("STUDENT_CLASS_REQUIRED");
         }
 
         await tx.studentEnrollment.upsert({
@@ -233,6 +243,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       STUDENT_NOT_FOUND: "دانش‌آموز موردنظر یافت نشد.",
       CURRENT_STUDENT_ENROLLMENT_NOT_FOUND: "ثبت‌نام تحصیلی دانش‌آموز برای سال تحصیلی جاری پیدا نشد.",
       STUDENT_ENROLLMENT_GRADE_REQUIRED: "برای ایجاد ثبت‌نام تحصیلی در سال جدید، پایه تحصیلی الزامی است.",
+      STUDENT_CLASS_REQUIRED: "برای ثبت یا تغییر ثبت‌نام تحصیلی، انتخاب یک کلاس فعال الزامی است.",
       CLASS_NOT_FOUND: "کلاس انتخاب‌شده یافت نشد. ابتدا کلاس را در مدیریت کلاس‌ها تعریف کنید.",
       CLASS_INACTIVE: "کلاس انتخاب‌شده غیرفعال است.",
       CLASS_MISMATCH: "کلاس انتخاب‌شده با سال تحصیلی یا پایه دانش‌آموز سازگار نیست.",
