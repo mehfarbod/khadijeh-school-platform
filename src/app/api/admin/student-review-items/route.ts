@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import {
+  requirePermission,
+  requireRole,
+} from "@/lib/auth/authorization";
 import { studentReviewItemSchema } from "@/lib/validation/student-review-item";
 
 export async function GET() {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const academicYear = await prisma.academicYear.findFirst({
@@ -45,6 +49,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const result = studentReviewItemSchema.safeParse(await request.json());
