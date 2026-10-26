@@ -130,6 +130,10 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
+    if (!classId) {
+      return NextResponse.json({ error: "برای ثبت دانش‌آموز باید ابتدا یک کلاس فعال توسط مدیریت تعریف و انتخاب شود." }, { status: 400 });
+    }
+
     const birthday = data.birthday ? new Date(jalaliToGregorian(data.birthday)) : null;
     const student = await prisma.student.create({
       data: {
