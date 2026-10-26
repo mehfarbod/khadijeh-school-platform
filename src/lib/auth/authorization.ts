@@ -48,7 +48,16 @@ export async function requireRole(allowedRoles: UserRole[]) {
     throw new Error("FORBIDDEN");
   }
 
-  return session;
+  // NextAuth stores the role in a JWT. Refresh the role from the database
+  // after authorization so downstream role-based data filters cannot rely on
+  // a stale role claim after an administrator changes a user's role.
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      role: user.role,
+    },
+  };
 }
 
 /**
