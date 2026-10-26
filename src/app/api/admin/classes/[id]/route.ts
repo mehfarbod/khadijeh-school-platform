@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
 
 const updateSchema = z.object({
   grade: z.string().trim().min(1).max(30).optional(),
@@ -15,6 +15,7 @@ type RouteContext = {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const { id } = await context.params;
@@ -46,8 +47,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           data: parsed.data,
         });
 
-        // Class is the canonical source for grade/name. Keep legacy enrollment
-        // fields synchronized so old screens and reports cannot drift from it.
         if (parsed.data.grade !== undefined || parsed.data.name !== undefined) {
           await tx.studentEnrollment.updateMany({
             where: { classId: id },
@@ -118,6 +117,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.manage_status");
 
     const { id } = await context.params;
@@ -131,7 +131,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "کلاس موردنظر یافت نشد." }, { status: 404 });
     }
 
-    // Soft delete keeps historical enrollments and grades intact.
     await prisma.class.update({
       where: { id },
       data: { isActive: false },
