@@ -28,7 +28,11 @@ export async function GET(request: NextRequest) {
             teacherId: session.user.id,
             class: { isActive: true, ...(academicYearId ? { academicYearId } : {}) },
           },
-          select: { classId: true, subject: true },
+          select: {
+            classId: true,
+            subject: true,
+            class: { select: { academicYearId: true } },
+          },
         })
       : [];
 
@@ -38,11 +42,12 @@ export async function GET(request: NextRequest) {
         ...(classIds
           ? {
               OR: teacherSubjectScope.map((assignment) => ({
+                academicYearId: assignment.class.academicYearId,
                 ...(assignment.subject?.trim() ? { subject: assignment.subject.trim() } : {}),
                 student: {
                   enrollments: {
                     some: {
-                      ...(academicYearId ? { academicYearId } : {}),
+                      academicYearId: assignment.class.academicYearId,
                       classId: assignment.classId,
                     },
                   },
