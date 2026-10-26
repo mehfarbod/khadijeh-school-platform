@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { prisma } from "@/lib/prisma";
 import { requirePermission, requireRole } from "@/lib/auth/authorization";
 import { getTeacherClassIds } from "@/lib/auth/teacher-access";
 import { jalaliToGregorian } from "@/lib/date/jalali";
+import { prisma } from "@/lib/prisma";
 import {
   gradeSchema,
   optionalJalaliBirthdaySchema,
@@ -20,14 +20,14 @@ const studentSchema = z.object({
   mobile: optionalMobileSchema,
   photo: z.string().trim().max(2000, "آدرس تصویر بیش از حد طولانی است.").nullable().optional(),
   birthday: optionalJalaliBirthdaySchema,
-  fatherFirstName: z.string().trim().max(100, "نام پدر بیش از حد طولانی است.").nullable().optional(),
-  fatherLastName: z.string().trim().max(100, "نام خانوادگی پدر بیش از حد طولانی است.").nullable().optional(),
+  fatherFirstName: z.string().trim().max(100, "نام بیش از حد طولانی است.").nullable().optional(),
+  fatherLastName: z.string().trim().max(100, "نام خانوادگی بیش از حد طولانی است.").nullable().optional(),
   fatherNationalId: optionalNationalIdSchema,
   fatherJob: z.string().trim().max(150, "شغل پدر بیش از حد طولانی است.").nullable().optional(),
   fatherEducation: z.string().trim().max(150, "تحصیلات پدر بیش از حد طولانی است.").nullable().optional(),
   fatherMobile: optionalMobileSchema,
-  motherFirstName: z.string().trim().max(100, "نام مادر بیش از حد طولانی است.").nullable().optional(),
-  motherLastName: z.string().trim().max(100, "نام خانوادگی مادر بیش از حد طولانی است.").nullable().optional(),
+  motherFirstName: z.string().trim().max(100, "نام بیش از حد طولانی است.").nullable().optional(),
+  motherLastName: z.string().trim().max(100, "نام خانوادگی بیش از حد طولانی است.").nullable().optional(),
   motherNationalId: optionalNationalIdSchema,
   motherJob: z.string().trim().max(150, "شغل مادر بیش از حد طولانی است.").nullable().optional(),
   motherEducation: z.string().trim().max(150, "تحصیلات مادر بیش از حد طولانی است.").nullable().optional(),
@@ -109,7 +109,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.create");
+
     const result = studentSchema.safeParse(await request.json());
     if (!result.success) return NextResponse.json({ error: "اطلاعات واردشده معتبر نیست.", details: result.error.flatten().fieldErrors }, { status: 400 });
     const data = result.data;
