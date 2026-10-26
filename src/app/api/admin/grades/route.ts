@@ -44,17 +44,19 @@ export async function GET(request: NextRequest) {
       orderBy: [{ isCurrent: "desc" }, { startDate: "desc" }, { title: "desc" }],
     });
 
+    const enrollmentFilter = {
+      ...(academicYearId ? { academicYearId } : {}),
+      ...(grade ? { grade } : {}),
+      ...(className ? { className } : {}),
+      ...(teacherClassIds ? { classId: { in: teacherClassIds } } : {}),
+    };
+
     const students = await prisma.student.findMany({
       where: {
         isActive: true,
         ...(studentId ? { id: studentId } : {}),
         ...(academicYearId || grade || className || teacherClassIds
-          ? { enrollments: { some: {
-              ...(academicYearId ? { academicYearId } : {}),
-              ...(grade ? { grade } : {}),
-              ...(className ? { className } : {}),
-              ...(teacherClassIds ? { classId: { in: teacherClassIds } } : {}),
-            } } }
+          ? { enrollments: { some: enrollmentFilter } }
           : {}),
       },
       select: {
@@ -62,7 +64,9 @@ export async function GET(request: NextRequest) {
         firstName: true,
         lastName: true,
         enrollments: {
-          where: academicYearId ? { academicYearId } : undefined,
+          where: teacherClassIds
+            ? { classId: { in: teacherClassIds }, ...(academicYearId ? { academicYearId } : {}) }
+            : academicYearId ? { academicYearId } : undefined,
           select: { grade: true, className: true, classId: true, academicYearId: true },
           orderBy: { createdAt: "desc" },
           take: 1,
@@ -79,7 +83,11 @@ export async function GET(request: NextRequest) {
               teacherId: session.user.id,
               class: { isActive: true, ...(academicYearId ? { academicYearId } : {}) },
             },
-            select: { classId: true, subject: true },
+            select: {
+              classId: true,
+              subject: true,
+              class: { select: { academicYearId: true } },
+            },
           }))
         : [];
 
@@ -90,13 +98,14 @@ export async function GET(request: NextRequest) {
           ...(teacherClassIds
             ? {
                 OR: teacherSubjectScope.map((assignment) => ({
+                  academicYearId: assignment.class.academicYearId,
                   ...(assignment.subject?.trim()
                     ? { subject: assignment.subject.trim() }
                     : {}),
                   student: {
                     enrollments: {
                       some: {
-                        ...(academicYearId ? { academicYearId } : {}),
+                        academicYearId: assignment.class.academicYearId,
                         classId: assignment.classId,
                       },
                     },
