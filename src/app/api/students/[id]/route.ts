@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
 import { jalaliToGregorian } from "@/lib/date/jalali";
 import { studentProfileSchema, studentEnrollmentSchema } from "@/lib/validation/student";
 import { getCurrentStudentEnrollment } from "@/lib/student-current-grade";
@@ -63,6 +62,9 @@ async function resolveClassId(options: {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
+    // Teacher access is intentionally read/write-scoped through the grades and
+    // assessments APIs. Student profile/enrollment mutations remain management-only.
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const { id } = await context.params;
@@ -268,6 +270,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.manage_status");
     const { id } = await context.params;
 
