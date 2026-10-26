@@ -18,6 +18,10 @@ export async function GET(request: NextRequest) {
     const academicYearId = params.get("academicYearId") || undefined;
     const classIds = session.user.role === "TEACHER" ? await getTeacherClassIds(session.user.id, academicYearId) : null;
 
+    if (session.user.role === "TEACHER" && classIds?.length === 0) {
+      return NextResponse.json({ assessments: [] });
+    }
+
     const teacherSubjectScope = session.user.role === "TEACHER"
       ? await prisma.teacherClassAssignment.findMany({
           where: {
