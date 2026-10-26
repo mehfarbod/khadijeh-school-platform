@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
+import { getTeacherClassIds } from "@/lib/auth/teacher-access";
 
 const classSchema = z.object({
   academicYearId: z.string().trim().min(1, "سال تحصیلی الزامی است."),
@@ -13,18 +14,26 @@ const classSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("students.view");
-
+    const session = await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"]);
     const { searchParams } = new URL(request.url);
     const academicYearId = searchParams.get("academicYearId") || undefined;
     const grade = searchParams.get("grade") || undefined;
     const activeOnly = searchParams.get("activeOnly") !== "false";
+
+    const teacherClassIds = session.user.role === "TEACHER"
+      ? await getTeacherClassIds(session.user.id, academicYearId)
+      : null;
+
+    if (session.user.role !== "TEACHER") {
+      await requirePermission("students.view");
+    }
 
     const classes = await prisma.class.findMany({
       where: {
         ...(academicYearId ? { academicYearId } : {}),
         ...(grade ? { grade } : {}),
         ...(activeOnly ? { isActive: true } : {}),
+        ...(teacherClassIds ? { id: { in: teacherClassIds } } : {}),
       },
       include: {
         academicYear: {
@@ -37,6 +46,7 @@ export async function GET(request: NextRequest) {
           },
         },
         teacherAssignments: {
+          where: teacherClassIds ? { teacherId: session.user.id } : undefined,
           include: {
             teacher: {
               select: {
