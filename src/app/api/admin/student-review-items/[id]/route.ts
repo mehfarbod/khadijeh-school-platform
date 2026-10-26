@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
 import { studentReviewItemSchema } from "@/lib/validation/student-review-item";
 
 type Context = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: Context) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
     const { id } = await context.params;
     const result = studentReviewItemSchema.safeParse(await request.json());
@@ -59,6 +60,7 @@ export async function PATCH(request: NextRequest, context: Context) {
 
 export async function DELETE(_request: NextRequest, context: Context) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
     const { id } = await context.params;
     await prisma.studentReviewItem.delete({ where: { id } });
