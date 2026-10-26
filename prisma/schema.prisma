@@ -43,6 +43,7 @@ model User {
   adminPasswordResetOtps   AdminPasswordResetOtp[]
   enteredGrades            StudentGrade[] @relation("GradeTeacher")
   enteredAssessments       StudentAssessment[] @relation("AssessmentTeacher")
+  teacherClassAssignments  TeacherClassAssignment[]
 }
 
 model Student {
@@ -91,7 +92,7 @@ model Student {
   studentOtps         StudentOtp[]
   grades              StudentGrade[]
   assessments         StudentAssessment[]
-  reviewItems          StudentReviewItem[]
+  reviewItems         StudentReviewItem[]
 
   @@index([isActive])
   @@index([birthday])
@@ -388,9 +389,9 @@ model Announcement {
   content   String
   category  String
   isPinned  Boolean  @default(false)
-  isTicker   Boolean  @default(false)
-  isActive   Boolean  @default(true)
-  expiresAt  String?
+  isTicker  Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  expiresAt String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -427,8 +428,8 @@ model ContactMessage {
   subject    String?
   message    String
   isRead     Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([isRead])
   @@index([createdAt])
@@ -457,16 +458,16 @@ model News {
 }
 
 model GalleryItem {
-  id          String   @id @default(cuid())
-  title       String
-  category    String
+  id            String   @id @default(cuid())
+  title         String
+  category      String
   categoryLabel String
-  date        String
-  imageUrl    String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  date          String
+  imageUrl      String
+  description   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([category])
   @@index([isActive])
@@ -474,18 +475,18 @@ model GalleryItem {
 }
 
 model AboutPage {
-  id               String   @id @default("school-about")
-  heroBadge        String
-  heroTitle        String
-  heroDescription  String
-  introEyebrow     String
-  introTitle       String
-  introContent     String
-  stats            Json
-  values           Json
-  communityTitle   String
+  id                  String   @id @default("school-about")
+  heroBadge           String
+  heroTitle           String
+  heroDescription     String
+  introEyebrow        String
+  introTitle          String
+  introContent        String
+  stats               Json
+  values              Json
+  communityTitle      String
   communityDescription String
-  updatedAt        DateTime @updatedAt
+  updatedAt           DateTime @updatedAt
 
   @@map("AboutPage")
 }
@@ -502,8 +503,8 @@ model EducationalProgram {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  weeklySchedule            WeeklySchedule?
-  examSchedule              ExamSchedule?
+  weeklySchedule           WeeklySchedule?
+  examSchedule             ExamSchedule?
   calendarEvents            EducationalCalendarEvent[]
   parentMeetings            ParentMeeting[]
   familyCounselingSessions  FamilyCounselingSession[]
@@ -674,20 +675,56 @@ model EmailOtp {
 }
 
 model AcademicYear {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   title     String   @unique
   startDate DateTime?
   endDate   DateTime?
-  isCurrent Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isCurrent Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   enrollments           StudentEnrollment[]
+  classes               Class[]
   admissionApplications AdmissionApplication[]
   grades                StudentGrade[]
   assessments           StudentAssessment[]
 
   @@index([isCurrent])
+}
+
+model Class {
+  id             String   @id @default(cuid())
+  academicYearId String
+  grade          String
+  name           String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  academicYear      AcademicYear             @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  enrollments       StudentEnrollment[]
+  teacherAssignments TeacherClassAssignment[]
+
+  @@unique([academicYearId, grade, name])
+  @@index([academicYearId])
+  @@index([grade])
+  @@index([isActive])
+}
+
+model TeacherClassAssignment {
+  id        String   @id @default(cuid())
+  classId   String
+  teacherId String
+  subject   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher User  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, teacherId, subject])
+  @@index([classId])
+  @@index([teacherId])
 }
 
 model StudentEnrollment {
@@ -696,16 +733,19 @@ model StudentEnrollment {
   academicYearId String
   grade          String
   className      String?
+  classId        String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  class        Class?       @relation(fields: [classId], references: [id], onDelete: SetNull)
 
   @@unique([studentId, academicYearId])
   @@index([studentId])
   @@index([academicYearId])
   @@index([grade])
+  @@index([classId])
 }
 
 model AdmissionApplication {
@@ -756,7 +796,6 @@ model AdmissionApplication {
   @@index([status])
   @@index([createdAt])
 }
-
 
 model SchoolSettings {
   id                    String   @id @default("school-settings")
