@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
+import { getTeacherClassIds } from "@/lib/auth/teacher-access";
 import { jalaliToGregorian } from "@/lib/date/jalali";
 import {
   gradeSchema,
@@ -34,8 +35,6 @@ const studentSchema = z.object({
   address: z.string().trim().max(1000, "آدرس بیش از حد طولانی است.").nullable().optional(),
   landline: z.string().trim().max(30, "شماره تلفن ثابت بیش از حد طولانی است.").nullable().optional(),
   description: z.string().trim().max(2000, "توضیحات بیش از حد طولانی است.").nullable().optional(),
-
-  // Enrollment. classId is the new source of truth; className remains for backward compatibility.
   academicYearId: z.string().trim().min(1, "سال تحصیلی الزامی است."),
   grade: gradeSchema,
   classId: z.string().trim().min(1).nullable().optional(),
@@ -45,35 +44,17 @@ const studentSchema = z.object({
 
 async function resolveClassId(data: z.infer<typeof studentSchema>) {
   if (data.classId) {
-    const classRecord = await prisma.class.findUnique({
-      where: { id: data.classId },
-      select: { id: true, academicYearId: true, grade: true, isActive: true },
-    });
-
+    const classRecord = await prisma.class.findUnique({ where: { id: data.classId }, select: { id: true, academicYearId: true, grade: true, isActive: true } });
     if (!classRecord) throw new Error("CLASS_NOT_FOUND");
     if (!classRecord.isActive) throw new Error("CLASS_INACTIVE");
-    if (classRecord.academicYearId !== data.academicYearId || classRecord.grade !== data.grade) {
-      throw new Error("CLASS_MISMATCH");
-    }
-
+    if (classRecord.academicYearId !== data.academicYearId || classRecord.grade !== data.grade) throw new Error("CLASS_MISMATCH");
     return classRecord.id;
   }
 
   if (data.className?.trim()) {
-    const classRecord = await prisma.class.findUnique({
-      where: {
-        academicYearId_grade_name: {
-          academicYearId: data.academicYearId,
-          grade: data.grade,
-          name: data.className.trim(),
-        },
-      },
-      select: { id: true, isActive: true },
-    });
-
+    const classRecord = await prisma.class.findUnique({ where: { academicYearId_grade_name: { academicYearId: data.academicYearId, grade: data.grade, name: data.className.trim() } }, select: { id: true, isActive: true } });
     if (!classRecord) throw new Error("CLASS_NOT_FOUND");
     if (!classRecord.isActive) throw new Error("CLASS_INACTIVE");
-
     return classRecord.id;
   }
 
@@ -82,7 +63,8 @@ async function resolveClassId(data: z.infer<typeof studentSchema>) {
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("students.view");
+    const session = await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"]);
+    if (session.user.role !== "TEACHER") await requirePermission("students.view");
 
     const { searchParams } = new URL(request.url);
     const academicYearId = searchParams.get("academicYearId");
@@ -91,16 +73,18 @@ export async function GET(request: NextRequest) {
     const classId = searchParams.get("classId");
     const activeOnly = searchParams.get("activeOnly") !== "false";
     const inactiveOnly = searchParams.get("inactiveOnly") === "true";
+    const teacherClassIds = session.user.role === "TEACHER" ? await getTeacherClassIds(session.user.id, academicYearId || undefined) : null;
 
-    const hasEnrollmentFilter =
-      !inactiveOnly && (!!academicYearId || !!grade || !!className || !!classId);
+    if (teacherClassIds?.length === 0) return NextResponse.json([]);
 
     const enrollmentWhere = {
       ...(academicYearId ? { academicYearId } : {}),
       ...(grade ? { grade } : {}),
       ...(className ? { className } : {}),
       ...(classId ? { classId } : {}),
+      ...(teacherClassIds ? { classId: { in: teacherClassIds } } : {}),
     };
+    const hasEnrollmentFilter = !inactiveOnly && (!!academicYearId || !!grade || !!className || !!classId || !!teacherClassIds);
 
     const students = await prisma.student.findMany({
       where: {
@@ -110,10 +94,7 @@ export async function GET(request: NextRequest) {
       include: {
         enrollments: {
           where: hasEnrollmentFilter ? enrollmentWhere : undefined,
-          include: {
-            academicYear: true,
-            class: true,
-          },
+          include: { academicYear: true, class: true },
           orderBy: { academicYear: { title: "desc" } },
         },
       },
@@ -123,15 +104,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(students);
   } catch (error) {
     console.error("GET /api/students error:", error);
-
-    if (error instanceof Error && error.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
-    }
-
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "شما مجوز مشاهده اطلاعات دانش‌آموزان را ندارید." }, { status: 403 });
-    }
-
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مشاهده اطلاعات دانش‌آموزان را ندارید." }, { status: 403 });
     return NextResponse.json({ error: "خطا در دریافت اطلاعات دانش‌آموزان" }, { status: 500 });
   }
 }
@@ -139,21 +113,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requirePermission("students.create");
-
     const result = studentSchema.safeParse(await request.json());
-    if (!result.success) {
-      return NextResponse.json(
-        { error: "اطلاعات واردشده معتبر نیست.", details: result.error.flatten().fieldErrors },
-        { status: 400 },
-      );
-    }
-
+    if (!result.success) return NextResponse.json({ error: "اطلاعات واردشده معتبر نیست.", details: result.error.flatten().fieldErrors }, { status: 400 });
     const data = result.data;
     const academicYear = await prisma.academicYear.findUnique({ where: { id: data.academicYearId } });
-
-    if (!academicYear) {
-      return NextResponse.json({ error: "سال تحصیلی انتخاب‌شده یافت نشد." }, { status: 400 });
-    }
+    if (!academicYear) return NextResponse.json({ error: "سال تحصیلی انتخاب‌شده یافت نشد." }, { status: 400 });
 
     let classId: string | null = null;
     try {
@@ -170,64 +134,26 @@ export async function POST(request: NextRequest) {
     }
 
     const birthday = data.birthday ? new Date(jalaliToGregorian(data.birthday)) : null;
-
     const student = await prisma.student.create({
       data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        nationalId: data.nationalId || null,
-        birthCertificateSerial: data.birthCertificateSerial || null,
-        mobile: data.mobile || null,
-        photo: data.photo || null,
-        birthday,
-        isBirthdayVisible: true,
-        fatherFirstName: data.fatherFirstName || null,
-        fatherLastName: data.fatherLastName || null,
-        fatherNationalId: data.fatherNationalId || null,
-        fatherJob: data.fatherJob || null,
-        fatherEducation: data.fatherEducation || null,
-        fatherMobile: data.fatherMobile || null,
-        motherFirstName: data.motherFirstName || null,
-        motherLastName: data.motherLastName || null,
-        motherNationalId: data.motherNationalId || null,
-        motherJob: data.motherJob || null,
-        motherEducation: data.motherEducation || null,
-        motherMobile: data.motherMobile || null,
-        address: data.address || null,
-        landline: data.landline || null,
-        description: data.description || null,
-        isActive: data.isActive ?? true,
-        enrollments: {
-          create: {
-            academicYearId: data.academicYearId,
-            grade: data.grade,
-            className: data.className || null,
-            classId,
-          },
-        },
+        firstName: data.firstName, lastName: data.lastName, nationalId: data.nationalId || null, birthCertificateSerial: data.birthCertificateSerial || null,
+        mobile: data.mobile || null, photo: data.photo || null, birthday, isBirthdayVisible: true,
+        fatherFirstName: data.fatherFirstName || null, fatherLastName: data.fatherLastName || null, fatherNationalId: data.fatherNationalId || null,
+        fatherJob: data.fatherJob || null, fatherEducation: data.fatherEducation || null, fatherMobile: data.fatherMobile || null,
+        motherFirstName: data.motherFirstName || null, motherLastName: data.motherLastName || null, motherNationalId: data.motherNationalId || null,
+        motherJob: data.motherJob || null, motherEducation: data.motherEducation || null, motherMobile: data.motherMobile || null,
+        address: data.address || null, landline: data.landline || null, description: data.description || null, isActive: data.isActive ?? true,
+        enrollments: { create: { academicYearId: data.academicYearId, grade: data.grade, className: data.className || null, classId } },
         studentAccount: { create: {} },
       },
-      include: {
-        enrollments: {
-          include: { academicYear: true, class: true },
-        },
-      },
+      include: { enrollments: { include: { academicYear: true, class: true } } },
     });
-
     return NextResponse.json(student, { status: 201 });
   } catch (error) {
     console.error("POST /api/students error:", error);
-
-    if (error instanceof Error && error.message === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
-    }
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "شما مجوز انجام این عملیات را ندارید." }, { status: 403 });
-    }
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
-      return NextResponse.json({ error: "دانش‌آموزی با این کد ملی قبلاً در سیستم ثبت شده است." }, { status: 409 });
-    }
-
-    return NextResponse.json({ error: "خطا در ایجاد دانش‌آموز" }, { status: 500 });
+    if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز ایجاد دانش‌آموز را ندارید." }, { status: 403 });
+    if (error instanceof Error && error.message === "P2002") return NextResponse.json({ error: "دانش‌آموز با این اطلاعات قبلاً ثبت شده است." }, { status: 409 });
+    return NextResponse.json({ error: "ایجاد دانش‌آموز انجام نشد." }, { status: 500 });
   }
 }
