@@ -61,15 +61,44 @@ export async function GET(request: NextRequest) {
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
-    const grades = academicYearId || studentId ? await prisma.studentGrade.findMany({
-      where: {
-        ...(academicYearId ? { academicYearId } : {}),
-        ...(studentId ? { studentId } : {}),
-        ...(teacherClassIds ? { student: { enrollments: { some: { academicYearId: academicYearId ?? undefined, classId: { in: teacherClassIds } } } } } : {}),
-      },
-      select: { id: true, studentId: true, academicYearId: true, subject: true, term: true, score: true, description: true },
-      orderBy: [{ subject: "asc" }, { term: "asc" }],
-    }) : [];
+    let grades = [] as Awaited<ReturnType<typeof prisma.studentGrade.findMany>>;
+    if (academicYearId || studentId) {
+      const teacherSubjectScope = session.user.role === "TEACHER"
+        ? (await prisma.teacherClassAssignment.findMany({
+            where: {
+              teacherId: session.user.id,
+              class: { isActive: true, ...(academicYearId ? { academicYearId } : {}) },
+            },
+            select: { classId: true, subject: true },
+          }))
+        : [];
+
+      grades = await prisma.studentGrade.findMany({
+        where: {
+          ...(academicYearId ? { academicYearId } : {}),
+          ...(studentId ? { studentId } : {}),
+          ...(teacherClassIds
+            ? {
+                OR: teacherSubjectScope.map((assignment) => ({
+                  ...(assignment.subject?.trim()
+                    ? { subject: assignment.subject.trim() }
+                    : {}),
+                  student: {
+                    enrollments: {
+                      some: {
+                        ...(academicYearId ? { academicYearId } : {}),
+                        classId: assignment.classId,
+                      },
+                    },
+                  },
+                })),
+              }
+            : {}),
+        },
+        select: { id: true, studentId: true, academicYearId: true, subject: true, term: true, score: true, description: true },
+        orderBy: [{ subject: "asc" }, { term: "asc" }],
+      });
+    }
 
     return NextResponse.json({ academicYears, students, grades: grades.map((item) => ({ ...item, score: item.score.toString() })) });
   } catch (error) {
