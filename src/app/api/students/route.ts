@@ -82,16 +82,16 @@ export async function GET(request: NextRequest) {
       ...(classId ? { classId } : {}),
       ...(teacherClassIds ? { classId: { in: teacherClassIds } } : {}),
     };
-    const hasEnrollmentFilter = !inactiveOnly && (!!academicYearId || !!grade || !!className || !!classId || !!teacherClassIds);
+    const mustFilterByEnrollment = !!teacherClassIds || (!inactiveOnly && (!!academicYearId || !!grade || !!className || !!classId));
 
     const students = await prisma.student.findMany({
       where: {
         ...(inactiveOnly ? { isActive: false } : activeOnly ? { isActive: true } : {}),
-        ...(hasEnrollmentFilter ? { enrollments: { some: enrollmentWhere } } : {}),
+        ...(mustFilterByEnrollment ? { enrollments: { some: enrollmentWhere } } : {}),
       },
       include: {
         enrollments: {
-          where: hasEnrollmentFilter ? enrollmentWhere : undefined,
+          where: mustFilterByEnrollment ? enrollmentWhere : undefined,
           include: { academicYear: true, class: true },
           orderBy: { academicYear: { title: "desc" } },
         },
