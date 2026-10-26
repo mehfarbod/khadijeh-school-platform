@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
 import { prisma } from "@/lib/prisma";
 import { gradeSchema } from "@/lib/validation/student";
 
@@ -13,6 +13,7 @@ const legacyGradeValues: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.edit");
 
     const academicYear = await prisma.academicYear.findFirst({
