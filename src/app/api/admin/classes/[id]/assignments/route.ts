@@ -61,6 +61,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const subject = parsed.data.subject?.trim() || null;
 
+    // Prisma/PostgreSQL unique constraints allow multiple NULL values. Check
+    // explicitly so an unrestricted teacher assignment cannot be duplicated.
+    const duplicate = await prisma.teacherClassAssignment.findFirst({
+      where: { classId, teacherId: teacher.id, subject },
+      select: { id: true },
+    });
+
+    if (duplicate) {
+      return NextResponse.json(
+        { error: "این معلم قبلاً با همین درس به این کلاس اختصاص داده شده است." },
+        { status: 409 },
+      );
+    }
+
     try {
       const assignment = await prisma.teacherClassAssignment.create({
         data: {
