@@ -136,5 +136,20 @@ export async function requirePermission(permissionKey: string) {
     throw new Error("FORBIDDEN");
   }
 
-  return session;
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if (!user) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      role: user.role,
+    },
+  };
 }
