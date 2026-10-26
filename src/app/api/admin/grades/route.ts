@@ -13,6 +13,16 @@ const gradeSchema = z.object({
   description: z.string().trim().max(500).optional().nullable(),
 });
 
+type GradeRead = {
+  id: string;
+  studentId: string;
+  academicYearId: string;
+  subject: string;
+  term: string;
+  score: { toString(): string };
+  description: string | null;
+};
+
 export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"]);
@@ -61,7 +71,7 @@ export async function GET(request: NextRequest) {
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
-    let grades = [] as Awaited<ReturnType<typeof prisma.studentGrade.findMany>>;
+    let grades: GradeRead[] = [];
     if (academicYearId || studentId) {
       const teacherSubjectScope = session.user.role === "TEACHER"
         ? (await prisma.teacherClassAssignment.findMany({
