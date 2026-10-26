@@ -91,6 +91,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Teachers may read their assigned classes, but class creation is a
+    // management operation and must never be granted through a teacher's
+    // permission overrides.
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("students.create");
 
     const parsed = classSchema.safeParse(await request.json());
