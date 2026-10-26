@@ -50,14 +50,12 @@ async function resolveClassId(data: z.infer<typeof studentSchema>) {
     if (classRecord.academicYearId !== data.academicYearId || classRecord.grade !== data.grade) throw new Error("CLASS_MISMATCH");
     return classRecord.id;
   }
-
   if (data.className?.trim()) {
     const classRecord = await prisma.class.findUnique({ where: { academicYearId_grade_name: { academicYearId: data.academicYearId, grade: data.grade, name: data.className.trim() } }, select: { id: true, isActive: true } });
     if (!classRecord) throw new Error("CLASS_NOT_FOUND");
     if (!classRecord.isActive) throw new Error("CLASS_INACTIVE");
     return classRecord.id;
   }
-
   return null;
 }
 
@@ -100,7 +98,6 @@ export async function GET(request: NextRequest) {
       },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
-
     return NextResponse.json(students);
   } catch (error) {
     console.error("GET /api/students error:", error);
@@ -152,8 +149,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("POST /api/students error:", error);
     if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
-    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز ایجاد دانش‌آموز را ندارید." }, { status: 403 });
-    if (error instanceof Error && error.message === "P2002") return NextResponse.json({ error: "دانش‌آموز با این اطلاعات قبلاً ثبت شده است." }, { status: 409 });
-    return NextResponse.json({ error: "ایجاد دانش‌آموز انجام نشد." }, { status: 500 });
+    if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز انجام این عملیات را ندارید." }, { status: 403 });
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") return NextResponse.json({ error: "دانش‌آموزی با این کد ملی قبلاً در سیستم ثبت شده است." }, { status: 409 });
+    return NextResponse.json({ error: "خطا در ایجاد دانش‌آموز" }, { status: 500 });
   }
 }
