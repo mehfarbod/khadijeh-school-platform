@@ -57,7 +57,6 @@ model Student {
   isBirthdayVisible      Boolean   @default(true)
   photo                  String?
 
-  // Father information
   fatherFirstName  String?
   fatherLastName   String?
   fatherNationalId String?
@@ -65,7 +64,6 @@ model Student {
   fatherEducation  String?
   fatherMobile     String?
 
-  // Mother information
   motherFirstName  String?
   motherLastName   String?
   motherNationalId String?
@@ -73,13 +71,10 @@ model Student {
   motherEducation  String?
   motherMobile     String?
 
-  // Contact information
   address     String?
   landline    String?
   description String?
-
-  // Optional for future use
-  email String?
+  email       String?
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -132,22 +127,22 @@ model StudentOtp {
 }
 
 model Staff {
-  id        String   @id @default(cuid())
-  nationalId String? @unique
-  firstName String
-  lastName  String
-  position  String
-  subject   String?
-  category  String
-  bio       String?
-  education String?
-  photo     String?
-  phone     String?
-  email     String?
-  userId    String?  @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  nationalId String?  @unique
+  firstName  String
+  lastName   String
+  position   String
+  subject    String?
+  category   String
+  bio        String?
+  education  String?
+  photo      String?
+  phone      String?
+  email      String?
+  userId     String?  @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -169,7 +164,6 @@ model AdminPasswordResetOtp {
 
   @@index([userId, consumedAt, createdAt])
   @@index([phone])
-  @@index([expiresAt])
 }
 
 model Permission {
@@ -227,8 +221,8 @@ model Course {
   gradeLevel           String?
   registrationDeadline DateTime?
   isActive             Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   createdById String?
   createdBy   User?   @relation("CourseCreatedBy", fields: [createdById], references: [id])
@@ -475,18 +469,18 @@ model GalleryItem {
 }
 
 model AboutPage {
-  id                  String   @id @default("school-about")
-  heroBadge           String
-  heroTitle           String
-  heroDescription     String
-  introEyebrow        String
-  introTitle          String
-  introContent        String
-  stats               Json
-  values              Json
-  communityTitle      String
+  id                   String   @id @default("school-about")
+  heroBadge            String
+  heroTitle            String
+  heroDescription      String
+  introEyebrow         String
+  introTitle           String
+  introContent         String
+  stats                Json
+  values               Json
+  communityTitle       String
   communityDescription String
-  updatedAt           DateTime @updatedAt
+  updatedAt            DateTime @updatedAt
 
   @@map("AboutPage")
 }
@@ -503,11 +497,11 @@ model EducationalProgram {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  weeklySchedule           WeeklySchedule?
-  examSchedule             ExamSchedule?
-  calendarEvents            EducationalCalendarEvent[]
-  parentMeetings            ParentMeeting[]
-  familyCounselingSessions  FamilyCounselingSession[]
+  weeklySchedule          WeeklySchedule?
+  examSchedule            ExamSchedule?
+  calendarEvents          EducationalCalendarEvent[]
+  parentMeetings          ParentMeeting[]
+  familyCounselingSessions FamilyCounselingSession[]
 
   @@index([isActive])
   @@index([createdAt])
@@ -563,15 +557,12 @@ model ExamScheduleEntry {
   subject     String
   date        String
   time        String?
-  grade       String
-  className   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   schedule ExamSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   @@index([scheduleId])
-  @@index([grade])
   @@index([date])
 }
 
@@ -580,10 +571,8 @@ model EducationalCalendarEvent {
   programId   String
   title       String
   date        String
-  eventType   String
-  description String
-  imageUrl    String?
-  isActive    Boolean  @default(true)
+  time        String?
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -591,8 +580,6 @@ model EducationalCalendarEvent {
 
   @@index([programId])
   @@index([date])
-  @@index([eventType])
-  @@index([isActive])
 }
 
 model ParentMeeting {
@@ -601,12 +588,8 @@ model ParentMeeting {
   title       String
   date        String
   time        String?
-  topic       String
-  audience    String?
-  description String
   location    String?
-  imageUrl    String?
-  isActive    Boolean  @default(true)
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -614,40 +597,33 @@ model ParentMeeting {
 
   @@index([programId])
   @@index([date])
-  @@index([isActive])
 }
 
 model FamilyCounselingSession {
   id          String   @id @default(cuid())
-  programId   String   @unique
+  programId   String
   title       String
   date        String
   time        String?
-  counselor   String
-  topic       String
-  audience    String?
-  description String
   location    String?
-  imageUrl    String?
-  isActive    Boolean  @default(true)
+  counselor   String?
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   program EducationalProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
 
+  @@index([programId])
   @@index([date])
-  @@index([isActive])
 }
 
 model EducationalVideo {
   id          String   @id @default(cuid())
   title       String
-  slug        String   @unique
-  subject     String
-  grade       String
-  duration    String
-  instructor  String
+  description String?
   videoUrl    String
+  subject     String?
+  grade       String?
   isActive    Boolean  @default(true)
   createdById String?
   createdAt   DateTime @default(now())
@@ -693,17 +669,17 @@ model AcademicYear {
 }
 
 model Class {
-  id             String   @id @default(cuid())
-  academicYearId String
-  grade          String
-  name           String
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  academicYearId  String
+  grade           String
+  name            String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  academicYear      AcademicYear             @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  enrollments       StudentEnrollment[]
-  teacherAssignments TeacherClassAssignment[]
+  academicYear       AcademicYear             @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  enrollments         StudentEnrollment[]
+  teacherAssignments  TeacherClassAssignment[]
 
   @@unique([academicYearId, grade, name])
   @@index([academicYearId])
@@ -751,7 +727,6 @@ model StudentEnrollment {
 model AdmissionApplication {
   id String @id @default(cuid())
 
-  // Student information
   studentFirstName       String
   studentLastName        String
   birthDate              DateTime?
@@ -760,7 +735,6 @@ model AdmissionApplication {
   requestedGrade         String
   studentMobile          String
 
-  // Father information
   fatherFirstName  String
   fatherLastName   String
   fatherNationalId String?
@@ -768,7 +742,6 @@ model AdmissionApplication {
   fatherEducation  String?
   fatherMobile     String?
 
-  // Mother information
   motherFirstName  String
   motherLastName   String
   motherNationalId String?
@@ -776,12 +749,13 @@ model AdmissionApplication {
   motherEducation  String?
   motherMobile     String?
 
-  // Contact information
   address     String
   landline    String?
   description String?
 
-  // Admission information
+  witnessPoints    Json?
+  witnessTotalScore Float?
+
   academicYearId  String
   status          AdmissionApplicationStatus @default(PENDING)
   rejectionReason String?
@@ -821,7 +795,7 @@ model SchoolSettings {
   namAddressUrl         String?
   eitaaUrl              String?
   baleUrl               String?
-  skyroomUrl            String?
+  skyroomUrl             String?
   schoolStatusEnabled   Boolean  @default(false)
   schoolStatus          String?
   showNews              Boolean  @default(true)
@@ -829,5 +803,9 @@ model SchoolSettings {
   showBirthdays         Boolean  @default(true)
   showTopStudents       Boolean  @default(true)
   showDailyAbsences     Boolean  @default(true)
+  showGallery           Boolean  @default(true)
+  showCourses           Boolean  @default(true)
+  showPrograms          Boolean  @default(true)
+  showEducationalVideos Boolean  @default(true)
   updatedAt             DateTime @updatedAt
 }
