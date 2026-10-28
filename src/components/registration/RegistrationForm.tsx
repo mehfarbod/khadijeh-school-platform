@@ -322,7 +322,7 @@ export default function RegistrationForm() {
               <Field label="نام" value={form.studentFirstName} onChange={(v) => updateForm("studentFirstName", v)} error={errors.studentFirstName} required placeholder="مثلاً سارا" />
               <Field label="نام خانوادگی" value={form.studentLastName} onChange={(v) => updateForm("studentLastName", v)} error={errors.studentLastName} required placeholder="مثلاً احمدی" />
               <div>
-                <label className="mb-2 block text-sm font-medium text-[#194342]">تاریخ تولد * <span className="font-normal text-[#194342]/55">(سال/ماه/روز)</span></label>
+                <label className="mb-2 block text-sm font-medium text-[#194342]">تاریخ تولد (سال/ماه/روز) *</label>
                 <JalaliDatePicker value={form.birthDate} onChange={(v) => updateForm("birthDate", v)} placeholder="مثلاً ۱۴۰۰/۰۱/۰۱" className="!w-full rounded-xl border border-[#194342]/15 bg-[#FAF8F3] px-4 py-3 text-sm outline-none [direction:ltr] text-right" />
                 {errors.birthDate && <p className="mt-2 text-xs text-red-600">{errors.birthDate}</p>}
               </div>
@@ -388,7 +388,7 @@ export default function RegistrationForm() {
         </form>
       ) : (
         <form onSubmit={handleFinalSubmit} className="space-y-7">
-          <WitnessPointsTable value={witnessPoints} onChange={updateWitnessPoint} />
+          <WitnessPointsTable values={witnessPoints} onChange={updateWitnessPoint} />
           <div className="sticky bottom-4 rounded-2xl border border-[#194342]/10 bg-white/95 p-4 shadow-lg backdrop-blur">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
