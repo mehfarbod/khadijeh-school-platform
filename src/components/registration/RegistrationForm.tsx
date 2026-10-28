@@ -323,7 +323,7 @@ export default function RegistrationForm() {
               <Field label="نام خانوادگی" value={form.studentLastName} onChange={(v) => updateForm("studentLastName", v)} error={errors.studentLastName} required placeholder="مثلاً احمدی" />
               <div>
                 <label className="mb-2 block text-sm font-medium text-[#194342]">تاریخ تولد *</label>
-                <JalaliDatePicker value={form.birthDate} onChange={(v) => updateForm("birthDate", v)} placeholder="تاریخ تولد" className="!w-full rounded-xl border border-[#194342]/15 bg-[#FAF8F3] px-4 py-3 text-sm outline-none" />
+                <JalaliDatePicker value={form.birthDate} onChange={(v) => updateForm("birthDate", v)} placeholder="تاریخ تولد" className="!w-full rounded-xl border border-[#194342]/15 bg-[#FAF8F3] px-4 py-3 text-sm outline-none [direction:ltr] text-right" />
                 {errors.birthDate && <p className="mt-2 text-xs text-red-600">{errors.birthDate}</p>}
               </div>
               <Field label="کد ملی" value={form.nationalId} onChange={(v) => updateForm("nationalId", v)} error={errors.nationalId} required inputMode="numeric" />
