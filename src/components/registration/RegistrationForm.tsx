@@ -322,8 +322,8 @@ export default function RegistrationForm() {
               <Field label="نام" value={form.studentFirstName} onChange={(v) => updateForm("studentFirstName", v)} error={errors.studentFirstName} required placeholder="مثلاً سارا" />
               <Field label="نام خانوادگی" value={form.studentLastName} onChange={(v) => updateForm("studentLastName", v)} error={errors.studentLastName} required placeholder="مثلاً احمدی" />
               <div>
-                <label className="mb-2 block text-sm font-medium text-[#194342]">تاریخ تولد *</label>
-                <JalaliDatePicker value={form.birthDate} onChange={(v) => updateForm("birthDate", v)} placeholder="تاریخ تولد" className="!w-full rounded-xl border border-[#194342]/15 bg-[#FAF8F3] px-4 py-3 text-sm outline-none [direction:ltr] text-right" />
+                <label className="mb-2 block text-sm font-medium text-[#194342]">تاریخ تولد * <span className="font-normal text-[#194342]/55">(سال/ماه/روز)</span></label>
+                <JalaliDatePicker value={form.birthDate} onChange={(v) => updateForm("birthDate", v)} placeholder="مثلاً ۱۴۰۰/۰۱/۰۱" className="!w-full rounded-xl border border-[#194342]/15 bg-[#FAF8F3] px-4 py-3 text-sm outline-none [direction:ltr] text-right" />
                 {errors.birthDate && <p className="mt-2 text-xs text-red-600">{errors.birthDate}</p>}
               </div>
               <Field label="کد ملی" value={form.nationalId} onChange={(v) => updateForm("nationalId", v)} error={errors.nationalId} required inputMode="numeric" />
@@ -383,32 +383,22 @@ export default function RegistrationForm() {
           </section>
 
           <div className="flex justify-end">
-            <button type="submit" className="rounded-2xl bg-[#194342] px-7 py-3.5 text-sm font-bold text-white transition hover:bg-[#123533]">ثبت اطلاعات و ادامه به مرحله دوم ←</button>
+            <button type="submit" className="rounded-xl bg-[#194342] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#143735]">ادامه به مرحله دوم</button>
           </div>
         </form>
       ) : (
         <form onSubmit={handleFinalSubmit} className="space-y-7">
-          <section className="rounded-3xl border border-[#194342]/10 bg-white p-6 shadow-sm sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-[#194342]">مرحله دوم: امتیازات مدارس شاهد</h2>
-                <p className="mt-2 text-sm leading-7 text-[#194342]/65">امتیاز هر بند را بر اساس مدارک و شرایط خود وارد کنید. اطلاعات مرحله اول همچنان ذخیره شده است.</p>
-              </div>
-              <button type="button" onClick={() => setStep(1)} className="rounded-xl border border-[#194342]/15 px-4 py-2.5 text-sm font-medium text-[#194342]">← ویرایش مرحله اول</button>
-            </div>
-          </section>
-
-          <WitnessPointsTable values={witnessPoints} onChange={updateWitnessPoint} />
-
-          <div className="rounded-2xl border border-[#194342]/10 bg-white p-5 shadow-sm">
+          <WitnessPointsTable value={witnessPoints} onChange={updateWitnessPoint} />
+          <div className="sticky bottom-4 rounded-2xl border border-[#194342]/10 bg-white/95 p-4 shadow-lg backdrop-blur">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="text-sm text-[#194342]/60">مجموع امتیاز قابل ارسال</div>
+                <div className="text-xs text-[#194342]/60">مجموع امتیازات ثبت‌شده</div>
                 <div className="mt-1 text-2xl font-bold text-[#194342]">{totalScore.toLocaleString("fa-IR")} امتیاز</div>
               </div>
-              <button type="submit" disabled={isSubmitting} className="rounded-2xl bg-[#194342] px-7 py-3.5 text-sm font-bold text-white transition hover:bg-[#123533] disabled:cursor-not-allowed disabled:opacity-60">
-                {isSubmitting ? "در حال ثبت نهایی…" : "تکمیل و ارسال پیش‌ثبت‌نام"}
-              </button>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setStep(1)} className="rounded-xl border border-[#194342]/15 bg-white px-5 py-3 text-sm font-medium text-[#194342]">بازگشت به مرحله اول</button>
+                <button type="submit" disabled={isSubmitting} className="rounded-xl bg-[#194342] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#143735] disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting ? "در حال ثبت…" : "ثبت نهایی پیش‌ثبت‌نام"}</button>
+              </div>
             </div>
           </div>
         </form>
