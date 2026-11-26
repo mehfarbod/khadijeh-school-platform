@@ -3,6 +3,7 @@
 import AdminLayout from "@/components/admin/AdminLayout";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useEffect, useState } from "react";
+import { WITNESS_POINT_ITEMS } from "@/components/registration/WitnessPointsTable";
 import { Check, ChevronDown, Clock3, Loader2, X } from "lucide-react";
 
 type AdmissionStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
@@ -40,6 +41,9 @@ interface AdmissionApplication {
   address: string;
   landline: string | null;
   description: string | null;
+
+  witnessPoints: Record<string, number> | null;
+  witnessTotalScore: number | null;
 
   academicYearId: string;
   status: AdmissionStatus;
@@ -571,6 +575,39 @@ export default function AdminAdmissionApplications() {
                   </div>
                 </section>
               </div>
+
+              <section className="mt-7 border-t border-border/60 pt-6">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground">امتیازات شاهد</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">امتیازهای اعلام‌شده توسط خانواده؛ برای تطبیق با مدارک ارائه‌شده</p>
+                  </div>
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm">
+                    <span className="text-muted-foreground">مجموع امتیاز اعلام‌شده: </span>
+                    <strong className="text-primary" dir="ltr">{(selectedApplication.witnessTotalScore ?? 0).toLocaleString("fa-IR")}</strong>
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-xl border border-border/60">
+                  <div className="grid grid-cols-[minmax(0,1fr)_90px_100px] gap-3 bg-muted/50 px-3 py-3 text-xs font-semibold text-muted-foreground sm:px-4">
+                    <span>بند امتیاز</span><span className="text-center">امتیاز اعلامی</span><span className="text-center">سقف امتیاز</span>
+                  </div>
+                  <div className="divide-y divide-border/50">
+                    {WITNESS_POINT_ITEMS.map((item) => {
+                      const points = Number(selectedApplication.witnessPoints?.[String(item.id)] ?? 0);
+                      return (
+                        <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_90px_100px] items-start gap-3 px-3 py-3 text-xs sm:px-4 sm:text-sm">
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground"><span className="ml-1 text-muted-foreground">{item.id}.</span>{item.title}</p>
+                            <p className="mt-1 leading-6 text-muted-foreground">{item.description}</p>
+                          </div>
+                          <span className="pt-1 text-center font-semibold tabular-nums" dir="ltr">{points.toLocaleString("fa-IR")}</span>
+                          <span className="pt-1 text-center text-muted-foreground tabular-nums" dir="ltr">{item.max === null ? "بدون سقف مشخص" : item.max.toLocaleString("fa-IR")}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
 
               {actionError && (
                 <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
