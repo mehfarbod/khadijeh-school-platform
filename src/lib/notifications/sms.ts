@@ -4,8 +4,8 @@
  * branch when credentials and a provider contract are available.
  */
 export async function sendSmsOtp({ to, code }: { to: string; code: string }) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("[DEV STUDENT SMS OTP] " + to + ": " + code);
+  if (canExposeLocalDevelopmentOtp()) {
+    console.info(`[LOCAL DEV STUDENT SMS OTP] ${maskPhone(to)}: ${code}`);
     return;
   }
   throw new Error("SMS_PROVIDER_NOT_CONFIGURED");
@@ -22,10 +22,24 @@ export async function sendAdminPasswordResetOtp({
   to: string;
   code: string;
 }) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("[DEV ADMIN PASSWORD RESET OTP] " + to + ": " + code);
+  if (canExposeLocalDevelopmentOtp()) {
+    console.info(
+      `[LOCAL DEV ADMIN PASSWORD RESET OTP] ${maskPhone(to)}: ${code}`,
+    );
     return;
   }
 
   throw new Error("SMS_PROVIDER_NOT_CONFIGURED");
+}
+
+function canExposeLocalDevelopmentOtp() {
+  return (
+    process.env.NODE_ENV === "development" &&
+    process.env.DEV_EXPOSE_AUTH_OTP === "true"
+  );
+}
+
+function maskPhone(phone: string) {
+  if (phone.length < 4) return "***";
+  return `${phone.slice(0, 2)}*******${phone.slice(-2)}`;
 }

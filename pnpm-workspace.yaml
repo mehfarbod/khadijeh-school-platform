@@ -4,4 +4,3 @@ allowBuilds:
   msgpackr-extract: false
   prisma: true
   unrs-resolver: true
-  workerd: false

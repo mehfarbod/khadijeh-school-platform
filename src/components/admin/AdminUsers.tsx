@@ -61,6 +61,7 @@ type UsersResponse = {
   canCreate: boolean;
   canEdit: boolean;
   canManagePermissions: boolean;
+  assignableRoles: string[];
   users: AccessUser[];
   permissions: Permission[];
   rolePermissions: Record<string, string[]>;
@@ -87,6 +88,8 @@ export default function AdminUsers() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("STAFF");
   const [isActive, setIsActive] = useState(true);
+  const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const loadUsers = async (): Promise<UsersResponse | null> => {
     try {
@@ -141,6 +144,8 @@ export default function AdminUsers() {
     setEmail(member.user?.email ?? member.email ?? "");
     setRole(member.user?.role ?? (member.position === "معلم" ? "TEACHER" : "STAFF"));
     setIsActive(member.user?.isActive ?? true);
+    setTemporaryPassword("");
+    setConfirmPassword("");
 
     const state: Record<string, boolean | null> = {};
     for (const permission of sourceData?.permissions ?? []) state[permission.key] = null;
@@ -162,6 +167,18 @@ export default function AdminUsers() {
       toast.error("ابتدا کد ملی معتبر را در اطلاعات کادر ثبت کنید.");
       return;
     }
+    if (!selectedStaff.user && temporaryPassword.length < 8) {
+      toast.error("رمز موقت باید حداقل ۸ نویسه باشد.");
+      return;
+    }
+    if (!selectedStaff.user && temporaryPassword !== confirmPassword) {
+      toast.error("رمز موقت و تکرار آن یکسان نیستند.");
+      return;
+    }
+    if (!selectedStaff.user && temporaryPassword === nationalId) {
+      toast.error("رمز موقت نباید با کد ملی یکسان باشد.");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -173,6 +190,7 @@ export default function AdminUsers() {
         staffId: string;
         isActive: boolean;
         permissions?: { key: string; allowed: boolean | null }[];
+        temporaryPassword?: string;
       } = {
         name: `${selectedStaff.firstName} ${selectedStaff.lastName}`,
         email: email.trim() || null,
@@ -180,6 +198,7 @@ export default function AdminUsers() {
         role,
         staffId: selectedStaff.id,
         isActive,
+        ...(!selectedStaff.user && { temporaryPassword }),
       };
 
       if (selectedStaff.user && data?.canManagePermissions) {
@@ -211,7 +230,7 @@ export default function AdminUsers() {
 
       toast.success(selectedStaff.user
         ? "دسترسی‌های کاربر با موفقیت ذخیره شد."
-        : "دسترسی ورود فعال شد؛ رمز اولیه کد ملی است و در اولین ورود باید تغییر کند.");
+        : "دسترسی ورود فعال شد؛ کاربر باید در اولین ورود رمز موقت را تغییر دهد.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "خطا در ذخیره دسترسی");
     } finally {
@@ -351,7 +370,7 @@ export default function AdminUsers() {
                 <div>
                   <label className="text-sm font-medium">نقش</label>
                   <select value={role} onChange={(event) => setRole(event.target.value)} disabled={saving || isSuperAdminTarget} className="mt-1.5 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60">
-                    {ROLES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                    {ROLES.filter((item) => selectedStaff?.user?.role === item.value || data?.assignableRoles.includes(item.value)).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
                 </div>
               </div>
@@ -367,7 +386,7 @@ export default function AdminUsers() {
               </div>
 
               {!selectedStaff.user && (
-                <p className="rounded-xl border border-border/60 bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">رمز اولیه حساب برابر کد ملی است و کاربر باید در اولین ورود آن را تغییر دهد.</p>
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4"><p className="text-xs leading-5 text-muted-foreground">رمز موقت را از مسیر امن تحویل دهید؛ تغییر آن در اولین ورود اجباری است.</p><div className="mt-3 grid gap-3 sm:grid-cols-2"><div><label className="text-xs font-medium">رمز موقت</label><Input type="password" autoComplete="new-password" value={temporaryPassword} onChange={(event) => setTemporaryPassword(event.target.value)} className="mt-1.5" dir="ltr" /></div><div><label className="text-xs font-medium">تکرار رمز موقت</label><Input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="mt-1.5" dir="ltr" /></div></div></div>
               )}
 
               {selectedStaff.user && isSuperAdminTarget && (

@@ -1,5 +1,3 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
 import { getAuthenticatedAdmin } from "@/lib/auth/admin-session";
 import { prisma } from "@/lib/prisma";
 
@@ -11,9 +9,6 @@ export type UserRole =
   | "STAFF";
 
 export async function getCurrentSession() {
-  const nextAuthSession = await getServerSession(authOptions);
-  if (nextAuthSession?.user?.id) return nextAuthSession;
-
   const admin = await getAuthenticatedAdmin();
   if (!admin) return null;
 

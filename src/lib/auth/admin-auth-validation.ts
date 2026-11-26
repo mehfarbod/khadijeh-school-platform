@@ -3,10 +3,14 @@ import { z } from "zod";
 import { normalizeDigits } from "@/lib/date/jalali";
 import { iranianNationalIdSchema } from "@/lib/validation/student";
 
-const passwordSchema = z
+export const adminPasswordSchema = z
   .string()
   .min(8, "رمز عبور باید حداقل ۸ نویسه باشد.")
-  .max(128, "رمز عبور نباید بیشتر از ۱۲۸ نویسه باشد.");
+  .max(128, "رمز عبور نباید بیشتر از ۱۲۸ نویسه باشد.")
+  .refine(
+    (password) => password.replace(/\s/g, "").length >= 8,
+    "رمز عبور باید حداقل ۸ نویسه غیرخالی داشته باشد.",
+  );
 
 export const adminPasswordLoginSchema = z.object({
   nationalId: iranianNationalIdSchema,
@@ -30,7 +34,7 @@ export const adminPasswordResetOtpVerificationSchema = z.object({
 
 export const newAdminPasswordSchema = z
   .object({
-    password: passwordSchema,
+    password: adminPasswordSchema,
     confirmPassword: z
       .string()
       .min(1, "تکرار رمز عبور را وارد کنید.")

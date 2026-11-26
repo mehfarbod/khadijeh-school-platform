@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
-import { iranianNationalIdSchema } from "@/lib/validation/student";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
+import {
+  iranianMobileSchema,
+  iranianNationalIdSchema,
+} from "@/lib/validation/student";
+import { canManageAccount } from "@/lib/auth/admin-account-policy";
+import { invalidateOutstandingAdminRecoveryOtps } from "@/lib/auth/admin-recovery-state";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -70,12 +75,7 @@ const updateStaffSchema = z.object({
     .nullable()
     .optional(),
 
-  phone: z
-    .string()
-    .trim()
-    .max(30, "شماره تماس نامعتبر است.")
-    .nullable()
-    .optional(),
+  phone: iranianMobileSchema.nullable().optional(),
 
   email: z
     .string()
@@ -93,6 +93,7 @@ export async function PATCH(
   context: RouteContext
 ) {
   try {
+    const session = await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("staff.edit");
 
     const { id } = await context.params;
@@ -112,9 +113,35 @@ export async function PATCH(
 
     const data = result.data;
 
-    const staff = await prisma.staff.update({
+    const existing = await prisma.staff.findUnique({
       where: { id },
-      data: {
+      include: { user: { select: { id: true, role: true, isActive: true } } },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
+    }
+    if (existing.user && !canManageAccount(session.user.role, existing.user.role)) {
+      return NextResponse.json(
+        { error: "اجازه ویرایش حساب این عضو کادر را ندارید." },
+        { status: 403 },
+      );
+    }
+
+    const nextActive = data.isActive ?? existing.isActive;
+    const nextPhone = data.phone === undefined ? existing.phone : data.phone;
+    if (existing.user && (nextActive === false || !iranianMobileSchema.safeParse(nextPhone ?? "").success)) {
+      if (nextActive !== false) {
+        return NextResponse.json(
+          { error: "حساب ورود فعال باید شماره همراه معتبر داشته باشد." },
+          { status: 400 },
+        );
+      }
+    }
+
+    const staff = await prisma.$transaction(async (tx) => {
+      const updated = await tx.staff.update({
+        where: { id },
+        data: {
         ...(data.nationalId !== undefined && {
           nationalId: data.nationalId,
         }),
@@ -151,12 +178,35 @@ export async function PATCH(
         ...(data.isActive !== undefined && {
           isActive: data.isActive,
         }),
-      },
+        },
+      });
+
+      if (existing.user) {
+        const authenticationChanged =
+          data.nationalId !== undefined ||
+          data.isActive !== undefined ||
+          data.phone !== undefined;
+        await tx.user.update({
+          where: { id: existing.user.id },
+          data: {
+            ...(data.isActive !== undefined && { isActive: data.isActive }),
+            ...(authenticationChanged && { sessionVersion: { increment: 1 } }),
+          },
+        });
+        if (authenticationChanged) {
+          await invalidateOutstandingAdminRecoveryOtps(
+            tx,
+            existing.user.id,
+          );
+        }
+      }
+
+      return updated;
     });
 
     return NextResponse.json(staff);
   } catch (error) {
-    console.error("PATCH /api/staff/[id] error:", error);
+    console.error("Staff update failed internally.");
 
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
       return NextResponse.json(
@@ -191,17 +241,33 @@ export async function DELETE(
   context: RouteContext
 ) {
   try {
+    const session = await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("staff.edit");
 
     const { id } = await context.params;
 
-    await prisma.staff.delete({
+    const staff = await prisma.staff.findUnique({
       where: { id },
+      include: { user: { select: { role: true } } },
     });
+    if (!staff) {
+      return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
+    }
+    if (staff.user) {
+      if (!canManageAccount(session.user.role, staff.user.role)) {
+        return NextResponse.json({ error: "اجازه حذف این عضو کادر را ندارید." }, { status: 403 });
+      }
+      return NextResponse.json(
+        { error: "ابتدا حساب ورود این عضو را غیرفعال و حذف کنید." },
+        { status: 409 },
+      );
+    }
+
+    await prisma.staff.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/staff/[id] error:", error);
+    console.error("Staff deletion failed internally.");
 
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json(

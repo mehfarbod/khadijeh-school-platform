@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, requirePermission } from "@/lib/auth/authorization";
 import { hashStudentPassword } from "@/lib/auth/student-password";
-import { iranianNationalIdSchema } from "@/lib/validation/student";
+import {
+  iranianMobileSchema,
+  iranianNationalIdSchema,
+} from "@/lib/validation/student";
+import { provisionAdminAccountSchema } from "@/lib/auth/admin-account-validation";
+import {
+  assignableRolesFor,
+  canAssignRole,
+} from "@/lib/auth/admin-account-policy";
+import { validatePermanentAdminPassword } from "@/lib/auth/admin-auth-validation";
 
 const roleLabels: Record<string, string> = {
   SUPER_ADMIN: "مدیر ارشد",
@@ -59,6 +68,7 @@ export async function GET() {
       canCreate,
       canEdit,
       canManagePermissions,
+      assignableRoles: assignableRolesFor(session.user.role),
       roleLabels,
       users: users.map((user) => ({
         id: user.id,
@@ -82,7 +92,7 @@ export async function GET() {
       }, {}),
     });
   } catch (error) {
-    console.error("GET /api/admin/users error:", error);
+    console.error("Admin account listing failed internally.");
     const status =
       error instanceof Error && error.message === "UNAUTHORIZED" ? 401 :
       error instanceof Error && error.message === "FORBIDDEN" ? 403 : 500;
@@ -96,34 +106,36 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await requirePermission("users.create");
-    const body = await request.json();
-
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    const emailValue = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    const email = emailValue || null;
-    const role = typeof body.role === "string" ? body.role : "STAFF";
-    const staffId = body.staffId === undefined || body.staffId === null || body.staffId === "" ? null : String(body.staffId);
-    const isActive = typeof body.isActive === "boolean" ? body.isActive : true;
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "ایمیل معتبر نیست." }, { status: 400 });
+    const parsed = provisionAdminAccountSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: parsed.error.issues[0]?.message ?? "اطلاعات حساب معتبر نیست.",
+          details: parsed.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
     }
 
-    if (!["SUPER_ADMIN", "SCHOOL_ADMIN", "CONTENT_MANAGER", "TEACHER", "STAFF"].includes(role)) {
-      return NextResponse.json({ error: "نقش کاربر معتبر نیست." }, { status: 400 });
-    }
-
-    if (role === "SUPER_ADMIN" && (session.user.role as string) !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "فقط مدیر ارشد می‌تواند مدیر ارشد دیگری ایجاد کند." }, { status: 403 });
-    }
-
-    if (!staffId) {
-      return NextResponse.json({ error: "برای ساخت حساب ورود باید عضو کادر مشخص شود." }, { status: 400 });
+    const data = parsed.data;
+    if (!canAssignRole(session.user.role, data.role)) {
+      return NextResponse.json(
+        { error: "اجازه تعیین این نقش را ندارید." },
+        { status: 403 },
+      );
     }
 
     const staff = await prisma.staff.findUnique({
-      where: { id: staffId },
-      select: { id: true, firstName: true, lastName: true, nationalId: true, userId: true },
+      where: { id: data.staffId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nationalId: true,
+        phone: true,
+        userId: true,
+        isActive: true,
+      },
     });
     if (!staff) {
       return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
@@ -131,18 +143,38 @@ export async function POST(request: Request) {
     if (staff.userId) {
       return NextResponse.json({ error: "این عضو کادر از قبل حساب ورود دارد." }, { status: 409 });
     }
+    if (!staff.isActive) {
+      return NextResponse.json({ error: "برای کادر غیرفعال نمی‌توان حساب ورود ساخت." }, { status: 409 });
+    }
 
     const validatedNationalId = iranianNationalIdSchema.safeParse(staff.nationalId ?? "");
     if (!validatedNationalId.success) {
       return NextResponse.json({ error: "ابتدا کد ملی معتبر را در اطلاعات کادر ثبت کنید." }, { status: 400 });
     }
-    if (body.nationalId !== undefined) {
-      const requestedNationalId = iranianNationalIdSchema.safeParse(body.nationalId);
+    if (data.nationalId !== undefined) {
+      const requestedNationalId = iranianNationalIdSchema.safeParse(data.nationalId);
       if (!requestedNationalId.success || requestedNationalId.data !== validatedNationalId.data) {
         return NextResponse.json({ error: "کد ملی با اطلاعات عضو کادر مطابقت ندارد." }, { status: 400 });
       }
     }
 
+    const validatedMobile = iranianMobileSchema.safeParse(staff.phone ?? "");
+    if (!validatedMobile.success) {
+      return NextResponse.json(
+        { error: "ابتدا شماره همراه معتبر را در اطلاعات کادر ثبت کنید." },
+        { status: 400 },
+      );
+    }
+
+    const passwordError = validatePermanentAdminPassword(
+      data.temporaryPassword,
+      validatedNationalId.data,
+    );
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
+
+    const email = data.email?.trim().toLowerCase() || null;
     if (email) {
       const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
       if (existing) {
@@ -150,23 +182,23 @@ export async function POST(request: Request) {
       }
     }
 
-    const passwordHash = await hashStudentPassword(validatedNationalId.data);
+    const passwordHash = await hashStudentPassword(data.temporaryPassword);
     const user = await prisma.user.create({
       data: {
-        name: name || `${staff.firstName} ${staff.lastName}`,
+        name: data.name || `${staff.firstName} ${staff.lastName}`,
         email,
-        role: role as "SUPER_ADMIN" | "SCHOOL_ADMIN" | "CONTENT_MANAGER" | "TEACHER" | "STAFF",
+        role: data.role,
         passwordHash,
         mustChangePassword: true,
-        isActive,
-        staff: { connect: { id: staffId } },
+        isActive: data.isActive,
+        staff: { connect: { id: data.staffId } },
       },
       select: { id: true, name: true, email: true, role: true, isActive: true, mustChangePassword: true },
     });
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    console.error("POST /api/admin/users error:", error);
+    console.error("Admin account provisioning failed internally.");
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
       return NextResponse.json({ error: "کد ملی یا ایمیل قبلاً ثبت شده است." }, { status: 409 });
     }

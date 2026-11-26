@@ -60,6 +60,8 @@ type StaffForm = {
   phone: string;
   email: string;
   photo: string;
+  temporaryPassword: string;
+  confirmPassword: string;
   isActive: boolean;
 };
 
@@ -73,6 +75,8 @@ const emptyForm: StaffForm = {
   phone: "",
   email: "",
   photo: "",
+  temporaryPassword: "",
+  confirmPassword: "",
   isActive: true,
 };
 
@@ -165,6 +169,8 @@ export default function AdminStaff() {
       phone: member.phone ?? "",
       email: member.email ?? "",
       photo: member.photo ?? "",
+      temporaryPassword: "",
+      confirmPassword: "",
       isActive: member.isActive,
     });
     setDialogOpen(true);
@@ -177,6 +183,22 @@ export default function AdminStaff() {
     }
     if (!editId && !form.nationalId.trim()) {
       toast.error("کد ملی برای ساخت حساب ورود الزامی است.");
+      return;
+    }
+    if (!editId && !/^09\d{9}$/.test(form.phone.trim())) {
+      toast.error("شماره همراه معتبر برای بازیابی رمز عبور الزامی است.");
+      return;
+    }
+    if (!editId && form.temporaryPassword.length < 8) {
+      toast.error("رمز موقت باید حداقل ۸ نویسه باشد.");
+      return;
+    }
+    if (!editId && form.temporaryPassword !== form.confirmPassword) {
+      toast.error("رمز موقت و تکرار آن یکسان نیستند.");
+      return;
+    }
+    if (!editId && form.temporaryPassword === form.nationalId.trim()) {
+      toast.error("رمز موقت نباید با کد ملی یکسان باشد.");
       return;
     }
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -197,6 +219,7 @@ export default function AdminStaff() {
         email: form.email.trim() || null,
         photo: form.photo.trim() || null,
         isActive: form.isActive,
+        ...(!editId && { temporaryPassword: form.temporaryPassword }),
       };
 
       const response = await fetch(editId ? `/api/staff/${editId}` : "/api/staff", {
@@ -209,7 +232,7 @@ export default function AdminStaff() {
 
       toast.success(editId
         ? "اطلاعات کادر ویرایش شد"
-        : "عضو و حساب ورود ساخته شد؛ رمز اولیه کد ملی است و در اولین ورود باید تغییر کند.");
+        : "عضو و حساب ورود ساخته شد؛ کاربر باید در اولین ورود رمز موقت را تغییر دهد.");
       setDialogOpen(false);
       await loadStaff();
     } catch (error) {
@@ -307,7 +330,7 @@ export default function AdminStaff() {
                 <div className="sm:col-span-2">
                   <Label>کد ملی (شناسه ورود)</Label>
                   <Input value={form.nationalId} onChange={(event) => updateForm("nationalId", event.target.value)} className="mt-1.5" placeholder="کد ملی ۱۰ رقمی" inputMode="numeric" dir="ltr" />
-                  <p className="mt-1 text-xs text-muted-foreground">برای عضو جدید الزامی است. حساب ورود خودکار ساخته می‌شود و رمز اولیه کد ملی است؛ در اولین ورود باید تغییر کند.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">برای عضو جدید و نام کاربری ورود الزامی است.</p>
                 </div>
                 <div>
                   <Label>دسته‌بندی</Label>
@@ -330,13 +353,14 @@ export default function AdminStaff() {
             <section>
               <div className="mb-4 flex items-center gap-2"><div className="rounded-lg bg-[#F1F5E8] p-2 text-[#194342]"><ShieldCheck className="h-4 w-4" /></div><div><h2 className="text-sm font-semibold">اطلاعات تماس</h2><p className="text-xs text-muted-foreground">اطلاعات تماس در صورت نیاز قابل ثبت است.</p></div></div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div><Label>شماره تلفن</Label><Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} className="mt-1.5" placeholder="09xxxxxxxxx" dir="ltr" /></div>
+                <div><Label>شماره همراه</Label><Input value={form.phone} onChange={(event) => updateForm("phone", event.target.value)} className="mt-1.5" placeholder="09xxxxxxxxx" dir="ltr" inputMode="tel" /><p className="mt-1 text-xs text-muted-foreground">برای عضو جدید و بازیابی رمز عبور الزامی است.</p></div>
                 <div><Label>ایمیل</Label><Input value={form.email} onChange={(event) => updateForm("email", event.target.value)} className="mt-1.5" placeholder="example@school.ir" dir="ltr" type="email" /></div>
                 <div className="sm:col-span-2"><Label>آدرس عکس</Label><Input value={form.photo} onChange={(event) => updateForm("photo", event.target.value)} className="mt-1.5" placeholder="https://..." dir="ltr" /><p className="mt-1 text-xs text-muted-foreground">آدرس تصویر را وارد کنید.</p></div>
               </div>
             </section>
 
 
+            {!editId && <section className="rounded-xl border border-border/60 p-4"><h3 className="text-sm font-semibold">رمز موقت ورود</h3><p className="mt-1 text-xs text-muted-foreground">رمز را از مسیر امن به عضو کادر تحویل دهید. در اولین ورود تغییر آن اجباری است.</p><div className="mt-4 grid gap-4 sm:grid-cols-2"><div><Label>رمز موقت</Label><Input type="password" autoComplete="new-password" value={form.temporaryPassword} onChange={(event) => updateForm("temporaryPassword", event.target.value)} className="mt-1.5" dir="ltr" /></div><div><Label>تکرار رمز موقت</Label><Input type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => updateForm("confirmPassword", event.target.value)} className="mt-1.5" dir="ltr" /></div></div></section>}
             <section><div className="flex items-center justify-between rounded-xl border border-border/60 p-4"><div><p className="text-sm font-medium">وضعیت عضو کادر</p><p className="mt-1 text-xs text-muted-foreground">عضو غیرفعال در لیست‌های عمومی نمایش داده نمی‌شود.</p></div><button type="button" onClick={() => updateForm("isActive", !form.isActive)} className={`relative h-6 w-11 rounded-full transition ${form.isActive ? "bg-[#194342]" : "bg-muted"}`} aria-pressed={form.isActive}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${form.isActive ? "right-1" : "right-6"}`} /></button></div></section>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>انصراف</Button><Button onClick={handleSubmit} disabled={saving}>{saving ? "در حال ذخیره..." : editId ? "ذخیره تغییرات" : "افزودن عضو"}</Button></DialogFooter>

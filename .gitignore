@@ -14,7 +14,6 @@ out
 dist
 
 # Generated files
-src/convex/_generated
 src/generated/prisma
 
 # Local tools

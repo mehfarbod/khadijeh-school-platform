@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requirePermission } from "@/lib/auth/authorization";
+import { requirePermission, requireRole } from "@/lib/auth/authorization";
 import { hashStudentPassword } from "@/lib/auth/student-password";
-import { iranianNationalIdSchema } from "@/lib/validation/student";
+import {
+  iranianMobileSchema,
+  iranianNationalIdSchema,
+} from "@/lib/validation/student";
+import {
+  adminPasswordSchema,
+  validatePermanentAdminPassword,
+} from "@/lib/auth/admin-auth-validation";
 
 const createStaffSchema = z.object({
   nationalId: iranianNationalIdSchema,
@@ -60,12 +67,7 @@ const createStaffSchema = z.object({
     .nullable()
     .optional(),
 
-  phone: z
-    .string()
-    .trim()
-    .max(30, "شماره تماس نامعتبر است.")
-    .nullable()
-    .optional(),
+  phone: iranianMobileSchema,
 
   email: z
     .string()
@@ -76,6 +78,7 @@ const createStaffSchema = z.object({
     .optional(),
 
   isActive: z.boolean().optional(),
+  temporaryPassword: adminPasswordSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -111,7 +114,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(staff);
   } catch (error) {
-    console.error("GET /api/staff error:", error);
+    console.error("Staff listing failed internally.");
 
     return NextResponse.json(
       { error: "خطا در دریافت اطلاعات کادر مدرسه" },
@@ -122,6 +125,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireRole(["SUPER_ADMIN", "SCHOOL_ADMIN"]);
     await requirePermission("staff.create");
     await requirePermission("users.create");
 
@@ -140,7 +144,15 @@ export async function POST(request: NextRequest) {
     }
 
     const data = result.data;
-    const passwordHash = await hashStudentPassword(data.nationalId);
+    const passwordError = validatePermanentAdminPassword(
+      data.temporaryPassword,
+      data.nationalId,
+    );
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
+    }
+
+    const passwordHash = await hashStudentPassword(data.temporaryPassword);
     const isActive = data.isActive ?? true;
 
     const staff = await prisma.staff.create({
@@ -154,7 +166,7 @@ export async function POST(request: NextRequest) {
         bio: data.bio || null,
         education: data.education || null,
         photo: data.photo || null,
-        phone: data.phone || null,
+        phone: data.phone,
         email: data.email || null,
         isActive,
         user: {
@@ -175,7 +187,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(staff, { status: 201 });
   } catch (error) {
-    console.error("POST /api/staff error:", error);
+    console.error("Staff account provisioning failed internally.");
 
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
       return NextResponse.json(

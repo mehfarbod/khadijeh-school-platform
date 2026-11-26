@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, requirePermission } from "@/lib/auth/authorization";
-
-const ROLES = ["SUPER_ADMIN", "SCHOOL_ADMIN", "CONTENT_MANAGER", "TEACHER", "STAFF"] as const;
-type Role = (typeof ROLES)[number];
-
-function isRole(value: unknown): value is Role {
-  return typeof value === "string" && (ROLES as readonly string[]).includes(value);
-}
+import { updateAdminAccountSchema } from "@/lib/auth/admin-account-validation";
+import {
+  canAssignRole,
+  canManageAccount,
+} from "@/lib/auth/admin-account-policy";
+import {
+  iranianMobileSchema,
+  iranianNationalIdSchema,
+} from "@/lib/validation/student";
+import { invalidateOutstandingAdminRecoveryOtps } from "@/lib/auth/admin-recovery-state";
 
 export async function PATCH(
   request: Request,
@@ -16,16 +19,16 @@ export async function PATCH(
   try {
     const session = await requirePermission("users.edit");
     const { id } = await params;
-    const body: unknown = await request.json();
-    if (!body || typeof body !== "object" || Array.isArray(body)) {
-      return NextResponse.json({ error: "اطلاعات ویرایش معتبر نیست." }, { status: 400 });
+    const parsed = updateAdminAccountSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "اطلاعات ویرایش معتبر نیست.", details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      );
     }
 
-    const payload = body as Record<string, unknown>;
-    const permissionsProvided = Object.hasOwn(payload, "permissions");
-    if (permissionsProvided && !Array.isArray(payload.permissions)) {
-      return NextResponse.json({ error: "فهرست دسترسی‌ها معتبر نیست." }, { status: 400 });
-    }
+    const payload = parsed.data;
+    const permissionsProvided = payload.permissions !== undefined;
 
     if (
       permissionsProvided &&
@@ -46,40 +49,28 @@ export async function PATCH(
       return NextResponse.json({ error: "کاربر پیدا نشد." }, { status: 404 });
     }
 
-    if (target.role === "SUPER_ADMIN") {
+    if (!canManageAccount(session.user.role, target.role)) {
       return NextResponse.json(
-        { error: "اطلاعات و دسترسی‌های مدیر ارشد از این بخش قابل تغییر نیست." },
+        { error: "اجازه مدیریت این حساب را ندارید." },
         { status: 403 },
       );
     }
 
-    const currentRole = session.user.role as string;
-
-    const name = payload.name === undefined ? target.name : typeof payload.name === "string" ? payload.name.trim() : null;
+    const name = payload.name === undefined ? target.name : payload.name?.trim() || null;
     const email = payload.email === undefined
       ? target.email
-      : typeof payload.email === "string" && payload.email.trim()
+      : payload.email?.trim()
         ? payload.email.trim().toLowerCase()
         : null;
     const role = payload.role === undefined ? target.role : payload.role;
-    const isActive = payload.isActive === undefined ? target.isActive : Boolean(payload.isActive);
+    const isActive = payload.isActive === undefined ? target.isActive : payload.isActive;
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "ایمیل معتبر نیست." }, { status: 400 });
+    if (role !== target.role && !canAssignRole(session.user.role, role)) {
+      return NextResponse.json({ error: "اجازه تعیین این نقش را ندارید." }, { status: 403 });
     }
 
-    if (!isRole(role)) {
-      return NextResponse.json({ error: "نقش کاربر معتبر نیست." }, { status: 400 });
-    }
-
-    if (role === "SUPER_ADMIN" && currentRole !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "فقط مدیر ارشد می‌تواند نقش مدیر ارشد تعیین کند." }, { status: 403 });
-    }
-
-    if (id === session.user.id && (!isActive || role !== target.role)) {
-      if (!isActive) {
-        return NextResponse.json({ error: "نمی‌توانید حسابی را که با آن وارد شده‌اید غیرفعال کنید." }, { status: 400 });
-      }
+    if (id === session.user.id && (!isActive || role !== target.role || payload.staffId !== undefined)) {
+      return NextResponse.json({ error: "نمی‌توانید نقش، وضعیت یا اتصال حساب فعلی خود را تغییر دهید." }, { status: 400 });
     }
 
     if (email) {
@@ -92,12 +83,12 @@ export async function PATCH(
       }
     }
 
-    const staffId = payload.staffId === undefined ? undefined : payload.staffId === null || payload.staffId === "" ? null : String(payload.staffId);
+    const staffId = payload.staffId;
 
     if (staffId) {
       const staff = await prisma.staff.findUnique({
         where: { id: staffId },
-        select: { id: true, userId: true },
+        select: { id: true, userId: true, nationalId: true, phone: true, isActive: true },
       });
       if (!staff) {
         return NextResponse.json({ error: "عضو کادر پیدا نشد." }, { status: 404 });
@@ -105,14 +96,40 @@ export async function PATCH(
       if (staff.userId && staff.userId !== id) {
         return NextResponse.json({ error: "این عضو کادر به کاربر دیگری متصل است." }, { status: 409 });
       }
+      if (
+        !staff.isActive ||
+        !iranianNationalIdSchema.safeParse(staff.nationalId ?? "").success ||
+        !iranianMobileSchema.safeParse(staff.phone ?? "").success
+      ) {
+        return NextResponse.json(
+          { error: "کادر متصل باید فعال و دارای کد ملی و شماره همراه معتبر باشد." },
+          { status: 400 },
+        );
+      }
     }
 
     const result = await prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({
         where: { id },
-        data: { name: name || null, email, role, isActive },
+        data: {
+          name: name || null,
+          email,
+          role,
+          isActive,
+          ...((role !== target.role || isActive !== target.isActive || staffId !== undefined)
+            ? { sessionVersion: { increment: 1 } }
+            : {}),
+        },
         select: { id: true, name: true, email: true, role: true, isActive: true },
       });
+
+      const authenticationChanged =
+        role !== target.role ||
+        isActive !== target.isActive ||
+        staffId !== undefined;
+      if (authenticationChanged) {
+        await invalidateOutstandingAdminRecoveryOtps(tx, id);
+      }
 
       if (staffId !== undefined) {
         await tx.staff.updateMany({
@@ -120,23 +137,14 @@ export async function PATCH(
           data: { userId: null },
         });
 
-        if (staffId) {
-          await tx.staff.update({
-            where: { id: staffId },
-            data: { userId: id },
-          });
-        }
+        await tx.staff.update({
+          where: { id: staffId },
+          data: { userId: id },
+        });
       }
 
-      if (permissionsProvided && Array.isArray(payload.permissions)) {
-        const permissionItems = payload.permissions.filter(
-          (item: unknown): item is { key: string; allowed: boolean | null } =>
-            typeof item === "object" &&
-            item !== null &&
-            typeof (item as { key?: unknown }).key === "string" &&
-            ((item as { allowed?: unknown }).allowed === null ||
-              typeof (item as { allowed?: unknown }).allowed === "boolean"),
-        );
+      if (permissionsProvided && payload.permissions) {
+        const permissionItems = payload.permissions;
 
         const keys: string[] = Array.from(new Set(permissionItems.map((item: { key: string; allowed: boolean | null }) => item.key)));
         const permissions = await tx.permission.findMany({
@@ -179,7 +187,7 @@ export async function PATCH(
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("PATCH /api/admin/users/[id] error:", error);
+    console.error("Admin account update failed internally.");
     const message = error instanceof Error ? error.message : "";
     const status =
       message === "UNAUTHORIZED" ? 401 :
@@ -221,14 +229,14 @@ export async function DELETE(
       return NextResponse.json({ error: "کاربر پیدا نشد." }, { status: 404 });
     }
 
-    if (target.role === "SUPER_ADMIN" && session.user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "فقط مدیر ارشد می‌تواند حساب مدیر ارشد را حذف کند." }, { status: 403 });
+    if (!canManageAccount(session.user.role, target.role)) {
+      return NextResponse.json({ error: "اجازه حذف این حساب را ندارید." }, { status: 403 });
     }
 
     await prisma.user.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/users/[id] error:", error);
+    console.error("Admin account deletion failed internally.");
     const message = error instanceof Error ? error.message : "";
     const status =
       message === "UNAUTHORIZED" ? 401 :
