@@ -1,4 +1,5 @@
 import { Cake, Sparkles } from "lucide-react";
+import StudentIllustrationPlaceholder from "@/components/ui/StudentIllustrationPlaceholder";
 
 type BirthdayStudent = {
   id: string;
@@ -48,9 +49,7 @@ export default function SchoolCelebrations({
               key={`${student.id}-birthday`}
               className="flex w-full max-w-[360px] items-center gap-4 rounded-2xl border border-[#DBE7C1] bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
             >
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#194342] to-[#3F5D3E] text-xl font-bold leading-none text-white">
-                {student.firstName.trim().charAt(0)}
-              </div>
+              <StudentIllustrationPlaceholder variant="birthday" className="w-16" />
 
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-bold text-[#1F2933]">

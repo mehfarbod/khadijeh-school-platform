@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 const labels: Record<string, string> = {
   weekly: "برنامه هفتگی",
   exams: "برنامه امتحانات",
-  calendar: "تقویم آموزشی",
-  "parents-meetings": "جلسات انجمن اولیا و مربیان",
-  "family-counseling": "جلسات مشاوره خانواده",
+  calendar: "تقویم اجرایی",
+  "parents-meetings": "انجمن اولیا و مربیان",
+  "family-counseling": "آموزش خانواده",
 };
 
 const dayOrder = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
@@ -175,7 +175,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
           </article>
         ))}
       </div>
-    ) : <EmptyState text="هنوز رویدادی در تقویم آموزشی ثبت نشده است." />;
+    ) : <EmptyState text="هنوز رویدادی در تقویم اجرایی ثبت نشده است." />;
   }
 
   if (type === "parents-meetings") {
@@ -228,7 +228,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
           </article>
         ))}
       </div>
-    ) : <EmptyState text="هنوز جلسه مشاوره‌ای ثبت نشده است." />;
+    ) : <EmptyState text="هنوز محتوایی برای آموزش خانواده ثبت نشده است." />;
   }
 
   return (
@@ -242,7 +242,7 @@ export default async function ProgramDetailPage({ params }: { params: Promise<{ 
 
           <article className="mt-6 rounded-[22px] border border-[#DBE7C1] bg-white p-6 shadow-[0_12px_40px_rgba(25,67,66,0.06)] sm:p-9">
             <p className="text-xs font-semibold text-[#667085]">{labels[type] ?? program.title}</p>
-            <h1 className="mt-3 text-2xl font-bold text-[#194342]">{program.title}</h1>
+            <h1 className="mt-3 text-2xl font-bold text-[#194342]">{labels[type] ?? program.title}</h1>
             <p className="mt-3 text-sm leading-8 text-[#667085]">{program.description}</p>
             {(program.startDate || program.endDate) && (
               <div className="mt-5 text-xs text-[#667085]">

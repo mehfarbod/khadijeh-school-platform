@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const activeOnly = params.get("activeOnly") !== "false";
     if (!activeOnly) await requirePermission("programs.manage");
     const program = await getProgram();
-    if (!program) return NextResponse.json({ error: "بخش مشاوره خانواده یافت نشد." }, { status: 404 });
+    if (!program) return NextResponse.json({ error: "بخش آموزش خانواده یافت نشد." }, { status: 404 });
 
     const sessions = await prisma.familyCounselingSession.findMany({
       where: { programId: program.id, ...(activeOnly ? { isActive: true } : {}) },
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     console.error("GET /api/programs/family-counseling error:", error);
     if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
     if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مدیریت برنامه‌های آموزشی را ندارید." }, { status: 403 });
-    return NextResponse.json({ error: "خطا در دریافت جلسات مشاوره خانواده." }, { status: 500 });
+    return NextResponse.json({ error: "خطا در دریافت آموزش خانواده." }, { status: 500 });
   }
 }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "اطلاعات جلسه معتبر نیست.", details: parsed.error.flatten().fieldErrors }, { status: 400 });
 
     const program = await getProgram();
-    if (!program) return NextResponse.json({ error: "تعریف مشاوره خانواده پیدا نشد." }, { status: 404 });
+    if (!program) return NextResponse.json({ error: "تعریف آموزش خانواده پیدا نشد." }, { status: 404 });
 
     const session = await prisma.familyCounselingSession.create({ data: { ...parsed.data, programId: program.id } });
     return NextResponse.json(session, { status: 201 });

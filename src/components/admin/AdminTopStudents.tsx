@@ -1,7 +1,7 @@
 "use client";
 
 import AdminLayout from "@/components/admin/AdminLayout";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { GRADE_LABELS } from "@/lib/persian";
 
 interface TopStudent {
   id: string;
@@ -33,6 +34,8 @@ interface TopStudent {
   achievement: string;
   academicYear: string;
   category: string | null;
+  className: string | null;
+  rank: number | null;
   isActive: boolean;
 }
 
@@ -43,15 +46,31 @@ interface Form {
   achievement: string;
   academicYear: string;
   category: string;
+  className: string;
+  rank: string;
+  isActive: boolean;
 }
+
+interface TopStudentOptions {
+  academicYear: { id: string; title: string } | null;
+  classes: { id: string; grade: string; name: string }[];
+}
+
+const gradeOptions = ["10", "11", "12"].map((value) => ({
+  value,
+  label: GRADE_LABELS[value].replace(/^پایه\s+/, ""),
+}));
 
 const emptyForm: Form = {
   firstName: "",
   lastName: "",
   grade: "",
   achievement: "",
-  academicYear: "1404-1405",
+  academicYear: "",
   category: "",
+  className: "",
+  rank: "1",
+  isActive: true,
 };
 
 export default function AdminTopStudents() {
@@ -60,17 +79,28 @@ export default function AdminTopStudents() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>({ ...emptyForm });
+  const [options, setOptions] = useState<TopStudentOptions>({ academicYear: null, classes: [] });
+
+  const availableClasses = useMemo(
+    () => options.classes.filter((schoolClass) => schoolClass.grade === form.grade),
+    [form.grade, options.classes]
+  );
 
   const loadStudents = async () => {
     try {
-      const response = await fetch("/api/top-students?activeOnly=false");
+      const [response, optionsResponse] = await Promise.all([
+        fetch("/api/top-students?activeOnly=false"),
+        fetch("/api/top-students/options"),
+      ]);
 
-      if (!response.ok) {
+      if (!response.ok || !optionsResponse.ok) {
         throw new Error("Failed to fetch top students");
       }
 
       const data: TopStudent[] = await response.json();
+      const nextOptions: TopStudentOptions = await optionsResponse.json();
       setStudents(data);
+      setOptions(nextOptions);
     } catch (error) {
       console.error("Failed to load top students:", error);
       setStudents([]);
@@ -86,6 +116,8 @@ export default function AdminTopStudents() {
     if (!form.firstName.trim() || !form.lastName.trim()) { toast.error("نام و نام خانوادگی الزامی است."); return; }
     if (!form.achievement.trim()) { toast.error("عنوان افتخار الزامی است."); return; }
     if (!form.academicYear.trim()) { toast.error("سال تحصیلی الزامی است."); return; }
+    if (!form.grade) { toast.error("پایه تحصیلی الزامی است."); return; }
+    if (!editId && !form.className.trim()) { toast.error("کلاس برای رتبه جدید الزامی است."); return; }
     try {
       const payload = {
         firstName: form.firstName,
@@ -94,6 +126,9 @@ export default function AdminTopStudents() {
         achievement: form.achievement,
         academicYear: form.academicYear,
         category: form.category || null,
+        className: form.className.trim() || null,
+        rank: form.className.trim() ? Number(form.rank) : null,
+        isActive: form.isActive,
       };
 
       const response = await fetch(
@@ -104,7 +139,7 @@ export default function AdminTopStudents() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(
-            editId ? payload : { ...payload, isActive: true }
+            payload
           ),
         }
       );
@@ -161,7 +196,7 @@ export default function AdminTopStudents() {
 
   const openCreate = () => {
     setEditId(null);
-    setForm({ ...emptyForm });
+    setForm({ ...emptyForm, academicYear: options.academicYear?.title ?? "" });
     setDialogOpen(true);
   };
 
@@ -175,6 +210,9 @@ export default function AdminTopStudents() {
       achievement: student.achievement,
       academicYear: student.academicYear,
       category: student.category ?? "",
+      className: student.className ?? "",
+      rank: String(student.rank ?? 1),
+      isActive: student.isActive,
     });
 
     setDialogOpen(true);
@@ -215,7 +253,7 @@ export default function AdminTopStudents() {
                   پایه
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  افتخارات
+                  کلاس / رتبه
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">
                   عملیات
@@ -264,7 +302,7 @@ export default function AdminTopStudents() {
                     </td>
 
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {student.achievement}
+                      {student.className ? `${student.className} · رتبه ${student.rank}` : "نیازمند تکمیل"}
                     </td>
 
                     <td className="px-4 py-3">
@@ -345,16 +383,27 @@ export default function AdminTopStudents() {
 
             <div>
               <Label className="text-xs">پایه</Label>
-              <Input
-                value={form.grade}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    grade: event.target.value,
-                  })
-                }
-                className="mt-1"
-              />
+              <select value={form.grade} onChange={(event) => setForm({ ...form, grade: event.target.value, className: "" })} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="">انتخاب پایه</option>
+                {gradeOptions.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
+                {form.grade && !gradeOptions.some((grade) => grade.value === form.grade) && <option value={form.grade}>{form.grade}</option>}
+              </select>
+            </div>
+
+            <div>
+              <Label className="text-xs">کلاس</Label>
+              <select value={form.className} disabled={!form.grade} onChange={(event) => setForm({ ...form, className: event.target.value })} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60">
+                <option value="">{form.grade ? "انتخاب کلاس" : "ابتدا پایه را انتخاب کنید"}</option>
+                {availableClasses.map((schoolClass) => <option key={schoolClass.id} value={schoolClass.name}>{schoolClass.name}</option>)}
+                {form.className && !availableClasses.some((schoolClass) => schoolClass.name === form.className) && <option value={form.className}>{form.className} (ثبت قبلی)</option>}
+              </select>
+            </div>
+
+            <div>
+              <Label className="text-xs">رتبه</Label>
+              <select value={form.rank} onChange={(event) => setForm({ ...form, rank: event.target.value })} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="1">اول</option><option value="2">دوم</option><option value="3">سوم</option>
+              </select>
             </div>
 
             <div>
@@ -388,6 +437,8 @@ export default function AdminTopStudents() {
                 className="mt-1"
               />
             </div>
+
+            <label className="col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isActive} onChange={(event)=>setForm({...form,isActive:event.target.checked})} />انتشار در سایت</label>
 
             <div className="col-span-2">
               <Label className="text-xs">

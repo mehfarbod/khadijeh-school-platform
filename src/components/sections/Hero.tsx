@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft, GraduationCap, Users, Award } from "lucide-react";
+import { GraduationCap, Users, Award } from "lucide-react";
 
 const stats = [
   { icon: Users, value: "+۳۵۰", label: "دانش‌آموز" },
@@ -39,14 +38,6 @@ export default function Hero({
           <p className="mx-auto mt-3 max-w-2xl text-xs leading-7 text-white/75 sm:text-sm lg:text-base">
             {heroDescription}
           </p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/registration" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#DBE7C1] px-5 text-xs font-bold text-[#194342] transition-all hover:-translate-y-0.5 hover:bg-white sm:text-sm">
-              پیش‌ثبت‌نام مدرسه <ArrowLeft className="h-3.5 w-3.5" />
-            </Link>
-            <Link href="/courses" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#B86F5B] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#B86F5B]/90 sm:text-sm">
-              مشاهده دوره‌ها
-            </Link>
-          </div>
           <div className="mx-auto mt-8 grid max-w-lg grid-cols-3 border-t border-white/10 pt-3.5">
             {stats.map((stat) => {
               const Icon = stat.icon;

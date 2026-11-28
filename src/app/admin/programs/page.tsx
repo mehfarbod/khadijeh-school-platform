@@ -11,9 +11,9 @@ type Tab = "weekly" | "exams" | "calendar" | "parents-meetings" | "family-counse
 const tabs: Array<[Tab, string]> = [
   ["weekly", "برنامه هفتگی"],
   ["exams", "برنامه امتحانات"],
-  ["calendar", "تقویم آموزشی"],
+  ["calendar", "تقویم اجرایی"],
   ["parents-meetings", "انجمن اولیا و مربیان"],
-  ["family-counseling", "مشاوره خانواده"],
+  ["family-counseling", "آموزش خانواده"],
 ];
 
 type WeeklyEntry = { className: string; day: string; startTime: string; endTime: string; subject: string; teacher: string };
@@ -238,9 +238,9 @@ export default function AdminProgramsPage() {
         <button disabled={busy} className={`mt-5 ${button}`}>{busy ? "در حال ذخیره..." : "ذخیره برنامه امتحانات"}</button>
       </form>}
 
-      {tab === "calendar" && <SimpleManager title="تقویم آموزشی" items={events} fields={[["title","عنوان"],["date","تاریخ"],["eventType","نوع رویداد"],["description","توضیحات"]]} createUrl="/api/programs/calendar" onRefresh={loadList} dateField="date" />}
+      {tab === "calendar" && <SimpleManager title="تقویم اجرایی" items={events} fields={[["title","عنوان"],["date","تاریخ"],["eventType","نوع رویداد"],["description","توضیحات"]]} createUrl="/api/programs/calendar" onRefresh={loadList} dateField="date" />}
       {tab === "parents-meetings" && <SimpleManager title="جلسات انجمن اولیا و مربیان" items={meetings} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/parents-meetings" onRefresh={loadList} dateField="date" />}
-      {tab === "family-counseling" && <SimpleManager title="جلسات مشاوره خانواده" items={sessions} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["counselor","مشاور"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/family-counseling" onRefresh={loadList} dateField="date" />}
+      {tab === "family-counseling" && <SimpleManager title="آموزش خانواده" items={sessions} fields={[["title","عنوان"],["date","تاریخ"],["time","ساعت"],["counselor","مشاور"],["topic","موضوع"],["audience","مخاطبان"],["description","توضیحات"],["location","مکان"]]} createUrl="/api/programs/family-counseling" onRefresh={loadList} dateField="date" />}
       </div>
     </AdminLayout>
   );

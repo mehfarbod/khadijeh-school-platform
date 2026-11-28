@@ -31,9 +31,9 @@ export default function AnnouncementCard({
   );
 
   return (
-    <article className="rounded-[18px] border border-[#DBE7C1] bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(25,67,66,0.08)] sm:p-6">
+    <article className="rounded-[18px] border border-[#CFE8F8] bg-[#DCEFFF] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(23,50,77,0.08)] sm:p-6">
       <div className="flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[#DBE7C1]/40 text-[#194342]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-white/80 text-[#17324D]">
           {announcement.isPinned ? (
             <Pin
               className="h-[18px] w-[18px]"

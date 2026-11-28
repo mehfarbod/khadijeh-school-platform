@@ -41,6 +41,9 @@ const createTopStudentSchema = z.object({
     .nullable()
     .optional(),
 
+  className: z.string().trim().min(1, "نام کلاس الزامی است.").max(100),
+  rank: z.number().int().min(1).max(3),
+
   isActive: z.boolean().optional(),
 });
 
@@ -50,18 +53,28 @@ export async function GET(request: NextRequest) {
 
     const activeOnly = searchParams.get("activeOnly") !== "false";
 
+    if (!activeOnly) await requirePermission("top_students.manage");
+
     const students = await prisma.topStudent.findMany({
-      where: activeOnly ? { isActive: true } : undefined,
+      where: activeOnly ? { isActive: true, className: { not: null }, rank: { in: [1, 2, 3] } } : undefined,
       orderBy: [
         { academicYear: "desc" },
-        { lastName: "asc" },
-        { firstName: "asc" },
+        { className: "asc" },
+        { rank: "asc" },
       ],
+      select: activeOnly
+        ? { id: true, firstName: true, lastName: true, grade: true, achievement: true, academicYear: true, className: true, rank: true }
+        : undefined,
     });
 
     return NextResponse.json(students);
   } catch (error) {
-    console.error("GET /api/top-students error:", error);
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
+    }
+    if (error instanceof Error && error.message === "FORBIDDEN") {
+      return NextResponse.json({ error: "شما مجوز مدیریت دانش‌آموزان برتر را ندارید." }, { status: 403 });
+    }
 
     return NextResponse.json(
       { error: "خطا در دریافت دانش‌آموزان برتر" },
@@ -90,6 +103,28 @@ export async function POST(request: NextRequest) {
 
     const data = result.data;
 
+    const schoolClass = await prisma.class.findFirst({
+      where: {
+        name: data.className,
+        grade: data.grade,
+        isActive: true,
+        academicYear: { isCurrent: true, title: data.academicYear },
+      },
+      select: { id: true },
+    });
+    if (!schoolClass) {
+      return NextResponse.json(
+        { error: "کلاس انتخاب‌شده برای پایه و سال تحصیلی جاری معتبر نیست." },
+        { status: 400 }
+      );
+    }
+
+    const occupied = await prisma.topStudent.findFirst({
+      where: { academicYear: data.academicYear, className: data.className, rank: data.rank, isActive: true },
+      select: { id: true },
+    });
+    if (occupied) return NextResponse.json({ error: "این رتبه برای کلاس و سال تحصیلی انتخاب‌شده قبلاً ثبت شده است." }, { status: 409 });
+
     const student = await prisma.topStudent.create({
       data: {
         firstName: data.firstName,
@@ -98,6 +133,8 @@ export async function POST(request: NextRequest) {
         achievement: data.achievement,
         academicYear: data.academicYear,
         category: data.category || null,
+        className: data.className,
+        rank: data.rank,
         isActive: data.isActive ?? true,
       },
     });

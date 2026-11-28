@@ -93,6 +93,7 @@ model Student {
   grades              StudentGrade[]
   assessments         StudentAssessment[]
   reviewItems         StudentReviewItem[]
+  outstandingRecords OutstandingStudent[]
 
   @@index([isActive])
   @@index([birthday])
@@ -275,12 +276,77 @@ model TopStudent {
   achievement  String
   academicYear String
   category     String?
+  className    String?
+  rank         Int?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([academicYear])
+  @@index([academicYear, className, rank])
   @@index([isActive])
+}
+
+model ScientificGroup {
+  id          String                  @id @default(cuid())
+  name        String                  @unique
+  description String?
+  isPublished Boolean                 @default(false)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  minutes     ScientificGroupMinute[]
+
+  @@index([isPublished])
+}
+
+model ScientificGroupMinute {
+  id          String          @id @default(cuid())
+  groupId     String
+  title       String
+  heldOn      DateTime?
+  content     String
+  isPublished Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  group       ScientificGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, isPublished])
+  @@index([heldOn])
+}
+
+model Graduate {
+  id               String   @id @default(cuid())
+  firstName        String
+  lastName         String
+  entranceExamYear String
+  major            String
+  university       String
+  isPublished      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([entranceExamYear])
+  @@index([isPublished])
+}
+
+enum OutstandingSemester {
+  FIRST
+  SECOND
+}
+
+model OutstandingStudent {
+  id             String              @id @default(cuid())
+  studentId      String
+  academicYearId String
+  semester       OutstandingSemester
+  isPublished    Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  student        Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear   AcademicYear        @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, academicYearId, semester])
+  @@index([academicYearId, semester, isPublished])
 }
 
 model StudentGrade {
@@ -687,6 +753,7 @@ model AcademicYear {
   admissionApplications AdmissionApplication[]
   grades                StudentGrade[]
   assessments           StudentAssessment[]
+  outstandingStudents   OutstandingStudent[]
 
   @@index([isCurrent])
 }

@@ -75,8 +75,7 @@ function ContactMainContent() {
     const subject = String(formData.get("subject") ?? "");
     const message = String(formData.get("message") ?? "").trim();
     if (!department) nextErrors.department = "لطفاً مقصد پیام را انتخاب کنید.";
-    if (!name) nextErrors.fullName = "نام و نام خانوادگی الزامی است.";
-    else if (name.length < 3) nextErrors.fullName = "نام و نام خانوادگی معتبر نیست.";
+    if (name && name.length < 2) nextErrors.fullName = "نام و نام خانوادگی معتبر نیست.";
     if (!phone) nextErrors.phone = "شماره تماس الزامی است.";
     else if (!/^09\d{9}$/.test(phone)) nextErrors.phone = "شماره تلفن همراه معتبر نیست.";
     if (!subject) nextErrors.subject = "موضوع پیام را انتخاب کنید.";
@@ -239,14 +238,13 @@ function ContactMainContent() {
                       htmlFor="fullName"
                       className="mb-2 block text-[12px] font-medium text-[#194342]"
                     >
-                      نام و نام خانوادگی
+                      نام و نام خانوادگی (اختیاری)
                     </label>
 
                     <input
                       id="fullName"
                       name="fullName"
                       type="text"
-                      required
                       placeholder="نام و نام خانوادگی"
                       className="h-11 w-full rounded-[11px] border border-[#DCE5D4] bg-[#FAF8F3] px-3.5 text-[12px] text-[#1F2933] outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#194342]"
                     />

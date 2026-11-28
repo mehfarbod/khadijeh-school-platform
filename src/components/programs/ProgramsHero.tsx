@@ -23,7 +23,7 @@ export default function ProgramsHero() {
         </h1>
 
         <p className="mx-auto max-w-[540px] text-[13px] font-normal leading-[1.9] text-[#DBE7C1]/85 sm:text-[clamp(13px,2vw,15.5px)]">
-          برنامه‌های هفتگی، امتحانات و تقویم آموزشی مدرسه را در یکجا مشاهده
+          برنامه‌های هفتگی، امتحانات و تقویم اجرایی مدرسه را در یکجا مشاهده
           کنید.
         </p>
       </div>

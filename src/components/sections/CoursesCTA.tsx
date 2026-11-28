@@ -86,7 +86,11 @@ export default async function CoursesCTA() {
                         ? "یازدهم"
                         : course.gradeLevel === "12"
                           ? "دوازدهم"
-                          : "بدون پایه"}
+                          : course.gradeLevel === "general"
+                            ? "عمومی"
+                            : course.gradeLevel === "all"
+                              ? "همه پایه‌ها"
+                              : "بدون پایه"}
                   </span>
                 </div>
 

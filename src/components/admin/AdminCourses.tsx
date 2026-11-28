@@ -28,14 +28,14 @@ type Registration = {
 type FormState = {
   title: string; description: string; fullDescription: string; coverImage: string; instructor: string;
   startDate: string; endDate: string; schedule: string; duration: string; capacity: string;
-  price: string; status: "active" | "upcoming"; category: string; gradeLevel: "10" | "11" | "12" | "all" | "";
+  price: string; status: "active" | "upcoming"; category: string; categoryOption: "تقویتی" | "کنکور" | "سایر"; gradeLevel: "10" | "11" | "12" | "general" | "all" | "";
   registrationDeadline: string; isActive: boolean;
 };
 
 const emptyForm: FormState = {
   title: "", description: "", fullDescription: "", coverImage: "", instructor: "",
   startDate: "", endDate: "", schedule: "", duration: "", capacity: "20", price: "",
-  status: "upcoming", category: "آموزشی", gradeLevel: "", registrationDeadline: "", isActive: true,
+  status: "upcoming", category: "تقویتی", categoryOption: "تقویتی", gradeLevel: "", registrationDeadline: "", isActive: true,
 };
 
 const statusLabel = (status: string) => status === "active" ? "در حال ثبت‌نام" : "به‌زودی";
@@ -99,13 +99,14 @@ export default function AdminCourses() {
 
   const openCreate = () => { setEditing(null); setForm(emptyForm); setError(""); setOpen(true); };
   const openEdit = (course: Course) => {
+    const categoryOption: FormState["categoryOption"] = course.category === "تقویتی" || course.category === "کنکور" ? course.category : "سایر";
     setEditing(course);
     setForm({
       title: course.title, description: course.description, fullDescription: course.fullDescription || "",
       coverImage: course.coverImage || "", instructor: course.instructor || "", startDate: toInputDate(course.startDate),
       endDate: toInputDate(course.endDate), schedule: course.schedule || "", duration: course.duration || "",
       capacity: String(course.capacity), price: course.price == null ? "" : String(course.price),
-      status: course.status, category: course.category, gradeLevel: course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" || course.gradeLevel === "all" ? course.gradeLevel : "",
+      status: course.status, category: course.category, categoryOption, gradeLevel: course.gradeLevel === "10" || course.gradeLevel === "11" || course.gradeLevel === "12" || course.gradeLevel === "general" || course.gradeLevel === "all" ? course.gradeLevel : "",
       registrationDeadline: toInputDate(course.registrationDeadline), isActive: course.isActive,
     });
     setError(""); setOpen(true);
@@ -123,11 +124,12 @@ export default function AdminCourses() {
     if (price !== null && (!Number.isFinite(price) || price < 0)) { setError("هزینه دوره معتبر نیست."); return; }
     setSaving(true); setError("");
     try {
+      const { categoryOption: _categoryOption, ...courseForm } = form;
       const response = await fetch(editing ? `/api/courses?id=${editing.id}` : "/api/courses", {
         method: editing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          ...courseForm,
           capacity: Number(form.capacity),
           price: form.price ? Number(form.price) : null,
           coverImage: form.coverImage || null,
@@ -199,7 +201,7 @@ export default function AdminCourses() {
                     {course.title}
                   </button>
                 </td>
-                <td className="px-4 py-3">{course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : course.gradeLevel === "all" ? "همه پایه‌ها" : "—"}</td>
+                <td className="px-4 py-3">{course.gradeLevel === "10" ? "دهم" : course.gradeLevel === "11" ? "یازدهم" : course.gradeLevel === "12" ? "دوازدهم" : course.gradeLevel === "general" ? "عمومی" : course.gradeLevel === "all" ? "همه پایه‌ها" : "—"}</td>
                 <td className="px-4 py-3">{course.category}</td>
                 <td className="px-4 py-3">{statusLabel(course.status)}</td>
                 <td className="px-4 py-3">{course.capacity}</td>
@@ -272,8 +274,9 @@ export default function AdminCourses() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="sm:col-span-2 text-sm">عنوان دوره<input className={inputClass} value={form.title} onChange={e=>update("title",e.target.value)} placeholder="مثلاً کلاس تقویتی ریاضی"/></label>
             <label className="sm:col-span-2 text-sm">توضیح کوتاه<textarea className="mt-1.5 min-h-20 w-full rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary" value={form.description} onChange={e=>update("description",e.target.value)}/></label>
-            <label className="text-sm">دسته‌بندی<input className={inputClass} value={form.category} onChange={e=>update("category",e.target.value)} placeholder="آموزشی"/></label>
-            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="" disabled>پایه تحصیلی را انتخاب کنید</option><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option><option value="all">همه پایه‌ها</option></select></label>
+            <label className="text-sm">دسته‌بندی<select className={inputClass} value={form.categoryOption} onChange={e=>{const value=e.target.value as FormState["categoryOption"];setForm(current=>({...current,categoryOption:value,category:value === "سایر" ? (current.categoryOption === "سایر" ? current.category : "") : value}));}}><option value="تقویتی">تقویتی</option><option value="کنکور">کنکور</option><option value="سایر">سایر</option></select></label>
+            <label className="text-sm">پایه تحصیلی<select className={inputClass} value={form.gradeLevel} onChange={e=>update("gradeLevel",e.target.value as FormState["gradeLevel"])}><option value="" disabled>پایه تحصیلی را انتخاب کنید</option><option value="10">پایه دهم</option><option value="11">پایه یازدهم</option><option value="12">پایه دوازدهم</option><option value="general">عمومی</option><option value="all">همه پایه‌ها</option></select></label>
+            {form.categoryOption === "سایر" && <label className="sm:col-span-2 text-sm">عنوان دسته‌بندی<input className={inputClass} value={form.category} onChange={e=>update("category",e.target.value)} placeholder="عنوان دسته‌بندی را وارد کنید"/></label>}
             <label className="text-sm">مدرس<input className={inputClass} value={form.instructor} onChange={e=>update("instructor",e.target.value)}/></label>
             <label className="text-sm">مدت دوره<input className={inputClass} value={form.duration} onChange={e=>update("duration",e.target.value)} placeholder="مثلاً ۱۲ جلسه"/></label>
             <label className="text-sm">زمان‌بندی<input className={inputClass} value={form.schedule} onChange={e=>update("schedule",e.target.value)} placeholder="شنبه‌ها، ساعت ۱۶"/></label>

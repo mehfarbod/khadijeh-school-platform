@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const activeOnly = params.get("activeOnly") !== "false";
     if (!activeOnly) await requirePermission("programs.manage");
     const program = await getProgram();
-    if (!program) return NextResponse.json({ error: "تقویم آموزشی یافت نشد." }, { status: 404 });
+    if (!program) return NextResponse.json({ error: "تقویم اجرایی یافت نشد." }, { status: 404 });
 
     const events = await prisma.educationalCalendarEvent.findMany({
       where: { programId: program.id, ...(activeOnly ? { isActive: true } : {}) },
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     console.error("GET /api/programs/calendar error:", error);
     if (error instanceof Error && error.message === "UNAUTHORIZED") return NextResponse.json({ error: "احراز هویت الزامی است." }, { status: 401 });
     if (error instanceof Error && error.message === "FORBIDDEN") return NextResponse.json({ error: "شما مجوز مدیریت برنامه‌های آموزشی را ندارید." }, { status: 403 });
-    return NextResponse.json({ error: "خطا در دریافت تقویم آموزشی." }, { status: 500 });
+    return NextResponse.json({ error: "خطا در دریافت تقویم اجرایی." }, { status: 500 });
   }
 }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "اطلاعات رویداد معتبر نیست.", details: parsed.error.flatten().fieldErrors }, { status: 400 });
 
     const program = await getProgram();
-    if (!program) return NextResponse.json({ error: "تعریف تقویم آموزشی پیدا نشد." }, { status: 404 });
+    if (!program) return NextResponse.json({ error: "تعریف تقویم اجرایی پیدا نشد." }, { status: 404 });
 
     const event = await prisma.educationalCalendarEvent.create({ data: { ...parsed.data, programId: program.id } });
     return NextResponse.json(event, { status: 201 });

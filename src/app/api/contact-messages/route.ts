@@ -6,7 +6,7 @@ import { rateLimit } from "@/lib/security/rate-limit";
 import { NextRequest } from "next/server";
 
 const createContactMessageSchema = z.object({
-  name: z.string().trim().min(1, "نام الزامی است.").max(150),
+  name: z.string().trim().max(150).optional().default(""),
   phone: z.string().trim().min(1, "شماره تماس الزامی است.").regex(/^09\d{9}$/, "شماره تلفن همراه معتبر نیست."),
   department: z.enum(["management", "deputy", "education"]),
   subject: z.string().trim().min(1, "موضوع پیام الزامی است.").max(300),

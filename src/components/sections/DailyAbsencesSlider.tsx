@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { ArrowLeft, ArrowRight, UserRoundX } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import StudentIllustrationPlaceholder from "@/components/ui/StudentIllustrationPlaceholder";
 
 type DailyAbsence = {
   id: string;
@@ -70,9 +71,7 @@ export default function DailyAbsencesSlider({
               className="w-[360px] shrink-0 rounded-2xl border border-[#DBE7C1] bg-[#FAF8F3] p-5"
             >
               <div className="flex items-center gap-4" dir="rtl">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#F8ECE8] text-[#B86F5B]">
-                  <UserRoundX className="h-7 w-7" strokeWidth={1.6} />
-                </div>
+                <StudentIllustrationPlaceholder variant="absence" className="w-16" />
 
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm font-bold text-[#1F2933]">

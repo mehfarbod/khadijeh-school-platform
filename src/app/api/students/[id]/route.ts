@@ -10,7 +10,10 @@ const updateStudentSchema = studentProfileSchema
   .partial()
   .merge(studentEnrollmentSchema.partial())
   .extend({
-    classId: z.string().trim().min(1).nullable().optional(),
+    classId: z.preprocess(
+      (value) => value === "" ? null : value,
+      z.string().trim().min(1).nullable().optional(),
+    ),
     photo: z.string().trim().max(2000).nullable().optional(),
     isActive: z.boolean().optional(),
     isBirthdayVisible: z.boolean().optional(),
@@ -189,22 +192,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         let classId: string | null | undefined = undefined;
 
         if (data.classId !== undefined || data.className !== undefined) {
-          if (data.classId === null && !data.className?.trim()) {
-            throw new Error("STUDENT_CLASS_REQUIRED");
-          }
-
           classId = await resolveClassId({
             classId: data.classId,
             className: data.className,
             academicYearId,
             grade,
           });
-
-          if (!classId) throw new Error("STUDENT_CLASS_REQUIRED");
-        }
-
-        if (!existingEnrollment && classId === undefined) {
-          throw new Error("STUDENT_CLASS_REQUIRED");
         }
 
         await tx.studentEnrollment.upsert({

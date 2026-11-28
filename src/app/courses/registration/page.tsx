@@ -272,7 +272,7 @@ function CourseRegistrationContent() {
                       </p>
 
                       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-[#667085]">
-                        <span>{selectedCourse.gradeLevel || "همه پایه‌ها"}</span>
+                        <span>{selectedCourse.gradeLevel === "10" ? "دهم" : selectedCourse.gradeLevel === "11" ? "یازدهم" : selectedCourse.gradeLevel === "12" ? "دوازدهم" : selectedCourse.gradeLevel === "general" ? "عمومی" : "همه پایه‌ها"}</span>
 
                         {selectedCourse.schedule && <span>{selectedCourse.schedule}</span>}
 

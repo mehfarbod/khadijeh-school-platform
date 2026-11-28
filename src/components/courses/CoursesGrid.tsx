@@ -36,7 +36,9 @@ function toCourse(course: ApiCourse): Course {
           ? "پایه یازدهم"
           : course.gradeLevel === "12"
             ? "پایه دوازدهم"
-            : "همه پایه‌ها",
+            : course.gradeLevel === "general"
+              ? "عمومی"
+              : "همه پایه‌ها",
     sessions: course.duration || "برنامه آموزشی",
     schedule: course.schedule || "زمان‌بندی متعاقباً اعلام می‌شود",
     capacity: `ظرفیت ${course.capacity} نفر`,

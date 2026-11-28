@@ -44,11 +44,11 @@ export default async function HomePage() {
         },
       }),
       prisma.topStudent.findMany({
-        where: { isActive: true },
+        where: { isActive: true, className: { not: null }, rank: { in: [1, 2, 3] } },
         orderBy: [
           { academicYear: "desc" },
-          { lastName: "asc" },
-          { firstName: "asc" },
+          { className: "asc" },
+          { rank: "asc" },
         ],
         select: {
           id: true,
@@ -56,6 +56,9 @@ export default async function HomePage() {
           lastName: true,
           grade: true,
           achievement: true,
+          academicYear: true,
+          className: true,
+          rank: true,
         },
       }),
       prisma.student.findMany({
@@ -150,7 +153,7 @@ export default async function HomePage() {
 
       {visibility.showTopStudents && (
         <Reveal>
-          <TopStudents students={topStudents} />
+          <TopStudents students={topStudents.filter((student) => student.academicYear === topStudents[0]?.academicYear)} />
         </Reveal>
       )}
 

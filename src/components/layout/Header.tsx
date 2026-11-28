@@ -23,17 +23,41 @@ const programLinks = [
     href: "/programs/exams",
   },
   {
-    label: "تقویم آموزشی",
+    label: "تقویم اجرایی",
     href: "/programs/calendar",
   },
   {
-    label: "جلسات انجمن اولیا و مربیان",
+    label: "آموزش خانواده",
+    href: "/programs/family-counseling",
+  },
+  {
+    label: "انجمن اولیا و مربیان",
     href: "/programs/parents-meetings",
   },
   {
-    label: "جلسات مشاوره خانواده",
-    href: "/programs/family-counseling",
+    label: "شورای دانش‌آموزی",
+    href: "/programs/student-council",
   },
+  {
+    label: "گروه‌های علمی",
+    href: "/scientific-groups",
+  },
+];
+
+const courseLinks = [
+  {
+    label: "برنامه کلاس‌های تقویتی",
+    href: "/courses/remedial",
+  },
+  {
+    label: "برنامه کلاس‌های کنکور",
+    href: "/courses/konkur",
+  },
+];
+
+const recognitionLinks = [
+  { label: "دانش‌آموزان ممتاز", href: "/outstanding-students" },
+  { label: "فارغ‌التحصیلان", href: "/graduates" },
 ];
 
 const videoLinks = [
@@ -447,21 +471,31 @@ function HeaderContent() {
           })}
 
           {/* دوره‌ها */}
-          <Link
+          <DesktopDropdown
+            label="دوره‌ها"
             href="/courses"
+            links={courseLinks}
+            pathname={currentPathname}
+            searchParams={currentSearchParams}
+          />
+
+          <Link
+            href="/classes"
             className={cn(
               "whitespace-nowrap text-sm font-medium transition-colors",
-              isActive("/courses")
+              isActive("/classes")
                 ? "text-[#B86F5B]"
                 : "text-[#194342] hover:text-[#B86F5B]",
             )}
           >
-            دوره‌ها
+            کلاس‌ها
           </Link>
+
+          <DesktopDropdown label="افتخارات" href="/outstanding-students" links={recognitionLinks} pathname={currentPathname} searchParams={currentSearchParams} />
 
           {/* برنامه‌های آموزشی */}
           <DesktopDropdown
-            label="برنامه‌های آموزشی"
+            label="آموزش"
             href="/programs"
             links={programLinks}
             pathname={currentPathname}
@@ -709,20 +743,33 @@ function HeaderContent() {
             </Link>
 
             {/* دوره‌ها */}
-            <Link
+            <MobileDropdown
+              label="دوره‌ها"
               href="/courses"
+              links={courseLinks}
+              pathname={currentPathname}
+              searchParams={currentSearchParams}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              setMobileMenuOpen={setMobileMenuOpen}
+            />
+
+            <Link
+              href="/classes"
               onClick={closeMobileMenu}
               className={cn(
                 "py-2.5 text-sm font-medium transition-colors",
-                isActive("/courses") ? "text-[#B86F5B]" : "text-[#194342]",
+                isActive("/classes") ? "text-[#B86F5B]" : "text-[#194342]",
               )}
             >
-              دوره‌ها
+              کلاس‌ها
             </Link>
+
+            <MobileDropdown label="افتخارات" href="/outstanding-students" links={recognitionLinks} pathname={currentPathname} searchParams={currentSearchParams} openDropdown={openDropdown} setOpenDropdown={setOpenDropdown} setMobileMenuOpen={setMobileMenuOpen} />
 
             {/* برنامه‌های آموزشی */}
             <MobileDropdown
-              label="برنامه‌های آموزشی"
+              label="آموزش"
               href="/programs"
               links={programLinks}
               pathname={currentPathname}

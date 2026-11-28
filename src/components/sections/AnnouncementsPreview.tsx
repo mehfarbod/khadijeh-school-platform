@@ -17,7 +17,7 @@ export default async function AnnouncementsPreview() {
   if (announcements.length === 0) return null;
 
   return (
-    <section className="bg-muted/30 py-14 md:py-20">
+    <section className="bg-[#F4FAFE] py-14 md:py-20">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -31,8 +31,8 @@ export default async function AnnouncementsPreview() {
         </div>
         <div className="space-y-3">
           {announcements.map((item) => (
-            <div key={item.id} className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-4 transition-all hover:border-border hover:shadow-sm">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/5">
+            <div key={item.id} className="flex items-start gap-4 rounded-2xl border border-[#CFE8F8] bg-[#DCEFFF] p-4 transition-all hover:border-[#B8DCF2] hover:shadow-sm">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/80">
                 {item.isPinned ? <Pin className="h-4 w-4 text-primary" /> : <Bell className="h-4 w-4 text-muted-foreground" />}
               </div>
               <div className="min-w-0 flex-1">

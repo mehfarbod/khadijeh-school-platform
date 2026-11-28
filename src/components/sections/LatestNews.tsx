@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
@@ -7,6 +8,7 @@ interface NewsItem {
   slug: string;
   title: string;
   excerpt: string;
+  coverImage: string | null;
   category: string;
   createdAt: Date;
 }
@@ -44,6 +46,7 @@ export default async function LatestNews() {
       slug: true,
       title: true,
       excerpt: true,
+      coverImage: true,
       category: true,
       createdAt: true,
     },
@@ -86,6 +89,17 @@ export default async function LatestNews() {
               >
                 <article className="h-full overflow-hidden rounded-2xl border border-[#DBE7C1] bg-white transition-shadow duration-200 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
                   <div className="h-1" style={{ backgroundColor: categoryColor }} />
+                  {item.coverImage && (
+                    <div className="relative aspect-[16/9] overflow-hidden bg-[#F1F5E8]">
+                      <Image
+                        src={item.coverImage}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      />
+                    </div>
+                  )}
                   <div className="px-[22px] py-5">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <span

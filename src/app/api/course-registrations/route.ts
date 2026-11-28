@@ -113,6 +113,7 @@ export async function POST(request: Request) {
     if (
       course.gradeLevel &&
       course.gradeLevel !== "all" &&
+      course.gradeLevel !== "general" &&
       course.gradeLevel !== grade
     ) {
       return NextResponse.json(

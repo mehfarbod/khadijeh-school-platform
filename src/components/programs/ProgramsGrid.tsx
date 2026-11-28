@@ -12,6 +12,12 @@ const meta: Record<string, { icon: typeof CalendarDays; accent: string }> = {
   "family-counseling": { icon: HeartHandshake, accent: "#F0DDD8" },
 };
 
+const displayLabels: Record<string, string> = {
+  calendar: "تقویم اجرایی",
+  "family-counseling": "آموزش خانواده",
+  "parents-meetings": "انجمن اولیا و مربیان",
+};
+
 type Program = { id: string; type: string; title: string; description: string };
 
 export default function ProgramsGrid() {
@@ -44,7 +50,7 @@ export default function ProgramsGrid() {
             return (
               <Link key={program.id} href={`/programs/${program.type}`} className="group rounded-[18px] border border-[#DBE7C1] bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(25,67,66,0.10)]">
                 <div className="flex h-14 w-14 items-center justify-center rounded-[16px]" style={{ backgroundColor: item.accent }}><Icon className="h-7 w-7 text-[#194342]" strokeWidth={1.8} /></div>
-                <h3 className="mt-5 text-[16px] font-bold text-[#1F2933]">{program.title}</h3>
+                <h3 className="mt-5 text-[16px] font-bold text-[#1F2933]">{displayLabels[program.type] ?? program.title}</h3>
                 <p className="mt-2 text-[13px] leading-[1.9] text-[#667085]">{program.description}</p>
                 <div className="mt-5 flex items-center gap-1.5 text-[12.5px] font-semibold text-[#194342] group-hover:text-[#B86F5B]"><span>مشاهده برنامه</span><ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" /></div>
               </Link>

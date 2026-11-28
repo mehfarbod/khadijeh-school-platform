@@ -37,7 +37,10 @@ const studentSchema = z.object({
   description: z.string().trim().max(2000, "توضیحات بیش از حد طولانی است.").nullable().optional(),
   academicYearId: z.string().trim().min(1, "سال تحصیلی الزامی است."),
   grade: gradeSchema,
-  classId: z.string().trim().min(1).nullable().optional(),
+  classId: z.preprocess(
+    (value) => value === "" ? null : value,
+    z.string().trim().min(1).nullable().optional(),
+  ),
   className: z.string().trim().max(50, "نام کلاس بیش از حد طولانی است.").nullable().optional(),
   isActive: z.boolean().optional(),
 });
@@ -130,10 +133,6 @@ export async function POST(request: NextRequest) {
       };
       if (errors[message]) return NextResponse.json({ error: errors[message] }, { status: 400 });
       throw error;
-    }
-
-    if (!classId) {
-      return NextResponse.json({ error: "برای ثبت دانش‌آموز باید ابتدا یک کلاس فعال توسط مدیریت تعریف و انتخاب شود." }, { status: 400 });
     }
 
     const birthday = data.birthday ? new Date(jalaliToGregorian(data.birthday)) : null;
